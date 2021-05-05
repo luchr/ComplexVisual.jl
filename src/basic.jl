@@ -4,7 +4,7 @@ macro import_basic_huge()
             CV_Error, cv_error,
             CV_TranslateByOffset, CV_MultiplyByFactor,
             CV_CyclicValue, cv_set_value!,
-            cv_create_angle_cross_test
+            cv_create_angle_cross_test, cv_half
      )
 end
 
@@ -108,6 +108,10 @@ function cv_create_angle_cross_test(ϕ::Real, rmin::Real, rmax::Real; δ=100eps(
         end
     end
 end
+
+cv_half(x::N) where {N<:Integer}        =  x ÷ N(2)
+cv_half(x::N) where {N<:AbstractFloat}  =  x/2
+
 # }}}
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
