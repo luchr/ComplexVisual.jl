@@ -2,7 +2,8 @@ macro import_axis_huge()
     :(
         using ComplexVisual:
             CV_TickLabel, cv_format_ticks, CV_2DAxisCanvas, cv_create_context,
-            cv_create_2daxis_canvas, cv_ticks_labels, cv_anchor
+            cv_create_2daxis_canvas, cv_ticks_labels, cv_anchor,
+            CV_AttachType, cv_north, cv_south, cv_east, cv_west
     )
 end
 
@@ -120,15 +121,45 @@ end
 
 # }}}
 
-const cv_ticks_labels_tick_style = cv_linewidth(2) → cv_color(0,0,0)
-const cv_ticks_labels_label_style = cv_color(0,0,0) → 
-                                    cv_fontface("cairo:monospace") →
-                                    cv_fontsize(15)
+const cv_north, cv_south = Val(:north), Val(:south)
+const cv_east, cv_west = Val(:east), Val(:west)
+const CV_AttachType = Union{Val{:north}, Val{:south}, Val{:east}, Val{:west}}
 
-function cv_ticks_labels_draw(
-        canvas::CV_2DAxisCanvas, tick_length, tick_style, label_style,
+"""
+Struct saving all styles/data needed to render/draw axis.
+"""
+struct CV_AxisAppearance{tsT <: CV_ContextStyle, lsT <: CV_ContextStyle}
+    attach       :: CV_AttachType
+    tick_length  :: Int32
+    gap          :: Int32
+    tick_style   :: tsT
+    label_style  :: lsT
+
+    function CV_AxisAppearance(attach::CV_AttachType,
+            tick_length::Integer, gap::Integer, tick_style::CV_ContextStyle,
+            label_style::CV_ContextStyle)
+        return new{typeof(tick_style), typeof(label_style)}(
+            attach, Int32(tick_length), Int32(gap), tick_style, label_style)
+    end
+end
+
+function CV_AxisAppearance(;
+        attach::CV_AttachType=cv_south,
+        tick_length::Integer=Int32(10),
+        gap::Integer=cv_half(tick_length),
+        tick_style::CV_ContextStyle=cv_linewidth(2) → cv_color(0,0,0),
+        label_style::CV_ContextStyle=cv_color(0,0,0) →
+            cv_fontface("serif") → cv_fontsize(15))
+    return CV_AxisAppearance(attach, tick_length, gap, tick_style, label_style)
+end
+
+function cv_ticks_labels_draw(canvas::CV_2DAxisCanvas,
+        app::CV_AxisAppearance,
         ticklabelsdata::NTuple{N, CV_TickLabelData{Float64}};
         debug::Union{Val{true}, Val{false}}=Val(false)) where {N}  # {{{
+
+    tick_length, tick_style = app.tick_length, app.tick_style
+    label_style = app.label_style
 
     cv_create_context(canvas) do con
         ctx = con.ctx
@@ -176,7 +207,6 @@ function cv_ticks_labels_draw(
             set_source_rgb(ctx, 0, 1, 0)
             rectangle(ctx, ubox.left, ubox.bottom, cv_width(ubox), cv_height(ubox))
             stroke(ctx)
-
         end
     end
 end # }}}
@@ -212,9 +242,11 @@ end
 function cv_set_tick_location!(ticklabelsdata, for_canvas, attach)
     for td in ticklabelsdata
         if (attach isa Val{:north}) || (attach isa Val{:south})
-            td.tick_location = cv_math2pixel(for_canvas, td.math_location, 0.0)[1]
+            td.tick_location = cv_math2pixel(
+                for_canvas, td.math_location, 0.0)[1]
         else
-            td.tick_location = cv_math2pixel(for_canvas, 0.0, td.math_location)[2]
+            td.tick_location = cv_math2pixel(
+                for_canvas, 0.0, td.math_location)[2]
         end
     end
     return nothing
@@ -237,7 +269,6 @@ function cv_get_label_ypos(td, base, attach::Union{Val{:south}, Val{:north}})
 end
 
 function cv_get_label_ypos(td, base, attach::Union{Val{:east}, Val{:west}})
-    # return td.tick_location + round(Int32, cv_half(td.text_extents.bb_height))
     return td.tick_location + round(Int32,
         td.text_extents.depth + td.text_extents.height/3)
 end
@@ -262,16 +293,15 @@ function cv_add_rect_for_ticks(rstore, ticklabelsdata, tick_length, gap, attach)
     new_right = cur_right + tick_length + gap
     cv_add_rectangle!(rstore, (
         attach isa Val{:south} ? CV_Rectangle(tick_length, min_loc,
-                                              z, max_loc)                :
+                                              z, max_loc)                    :
         attach isa Val{:north} ? CV_Rectangle(new_top, min_loc,
-                                              new_top-o, max_loc)        :
-        attach isa Val{:east}  ? CV_Rectangle(max_loc, z,
-                                              min_loc, tick_length)      :
+                                              new_top-o, max_loc)            :
+        attach isa Val{:east}  ? CV_Rectangle(max_loc, z, min_loc,
+                                              tick_length)                   :
         attach isa Val{:west}  ? CV_Rectangle(max_loc, new_right-o,
-                                              min_loc, new_right)        :
+                                              min_loc, new_right)            :
         cv_error("Unknown attach value")) :: CV_Rectangle{Int32})
     return nothing
-
 end
 
 function cv_add_rect_for_default_anchor(rstore, attach)
@@ -290,22 +320,19 @@ function cv_get_default_anchor(rstore, attach)
     z, o = zero(Int32), one(Int32)
     bb = rstore.bounding_box
     return (
-        attach isa Val{:south} ? (-bb.left, z)                :
-        attach isa Val{:north} ? (-bb.left, bb.top)           :
-        attach isa Val{:east}  ? (z, -bb.bottom)              :
-        attach isa Val{:west}  ? (bb.right, -bb.bottom)       :
+        attach isa Val{:south} ? (-bb.left, z)             :
+        attach isa Val{:north} ? (-bb.left, bb.top)        :
+        attach isa Val{:east}  ? (z, -bb.bottom)           :
+        attach isa Val{:west}  ? (bb.right, -bb.bottom)    :
         cv_error("Unknown attach value")) :: Tuple{Int32, Int32}
 end
 
 function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
         ticklabels::Vararg{CV_TickLabel{Float64}, N};
-        attach::Union{Val{:north}, Val{:south},
-                      Val{:east}, Val{:west}}=Val{:south},
-        tick_style::CV_ContextStyle=cv_ticks_labels_tick_style,
-        label_style::CV_ContextStyle=cv_ticks_labels_label_style,
-        tick_length::Integer=10, gap::Integer=8) where {N}
+        app::CV_AxisAppearance=CV_AxisAppearance()) where {N}
 
-    tick_length, gap = Int32(tick_length), Int32(gap)
+    tick_length, tick_style = app.tick_length, app.tick_style
+    gap, label_style, attach = app.gap, app.label_style, app.attach
 
     ticklabelsdata = cv_init_ticklables_data(label_style, ticklabels...)
     tlm = cv_ticks_labels_get_metric(ticklabelsdata)
@@ -330,8 +357,7 @@ function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
 
     canvas = CV_2DAxisCanvas(
         rstore.bounding_box, cv_get_default_anchor(rstore, attach), attach)
-    cv_ticks_labels_draw(
-        canvas, tick_length, tick_style, label_style, ticklabelsdata)
+    cv_ticks_labels_draw(canvas, app, ticklabelsdata)
     return canvas
 end
 
@@ -339,21 +365,17 @@ function cv_ticks_labels(
         layout::CV_Abstract2DLayout,
         for_canvas_l::CV_2DLayoutPosition{CV_Math2DCanvas, dcbT, styleT},
         ticklabels::Vararg{CV_TickLabel{Float64}, N};
-        attach::Union{Val{:north}, Val{:south},
-                      Val{:east}, Val{:west}}=Val{:south},
-        tick_style::CV_ContextStyle=cv_ticks_labels_tick_style,
-        label_style::CV_ContextStyle=cv_ticks_labels_label_style,
-        tick_length::Integer=10, gap::Integer=8) where {N, dcbT, styleT}
+        app::CV_AxisAppearance=CV_AxisAppearance()) where {N, dcbT, styleT}
 
-    canvas = cv_create_2daxis_canvas(
-        for_canvas_l.canvas, ticklabels...;
-        attach, tick_style, label_style, tick_length)
+    canvas = cv_create_2daxis_canvas(for_canvas_l.canvas, ticklabels...; app)
+    attach = app.attach
 
     return cv_add_canvas!(layout, canvas, cv_anchor(canvas, :default), 
         cv_anchor(for_canvas_l, (
             attach isa Val{:south} ? :southwest   :
             attach isa Val{:north} ? :northwest   :
-            attach isa Val{:east}  ? :northeast   : :northwest)))
+            attach isa Val{:east}  ? :northeast   :
+                                     :northwest)))
 end
 
 

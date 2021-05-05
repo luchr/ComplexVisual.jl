@@ -286,27 +286,32 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
         domain_im_ticks::NTuple{B, CV_TickLabel{Float64}},
         codomain_re_ticks::NTuple{C, CV_TickLabel{Float64}},
         codomain_im_ticks::NTuple{D, CV_TickLabel{Float64}},
-        ;label_style::CV_ContextStyle = cv_color(0,0,0) → 
-                cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
+        ;
+        label_style::CV_ContextStyle = cv_color(0,0,0) → 
+                cv_fontface("serif") → cv_fontsize(20),
+        domain_re_app::CV_AxisAppearance=CV_AxisAppearance(;
+            attach=cv_south, label_style=label_style),
+        domain_im_app::CV_AxisAppearance=CV_AxisAppearance(;
+            attach=cv_west, label_style=label_style),
+        codomain_re_app::CV_AxisAppearance=CV_AxisAppearance(;
+            attach=cv_south, label_style=label_style),
+        codomain_im_app::CV_AxisAppearance=CV_AxisAppearance(;
+            attach=cv_west, label_style=label_style)) where {A, B, C, D} # {{{
 
     layout = setup.layout
     can_domain_l = cv_get_can_domain_l(layout)
     can_codomain_l = cv_get_can_codomain_l(layout)
 
-    domain_re_axis = cv_ticks_labels(layout,
-        can_domain_l, domain_re_ticks...;
-        attach=Val(:south), label_style=label_style)
-    domain_im_axis = cv_ticks_labels(layout,
-        can_domain_l, domain_im_ticks...;
-        attach=Val(:west), label_style=label_style)
-    codomain_re_axis = cv_ticks_labels(layout,
-        can_codomain_l, codomain_re_ticks...;
-        attach=Val(:south), label_style=label_style)
-    codomain_im_axis = cv_ticks_labels(layout,
-        can_codomain_l, codomain_im_ticks...;
-        attach=Val(:west), label_style=label_style)
+    domain_re_axis = cv_ticks_labels(layout, can_domain_l,
+        domain_re_ticks...; app=domain_re_app)
+    domain_im_axis = cv_ticks_labels(layout, can_domain_l,
+        domain_im_ticks...; app=domain_im_app)
+    codomain_re_axis = cv_ticks_labels(layout, can_codomain_l,
+        codomain_re_ticks...; app=codomain_re_app)
+    codomain_im_axis = cv_ticks_labels(layout, can_codomain_l,
+        codomain_im_ticks...; app=codomain_im_app)
 
-    new_draw_once_func = future_layout -> begin
+    draw_once_func = future_layout -> begin
         cc_can_layout = cv_get_cc_can_layout(future_layout)
         domain_re_axis(cc_can_layout)
         domain_im_axis(cc_can_layout)
@@ -314,7 +319,7 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
         codomain_im_axis(cc_can_layout)
         return nothing
     end
-    return cv_combine(setup; draw_once_func=new_draw_once_func)
+    return cv_combine(setup; draw_once_func)
 end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
