@@ -12,7 +12,6 @@ scene = cv_scene_lr_std(trafo, domain, codomain)
 handler = cvg_visualize(scene)
 cvg_wait_for_destroy(handler.window)
 
-cv_destroy(scene)
-
+cvg_close(handler); cv_destroy(scene)
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
