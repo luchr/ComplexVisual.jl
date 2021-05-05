@@ -22,7 +22,7 @@ This package can also be used "standalone" (without windows and interactivity) t
 using Pkg
 Pkg.add(PackageSpec(url="https://github.com/luchr/ComplexPortraits.jl", rev="master"))
 Pkg.add(PackageSpec(url="https://github.com/luchr/ComplexVisual.jl", rev="master"))
-Pkg.add(PackageSpec(url="https://github.com/luchr/ComplexGtk.jl", rev="master"))
+Pkg.add(PackageSpec(url="https://github.com/luchr/ComplexVisualGtk.jl", rev="master"))
 ```
 
 ## First exmaples
