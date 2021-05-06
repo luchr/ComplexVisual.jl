@@ -289,13 +289,13 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
         ;
         label_style::CV_ContextStyle = cv_color(0,0,0) → 
                 cv_fontface("serif") → cv_fontsize(20),
-        domain_re_app::CV_AxisAppearance=CV_AxisAppearance(;
+        domain_re_app::CV_TickLabelAppearance=CV_TickLabelAppearance(;
             attach=cv_south, label_style=label_style),
-        domain_im_app::CV_AxisAppearance=CV_AxisAppearance(;
+        domain_im_app::CV_TickLabelAppearance=CV_TickLabelAppearance(;
             attach=cv_west, label_style=label_style),
-        codomain_re_app::CV_AxisAppearance=CV_AxisAppearance(;
+        codomain_re_app::CV_TickLabelAppearance=CV_TickLabelAppearance(;
             attach=cv_south, label_style=label_style),
-        codomain_im_app::CV_AxisAppearance=CV_AxisAppearance(;
+        codomain_im_app::CV_TickLabelAppearance=CV_TickLabelAppearance(;
             attach=cv_west, label_style=label_style)) where {A, B, C, D} # {{{
 
     layout = setup.layout

@@ -221,6 +221,13 @@ function cv_pixel2math(canvas::CV_2DLayoutCanvas,
     return cv_pixel2math(cl.canvas, lx, ly)
 end
 
+"""
+Return anchor-point for a `CV_2DLayoutPosition`.
+
+If there is position belongs to a canvas then its `cv_anchor` function
+is used. Otherwise the anchor function of rectangle (of the position)
+is used.
+"""
 function cv_anchor(lres::CV_2DLayoutPosition, anchor_name::Symbol)
     rect = lres.rectangle
     if lres.canvas isa Nothing
@@ -233,6 +240,17 @@ function cv_anchor(lres::CV_2DLayoutPosition, anchor_name::Symbol)
     end
 end
 
+"""
+build a new anchor using the x-coordinate of the `anchor1` of object `obj1`
+and the y-coordinate of the `anchor2` of `obj2`.
+"""
+function cv_anchor(obj1, anchor1::Symbol, obj2, anchor2::Symbol)
+    return (cv_anchor(obj1, anchor1)[1], cv_anchor(obj2, anchor2)[2])
+end
+
+"""
+Move a position (typically a anchor) by `deltax` and `deltay`.
+"""
 function cv_translate(pos::Tuple{N, N}, deltax, deltay) where {N<:Number}
     return tuple(N(pos[1] + deltax), N(pos[2] + deltay))
 end
