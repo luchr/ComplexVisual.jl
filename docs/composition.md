@@ -20,7 +20,7 @@ struct Circle <: Shape
 end
 ```
 
-## One idea to get on a wrong track
+## One idea to get on the wrong track
 
 Now what happens if you want to "add" an additional field: let's say a gray value? (This is just for simplicity. Obviously it's not a good idea to combine a mathematical shape with part of its appearance. But let's stay for the sake of simplicity with this example.)
 
@@ -56,13 +56,13 @@ struct GrayCircle <: AbstractCircle
 end
 ```
 
-Now one can define methods that only use the common fields of `GrayRectangle` and `Rectangle` and methods for gray shapes.
+Now, one can define methods that only use the common fields of `GrayRectangle` and `Rectangle` and methods for gray shapes.
 
-What happens if you want to add an new field, like a value for tranparency (often called an `alpha_value`) for each shape? Then you have a lot of possible combinations: `Circle`, `GrayCircle`, `AlphaCircle`, `GrayAlphaCircle`. And copying and pasting all the fields is tedious.
+What happens if you want to add a new field, like a value for tranparency (often called an `alpha_value`) for each shape? Then you have a lot of possible combinations: `Circle`, `GrayCircle`, `AlphaCircle`, `GrayAlphaCircle`. And copying and pasting all the fields is tedious.
 
-## The embrace and extend idea
+## The embrace-and-extend idea
 
-Let's use another idea, where we use a new struct to save an reference to an object of the "old" type and add the fields: (see, `composition02.jl`)
+Let's use another idea, where we use a new struct to save a reference to an object of the "old" type and add the fields; see, `composition02.jl`:
 
 ```julia
 abstract type Shape end
@@ -95,7 +95,7 @@ r1 = AlphaShape(GrayShape(Rectangle((0.0, 1.0), (1.0, 0.0)), 0.5), 0.9)
 r2 = GrayShape(AlphaShape(Rectangle((0.0, 1.0), (1.0, 0.0)), 0.9), 0.5)
 ```
 
-They are: `r1.parent.gray_value` and `r2.gray_value`. And here comes one
+They are `r1.parent.gray_value` and `r2.gray_value`, respectively. And here comes one
 important part for the composition idea (in julia). If we want to keep
 the data-structures as above, then we have to use getter-methods.
 (see `composition03.jl`)
