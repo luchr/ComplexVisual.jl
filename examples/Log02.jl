@@ -52,12 +52,18 @@ function setup_axis(setup::CV_SceneSetupChain)
                   cv_fontface("DejaVu Sans", Cairo.FONT_WEIGHT_BOLD) → 
                   cv_fontsize(20)
     ticks1 = cv_format_ticks("%.0f", -2:2...)
+    ticks1h = cv_format_ticks("", -2.5:1.0:2.5...)
     ticks2 = cv_format_ticks("%.0f", -3:3...)
     ticks3 = (CV_TickLabel(-pi/1.0, "-π"), CV_TickLabel(-pi/2, "-π/2"),
               CV_TickLabel(0.0, "0"), CV_TickLabel(pi/2, "π/2"),
               CV_TickLabel(pi/1.0, "π"))
 
-    return cv_setup_lr_axis(setup, ticks1, ticks1, ticks2, ticks3; label_style)
+    app_l = CV_TickLabelAppearance(; label_style, tick_length=10)
+    app_s = CV_TickLabelAppearance(; label_style, tick_length=6)
+    return cv_setup_lr_axis(setup,
+        (CV_Ruler(ticks1, app_l), CV_Ruler(ticks1h, app_s)),
+        (CV_Ruler(ticks1, app_l), CV_Ruler(ticks1h, app_s), ),
+        (CV_Ruler(ticks2, app_l), ), (CV_Ruler(ticks3, app_l), ))
 end
 
 function setup_axis_grid(setup::CV_SceneSetupChain)

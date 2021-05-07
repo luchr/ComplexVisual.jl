@@ -86,22 +86,28 @@ end
 """
 `CV_2DCanvas` with size and trafo adapted to `CV_2DLayout`.
 """
-struct CV_2DLayoutCanvas <: CV_2DCanvas  # {{{
+struct CV_2DLayoutCanvas{afT} <: CV_2DCanvas  # {{{
     surface      :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width  :: Int32
     pixel_height :: Int32
     bounding_box :: CV_Rectangle{Int32} # zero-based
     user_box     :: CV_Rectangle{Int32} # user-coordinates (result of layout)
                                         # typically nonzero-based
-    function CV_2DLayoutCanvas(user_box::CV_Rectangle{Int32})
+    anchor_func  :: afT
+    function CV_2DLayoutCanvas(user_box::CV_Rectangle{Int32},
+            anchor_func=(can, name) -> cv_anchor(can.bounding_box, name))
         width, height = cv_width(user_box), cv_height(user_box)
         surface = cv_create_cairo_image_surface(width, height)
-        self = new(
+        self = new{typeof(anchor_func)}(
             surface, width, height,
             CV_Rectangle(height, Int32(0), Int32(0), width),
-            user_box)
+            user_box, anchor_func)
         return self
     end
+end
+
+function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
+    return can.anchor_func(can, anchor_name) :: Tuple{Int32, Int32}
 end
 
 function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true)
@@ -198,8 +204,8 @@ end
 # }}}
 
 """
-use 2DLayoutPosition to compute a global pixel position `(gx, gy)` to
-local/relative pixels w.r.t. the canvas' rectangle.
+use 2DLayoutPosition to transform a global pixel position `(gx, gy)` to
+local/relative pixels w.r.t. the positon's coordinates.
 """
 function cv_pixel2local(canvas::CV_2DLayoutCanvas,
                         cl::CV_2DLayoutPosition, gx::Integer, gy::Integer)
@@ -221,6 +227,13 @@ function cv_pixel2math(canvas::CV_2DLayoutCanvas,
     return cv_pixel2math(cl.canvas, lx, ly)
 end
 
+"""
+Return anchor-point for a `CV_2DLayoutPosition`.
+
+If there is position belongs to a canvas then its `cv_anchor` function
+is used. Otherwise the anchor function of rectangle (of the position)
+is used.
+"""
 function cv_anchor(lres::CV_2DLayoutPosition, anchor_name::Symbol)
     rect = lres.rectangle
     if lres.canvas isa Nothing
@@ -233,6 +246,17 @@ function cv_anchor(lres::CV_2DLayoutPosition, anchor_name::Symbol)
     end
 end
 
+"""
+build a new anchor using the x-coordinate of the `anchor1` of object `obj1`
+and the y-coordinate of the `anchor2` of `obj2`.
+"""
+function cv_anchor(obj1, anchor1::Symbol, obj2, anchor2::Symbol)
+    return (cv_anchor(obj1, anchor1)[1], cv_anchor(obj2, anchor2)[2])
+end
+
+"""
+Move a position (typically a anchor) by `deltax` and `deltay`.
+"""
 function cv_translate(pos::Tuple{N, N}, deltax, deltay) where {N<:Number}
     return tuple(N(pos[1] + deltax), N(pos[2] + deltay))
 end

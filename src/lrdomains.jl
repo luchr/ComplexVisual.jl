@@ -282,31 +282,33 @@ function cv_setup_can_layout_drawing_cb(setup::CV_SceneSetupChain, drawing_cb)
 end
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain,
-        domain_re_ticks::NTuple{A, CV_TickLabel{Float64}},
-        domain_im_ticks::NTuple{B, CV_TickLabel{Float64}},
-        codomain_re_ticks::NTuple{C, CV_TickLabel{Float64}},
-        codomain_im_ticks::NTuple{D, CV_TickLabel{Float64}},
-        ;label_style::CV_ContextStyle = cv_color(0,0,0) → 
-                cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
+        domain_re_ruler::CV_Ruler, domain_im_ruler::CV_Ruler,
+        codomain_re_ruler::CV_Ruler, codomain_im_ruler::CV_Ruler) # {{{
+    return cv_setup_lr_axis(setup,
+        (domain_re_ruler, ), (domain_im_ruler, ),
+        (codomain_re_ruler, ), (codomain_im_ruler, ))
+end # }}}
+
+function cv_setup_lr_axis(setup::CV_SceneSetupChain,
+        domain_re_rulers::NTuple{A, CV_Ruler},
+        domain_im_rulers::NTuple{B, CV_Ruler},
+        codomain_re_rulers::NTuple{C, CV_Ruler},
+        codomain_im_rulers::NTuple{D, CV_Ruler}) where {A, B, C, D} # {{{
 
     layout = setup.layout
     can_domain_l = cv_get_can_domain_l(layout)
     can_codomain_l = cv_get_can_codomain_l(layout)
 
-    domain_re_axis = cv_ticks_labels(layout,
-        can_domain_l, domain_re_ticks...;
-        attach=Val(:south), label_style=label_style)
-    domain_im_axis = cv_ticks_labels(layout,
-        can_domain_l, domain_im_ticks...;
-        attach=Val(:west), label_style=label_style)
-    codomain_re_axis = cv_ticks_labels(layout,
-        can_codomain_l, codomain_re_ticks...;
-        attach=Val(:south), label_style=label_style)
-    codomain_im_axis = cv_ticks_labels(layout,
-        can_codomain_l, codomain_im_ticks...;
-        attach=Val(:west), label_style=label_style)
+    domain_re_axis = cv_ticks_labels(layout, can_domain_l,
+        cv_south, domain_re_rulers)
+    domain_im_axis = cv_ticks_labels(layout, can_domain_l,
+        cv_west, domain_im_rulers)
+    codomain_re_axis = cv_ticks_labels(layout, can_codomain_l,
+        cv_south, codomain_re_rulers)
+    codomain_im_axis = cv_ticks_labels(layout, can_codomain_l,
+        cv_west, codomain_im_rulers)
 
-    new_draw_once_func = future_layout -> begin
+    draw_once_func = future_layout -> begin
         cc_can_layout = cv_get_cc_can_layout(future_layout)
         domain_re_axis(cc_can_layout)
         domain_im_axis(cc_can_layout)
@@ -314,7 +316,7 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
         codomain_im_axis(cc_can_layout)
         return nothing
     end
-    return cv_combine(setup; draw_once_func=new_draw_once_func)
+    return cv_combine(setup; draw_once_func)
 end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
@@ -334,17 +336,19 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain;
     can_domain = cv_get_can_domain(layout)
     can_codomain = cv_get_can_codomain(layout)
 
-    domain_re_ticks = format_ticks(real(can_domain.corner_ul),
-                                   real(can_domain.corner_lr))
-    domain_im_ticks = format_ticks(imag(can_domain.corner_lr),
-                                   imag(can_domain.corner_ul))
-    codomain_re_ticks = format_ticks(real(can_codomain.corner_ul),
-                                     real(can_codomain.corner_lr))
-    codomain_im_ticks = format_ticks(imag(can_codomain.corner_lr),
-                                     imag(can_codomain.corner_ul))
+    domain_re_ticks = format_ticks(
+        real(can_domain.corner_ul), real(can_domain.corner_lr))
+    domain_im_ticks = format_ticks(
+        imag(can_domain.corner_lr), imag(can_domain.corner_ul))
+    codomain_re_ticks = format_ticks(
+        real(can_codomain.corner_ul), real(can_codomain.corner_lr))
+    codomain_im_ticks = format_ticks(
+        imag(can_codomain.corner_lr), imag(can_codomain.corner_ul))
+    app = CV_TickLabelAppearance(; label_style)
+
     return cv_setup_lr_axis(setup,
-        domain_re_ticks, domain_im_ticks,
-        codomain_re_ticks, codomain_im_ticks; label_style=label_style)
+        CV_Ruler(domain_re_ticks, app), CV_Ruler(domain_im_ticks, app),
+        CV_Ruler(codomain_re_ticks, app), CV_Ruler(codomain_im_ticks, app))
 end  # }}}
 
 

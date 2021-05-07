@@ -4,7 +4,8 @@ macro import_basic_huge()
             CV_Error, cv_error,
             CV_TranslateByOffset, CV_MultiplyByFactor,
             CV_CyclicValue, cv_set_value!,
-            cv_create_angle_cross_test
+            cv_create_angle_cross_test, cv_half,
+            CV_AttachType, cv_north, cv_south, cv_east, cv_west
      )
 end
 
@@ -108,6 +109,18 @@ function cv_create_angle_cross_test(ϕ::Real, rmin::Real, rmax::Real; δ=100eps(
         end
     end
 end
+
+cv_half(x::N) where {N<:Integer}        =  x ÷ N(2)
+cv_half(x::N) where {N<:AbstractFloat}  =  x/2
+
+# }}}
+
+# {{{ Directions/Locations 
+const cv_north, CV_northT = Val(:north), Val{:north}
+const cv_south, CV_southT = Val(:south), Val{:south}
+const cv_east, CV_eastT = Val(:east), Val{:east}
+const cv_west, CV_westT = Val(:west), Val{:west}
+const CV_AttachType = Union{CV_northT, CV_southT, CV_eastT, CV_westT}
 # }}}
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

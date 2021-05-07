@@ -72,9 +72,6 @@ end # }}}
 cv_width(rect::CV_Rectangle) = rect.right - rect.left
 cv_height(rect::CV_Rectangle) = rect.top - rect.bottom
 
-cv_half(x::N) where {N<:Integer}        =  x ÷ N(2)
-cv_half(x::N) where {N<:AbstractFloat}  =  x/2
-
 function cv_is_inside(rect::CV_Rectangle{N}, x::N, y::N) where {N}
     return (rect.left ≤ x ≤ rect.right) && (rect.bottom ≤ y ≤ rect.top)
 end
