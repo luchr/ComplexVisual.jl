@@ -24,7 +24,7 @@ end
 
 Now what happens if you want to "add" an additional field: let's say a gray value? (This is just for simplicity. Obviously it's not a good idea to combine a mathematical shape with part of its appearance. But let's stay for the sake of simplicity with this example.)
 
-One could define a new type `GrayRectangle` and `GrayCircle`. In order to have methods that work on both types `Rectangle` and `GrayRectangle` one would add an abstract supertype (see `composition01.jl`):
+One could define a new type `GrayRectangle` and `GrayCircle`. In order to have methods that work on both types `Rectangle` and `GrayRectangle` one would add an abstract supertype (see [composition01.jl](./composition01.jl):
 
 ```julia
 abstract type Shape end
@@ -62,7 +62,7 @@ What happens if you want to add a new field, like a value for tranparency (often
 
 ## The embrace-and-extend idea
 
-Let's use another idea, where we use a new struct to save a reference to an object of the "old" type and add the fields; see, `composition02.jl`:
+Let's use another idea, where we use a new struct to save a reference to an object of the "old" type and add the fields; see, [composition02.jl](./composition02.jl):
 
 ```julia
 abstract type Shape end
@@ -98,7 +98,7 @@ r2 = GrayShape(AlphaShape(Rectangle((0.0, 1.0), (1.0, 0.0)), 0.9), 0.5)
 They are `r1.parent.gray_value` and `r2.gray_value`, respectively. And here comes one
 important part for the composition idea (in julia). If we want to keep
 the data-structures as above, then we have to use getter-methods.
-(see `composition03.jl`)
+(see [composition03.jl](./composition03.jl)
 
 ```julia
 abstract type Shape end
@@ -145,7 +145,7 @@ reaches a parent where the field is saved directly in the struct
 
 For every field one has to code two methods. In order to save
 keystrokes and to make this less error-prone one may use a macro:
-(see `composition04.jl`)
+(see [composition04.jl](./composition04.jl)
 
 ```julia
 abstract type Shape end
@@ -185,4 +185,77 @@ end
 @shape_getter(alhpa_value, AlphaShape)
 ```
 
+## Nicer error messages
+
+What happens if we want the value of a field that does not exist?
+
+```julia
+r1 = AlphaShape(GrayShape(Rectangle((0.0, 1.0), (1.0, 0.0)), 0.5), 0.9)
+shape_get_radius(r1)
+ERROR: type Rectangle has no field parent
+Stacktrace:
+ [1] getproperty(x::Rectangle, f::Symbol)
+   @ Base ./Base.jl:33
+ [2] shape_get_radius(s::Rectangle) (repeats 3 times)
+   @ Main ~/learn/julia/ComplexVisualDev/ComplexVisual/docs/composition04.jl:6
+ [3] top-level scope
+   @ REPL[3]:1
+```
+
+One idea to easily get nicer error messages can be seen in
+[composition05.jl](./composition05.jl)
+
+```julia
+abstract type Shape end
+
+abstract type ShapeWithParent <: Shape end
+
+macro shape_getter(field, owner_type)
+    func_sym = Symbol("shape_get_", field)
+    return esc(quote
+        $func_sym(s::ShapeWithParent) = $func_sym(s.parent)
+        $func_sym(s::$owner_type) = s.$field
+    end)
+end
+
+struct Rectangle <: Shape
+    corner_upper_left  :: Tuple{Float64, Float64}
+    corner_lower_right :: Tuple{Float64, Float64}
+end
+@shape_getter(corner_upper_left, Rectangle)
+@shape_getter(corner_lower_right, Rectangle)
+
+struct Circle <: Shape
+    center      :: Tuple{Float64, Float64}
+    radius      :: Float64
+end
+@shape_getter(center, Circle)
+@shape_getter(radius, Circle)
+
+struct GrayShape{shapeType <: Shape} <: ShapeWithParent
+    parent      :: shapeType
+    gray_value  :: Float64
+end
+@shape_getter(gray_value, GrayShape)
+
+struct AlphaShape{shapeType <: Shape} <: ShapeWithParent
+    parent      :: shapeType
+    alpha_value :: Float64
+end
+@shape_getter(alhpa_value, AlphaShape)
+```
+
+Then the same experiment results in
+```julia
+shape_get_radius(r1)
+ERROR: MethodError: no method matching shape_get_radius(::Rectangle)
+Closest candidates are:
+  shape_get_radius(::ShapeWithParent) at /home/noadmin/learn/julia/ComplexVisualDev/ComplexVisual/docs/composition05.jl:8
+  shape_get_radius(::Circle) at /home/noadmin/learn/julia/ComplexVisualDev/ComplexVisual/docs/composition05.jl:9
+Stacktrace:
+ [1] shape_get_radius(s::GrayShape{Rectangle}) (repeats 2 times)
+   @ Main ~/learn/julia/ComplexVisualDev/ComplexVisual/docs/composition05.jl:8
+ [2] top-level scope
+   @ REPL[2]:1
+```
 
