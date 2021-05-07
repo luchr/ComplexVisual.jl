@@ -1,7 +1,7 @@
 macro import_axis_huge()
     :(
         using ComplexVisual:
-            CV_TickLabel, cv_format_ticks, CV_2DAxisCanvas, cv_create_context,
+            CV_TickLabel, cv_format_ticks, cv_create_context,
             CV_TickLabelAppearance, CV_Ruler,
             cv_create_2daxis_canvas, cv_ticks_labels, cv_anchor
     )
@@ -125,56 +125,6 @@ function cv_format_ticks(locations::Vararg{Real, N}) where {N}
     return cv_format_ticks("%.1f", locations...)
 end
 
-
-"""
-`CV_2DCanvas` with axis.
-"""
-struct CV_2DAxisCanvas <: CV_2DCanvas   # {{{
-    surface      :: Cairo.CairoSurfaceImage{UInt32}
-    pixel_width  :: Int32
-    pixel_height :: Int32
-    bounding_box :: CV_Rectangle{Int32} # zero-based
-    user_box     :: CV_Rectangle{Int32} # user-coordinates (result of layout)
-                                        # typicalle nonzero-based
-    anchor_def   :: Tuple{Int32, Int32}
-    attach       :: CV_AttachType
-    function CV_2DAxisCanvas(user_box::CV_Rectangle{Int32}, anchor_def, attach)
-        width, height = cv_width(user_box), cv_height(user_box)
-        surface = cv_create_cairo_image_surface(width, height)
-        self = new(
-            surface, width, height,
-            CV_Rectangle(height, Int32(0), Int32(0), width),
-            user_box, anchor_def, attach)
-        return self
-    end
-end
-
-function cv_anchor(can::CV_2DAxisCanvas, anchor_name::Symbol)
-    return (
-        anchor_name == :default ? can.anchor_def :
-        cv_anchor(can.bounding_box, anchor_name))
-end
-
-function cv_create_context(canvas::CV_2DAxisCanvas; prepare::Bool=true)
-    con = CV_2DCanvasContext(canvas)
-    if prepare
-        ctx = con.ctx
-        reset_transform(ctx)
-
-        set_operator(ctx, Cairo.OPERATOR_SOURCE)
-        set_source_rgba(ctx, 0, 0, 0, 0)
-        rectangle(ctx, 0, 0, canvas.pixel_width, canvas.pixel_height)
-        fill(ctx)
-
-        set_operator(ctx, Cairo.OPERATOR_OVER)
-        ubox = canvas.user_box
-        translate(ctx, -ubox.left, -ubox.bottom)
-    end
-    return con
-end
-# }}}
-
-
 """
 struct used internally for constructing the ticks, labels and axis canvas.
 """
@@ -196,8 +146,8 @@ struct CV_TicksLabelsMetric
     max_width  :: Int32
 end
 
-function cv_ticks_labels_draw(canvas::CV_2DAxisCanvas,
-        app::CV_TickLabelAppearance,
+function cv_ticks_labels_draw(canvas::CV_2DCanvas,
+        attach::CV_AttachType, app::CV_TickLabelAppearance,
         ticklabelsdata::NTuple{N, CV_TickLabelData{Float64}};
         debug::Union{Val{true}, Val{false}}=Val(false)) where {N}  # {{{
 
@@ -210,16 +160,16 @@ function cv_ticks_labels_draw(canvas::CV_2DAxisCanvas,
         # ticks
         cv_prepare(con, tick_style)
         for td in ticklabelsdata
-            if canvas.attach isa CV_southT
+            if attach isa CV_southT
                 move_to(ctx, td.tick_location, 0)
                 rel_line_to(ctx, 0, tick_length)
-            elseif canvas.attach isa CV_northT
+            elseif attach isa CV_northT
                 move_to(ctx, td.tick_location, ubox.top)
                 rel_line_to(ctx, 0, -tick_length)
-            elseif canvas.attach isa CV_eastT
+            elseif attach isa CV_eastT
                 move_to(ctx, 0, td.tick_location)
                 rel_line_to(ctx, tick_length, 0)
-            elseif canvas.attach isa CV_westT
+            elseif attach isa CV_westT
                 move_to(ctx, ubox.right, td.tick_location)
                 rel_line_to(ctx, -tick_length, 0)
             else
@@ -421,9 +371,14 @@ function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
     cv_add_rect_for_ticks(rstore, ticklabelsdata, tick_length, gap, attach)
     cv_add_rect_for_default_anchor(rstore, attach)
 
-    canvas = CV_2DAxisCanvas(
-        rstore.bounding_box, cv_get_default_anchor(rstore, attach), attach)
-    cv_ticks_labels_draw(canvas, app, ticklabelsdata)
+    default_anchor = cv_get_default_anchor(rstore, attach)
+
+    anchor_func = (can, anchor_name) -> (anchor_name === :default ?
+            default_anchor : cv_anchor(can.bounding_box, anchor_name))
+
+    canvas = CV_2DLayoutCanvas(rstore.bounding_box, anchor_func)
+
+    cv_ticks_labels_draw(canvas, attach, app, ticklabelsdata)
     return canvas
 end
 

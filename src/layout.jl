@@ -86,22 +86,28 @@ end
 """
 `CV_2DCanvas` with size and trafo adapted to `CV_2DLayout`.
 """
-struct CV_2DLayoutCanvas <: CV_2DCanvas  # {{{
+struct CV_2DLayoutCanvas{afT} <: CV_2DCanvas  # {{{
     surface      :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width  :: Int32
     pixel_height :: Int32
     bounding_box :: CV_Rectangle{Int32} # zero-based
     user_box     :: CV_Rectangle{Int32} # user-coordinates (result of layout)
                                         # typically nonzero-based
-    function CV_2DLayoutCanvas(user_box::CV_Rectangle{Int32})
+    anchor_func  :: afT
+    function CV_2DLayoutCanvas(user_box::CV_Rectangle{Int32},
+            anchor_func=(can, name) -> cv_anchor(can.bounding_box, name))
         width, height = cv_width(user_box), cv_height(user_box)
         surface = cv_create_cairo_image_surface(width, height)
-        self = new(
+        self = new{typeof(anchor_func)}(
             surface, width, height,
             CV_Rectangle(height, Int32(0), Int32(0), width),
-            user_box)
+            user_box, anchor_func)
         return self
     end
+end
+
+function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
+    return can.anchor_func(can, anchor_name) :: Tuple{Int32, Int32}
 end
 
 function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true)
@@ -198,8 +204,8 @@ end
 # }}}
 
 """
-use 2DLayoutPosition to compute a global pixel position `(gx, gy)` to
-local/relative pixels w.r.t. the canvas' rectangle.
+use 2DLayoutPosition to transform a global pixel position `(gx, gy)` to
+local/relative pixels w.r.t. the positon's coordinates.
 """
 function cv_pixel2local(canvas::CV_2DLayoutCanvas,
                         cl::CV_2DLayoutPosition, gx::Integer, gy::Integer)
