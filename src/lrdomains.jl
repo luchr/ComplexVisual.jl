@@ -11,8 +11,8 @@ macro import_lrdomains_huge()
             cv_do_lr_layout,
             CV_DomainCodomainScene,
             cv_get_can_layout, cv_get_cc_can_layout,
-            cv_get_update_math_domains, cv_get_pixel2domaincoor_update,
-            cv_get_update_math_state, cv_get_pixel2domaincoor_state,
+            cv_get_update_math_domains, cv_get_actionpixel_update,
+            cv_get_update_math_state, cv_get_statepixel_update,
             cv_setup_can_layout_drawing_cb, cv_setup_domain_codomain_scene,
             cv_setup_lr_axis, cv_setup_lr_painters, cv_setup_lr_border,
             cv_scene_lr_start, cv_scene_lr_std
@@ -172,23 +172,23 @@ end # }}}
 """
 Scene with domain and codomain painter update and domain pixel2coor.
 """
-struct CV_DomainCodomainScene{parentT, ccclT, umdT, p2dcuT,
-                              umsT, p2dsT} <: CV_2DLayoutWrapper # {{{
+struct CV_DomainCodomainScene{parentT, ccclT, apuT, spuT,
+                              umdT, umsT} <: CV_2DLayoutWrapper # {{{
     parent_layout            :: parentT
     can_layout               :: CV_2DLayoutCanvas
     cc_can_layout            :: ccclT
+    actionpixel_update       :: apuT
+    statepixel_update        :: spuT
     update_math_domains      :: umdT
-    pixel2domaincoor_update  :: p2dcuT
     update_math_state        :: umsT
-    pixel2domaincoor_state   :: p2dsT
 end
 
 @layout_composition_getter(can_layout,              CV_DomainCodomainScene)
 @layout_composition_getter(cc_can_layout,           CV_DomainCodomainScene)
+@layout_composition_getter(actionpixel_update,      CV_DomainCodomainScene)
+@layout_composition_getter(statepixel_update,       CV_DomainCodomainScene)
 @layout_composition_getter(update_math_domains,     CV_DomainCodomainScene)
-@layout_composition_getter(pixel2domaincoor_update, CV_DomainCodomainScene)
 @layout_composition_getter(update_math_state,       CV_DomainCodomainScene)
-@layout_composition_getter(pixel2domaincoor_state,  CV_DomainCodomainScene)
 
 function cv_destroy(scene::CV_DomainCodomainScene)
     cv_destroy(scene.cc_can_layout)
@@ -239,9 +239,9 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
 
     update_math_state = setup.update_state_func
 
-    pixel2domaincoor_update = (px, py) -> begin
+    actionpixel_update = (px, py) -> begin
         canvas = can_domain_l.canvas
-        lx, ly = cv_pixel2local(can_layout, can_domain_l, px, py)
+        lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
               (lx > canvas.pixel_width) || (ly > canvas.pixel_height)
             return nothing
@@ -251,9 +251,9 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    pixel2domaincoor_state = (px, py) -> begin
+    statepixel_update = (px, py) -> begin
         canvas = can_domain_l.canvas
-        lx, ly = cv_pixel2local(can_layout, can_domain_l, px, py)
+        lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
               (lx > canvas.pixel_width) || (ly > canvas.pixel_height)
             return nothing
@@ -267,8 +267,8 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
 
     new_layout = CV_DomainCodomainScene(
         layout, can_layout, cc_can_layout,
-        update_math_domains, pixel2domaincoor_update,
-        update_math_state, pixel2domaincoor_state)
+        actionpixel_update, statepixel_update,
+        update_math_domains, update_math_state)
     return cv_combine(setup; layout=new_layout)
 end
 # }}}

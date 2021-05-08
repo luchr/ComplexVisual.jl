@@ -7,7 +7,8 @@ macro import_layout_huge()
             cv_get_seen_boxes,
             cv_translate, cv_add_canvas!, cv_add_rectangle!, cv_add_padding!,
             cv_ensure_size!,
-            cv_canvas_for_layout, cv_anchor, cv_pixel2local, cv_pixel2math,
+            cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
+            cv_pixel2math,
             CV_StateLayout, cv_setup_cycle_state, cv_get_state_counter,
             CV_SceneSetupChain, CV_StdSetupChain, cv_combine
     )
@@ -110,14 +111,15 @@ function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
     return can.anchor_func(can, anchor_name) :: Tuple{Int32, Int32}
 end
 
-function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true)
+function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true,
+        fill_with::CV_ContextStyle=cv_color(1,1,1))
     con = CV_2DCanvasContext(canvas)
     if prepare
         ctx = con.ctx
         reset_transform(ctx)
 
         set_operator(ctx, Cairo.OPERATOR_SOURCE)
-        set_source_rgb(ctx, 1, 1, 1)
+        cv_prepare(con, fill_with)
         rectangle(ctx, 0, 0, canvas.pixel_width, canvas.pixel_height)
         fill(ctx)
         set_operator(ctx, Cairo.OPERATOR_OVER)
@@ -132,12 +134,13 @@ end
 "finalize" layout construction by building a canvas, on which all
 added objects are visible.
 """
-function cv_canvas_for_layout(layout::CV_Abstract2DLayout)
+function cv_canvas_for_layout(layout::CV_Abstract2DLayout,
+        anchor_func=(can, name) -> cv_anchor(can.bounding_box, name))
     bb = cv_get_seen_boxes(layout).bounding_box
     if bb.empty
         cv_error("Bounding box for Layout is empty.")
     end
-    canvas = CV_2DLayoutCanvas(bb)
+    canvas = CV_2DLayoutCanvas(bb, anchor_func)
     return canvas
 end
 # }}}
@@ -207,12 +210,26 @@ end
 use 2DLayoutPosition to transform a global pixel position `(gx, gy)` to
 local/relative pixels w.r.t. the positon's coordinates.
 """
-function cv_pixel2local(canvas::CV_2DLayoutCanvas,
+function cv_global2local(canvas::CV_2DLayoutCanvas,
                         cl::CV_2DLayoutPosition, gx::Integer, gy::Integer)
     ubox = canvas.user_box
     rect = cl.rectangle
     ux, uy = Int32(gx) + ubox.left, Int32(gy) + ubox.bottom
     return (ux - rect.left, uy - rect.bottom)
+end
+
+"""
+use 2DLayoutPosition to transform a local pixel position `(lx, ly)`
+w.r.t. the positon's coordinates to global pixels.
+
+This is the opposite of `cv_global2local`.
+"""
+function cv_local2global(canvas::CV_2DLayoutCanvas,
+                         cl::CV_2DLayoutPosition, lx::Integer, ly::Integer)
+    ubox = canvas.user_box
+    rect = cl.rectangle
+    ux, uy = Int32(lx) + rect.left, Int32(ly) + rect.bottom
+    return (ux - ubox.left, uy - ubox.bottom)
 end
 
 """
@@ -223,7 +240,7 @@ function cv_pixel2math(canvas::CV_2DLayoutCanvas,
                        cl::CV_2DLayoutPosition{canT,styleT},
                        gx::Integer, gy::Integer) where {styleT,
                                                 canT<:CV_Math2DCanvas}
-    lx, ly = cv_pixel2local(canvas, cl, gx, gy)
+    lx, ly = cv_global2local(canvas, cl, gx, gy)
     return cv_pixel2math(cl.canvas, lx, ly)
 end
 
