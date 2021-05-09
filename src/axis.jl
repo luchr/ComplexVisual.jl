@@ -408,19 +408,12 @@ function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
             default_anchor : cv_anchor(can.bounding_box, anchor_name))
     canvas = CV_2DLayoutCanvas(rstore.bounding_box, anchor_func)
 
-    cv_create_context(canvas) do con
-        set_operator(con.ctx, Cairo.OPERATOR_SOURCE)
-        set_source_rgba(con.ctx, 0, 0, 0, 0)
-        ubox = canvas.user_box
-        rectangle(con.ctx, ubox.left, ubox.bottom, cv_width(ubox), cv_height(ubox))
-        fill(con.ctx)
-        set_operator(con.ctx, Cairo.OPERATOR_OVER)
-
-        for index in 1:N
-            cv_ticks_labels_draw(con,
-                attach, rulers[index].app, ticklabelsdata[index])
-        end
+    con = cv_create_context(canvas; fill_with=cv_color(0,0,0,0))
+    for index in 1:N
+        cv_ticks_labels_draw(con,
+            attach, rulers[index].app, ticklabelsdata[index])
     end
+    cv_destroy(con)
 
     return canvas
 end # }}}

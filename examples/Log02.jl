@@ -103,7 +103,7 @@ function get_layout()
 end
 
 function do_setup1(layout, cut_test)
-    setup1 = cv_setup_lr_border(cv_setup_cycle_state(CV_StdSetupChain(layout)))
+    setup1 = cv_setup_lr_border(cv_setup_cycle_state(CV_LRSetupChain(layout)))
     setup2 = cv_setup_lr_painters(setup1; cut_test, img_painter=nothing,
         parallel_lines_painter=nothing)
     setup3 = setup_axis_grid(setup2)
