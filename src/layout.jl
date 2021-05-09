@@ -10,7 +10,7 @@ macro import_layout_huge()
             cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
             cv_pixel2math,
             CV_StateLayout, cv_setup_cycle_state, cv_get_state_counter,
-            CV_SceneSetupChain, CV_StdSetupChain, cv_combine
+            CV_SceneSetupChain
     )
 end
 
@@ -428,38 +428,20 @@ in the `CV_SceneSetupChain`). So the painter calls (which use parts of
 the layout) can make use of this type informations.
 
 All the given callback functions are appended to the callback vectors.
+
+Required fields:
+* `layout`
+* `draw_once_func`:      callbacks that a called after the layout is fixed
+                         and a Layout-Canvas was constructed.
+                         Argument: last layout
+* `actionpixel_update`:  callbacks that are called after "the main action"
+                         occured (e.g. mouse dragged).
+                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
+* `statepixel_update`:   callbacks that are called after the
+                         "state-change action" occured.
+                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
 """
 abstract type CV_SceneSetupChain end
-
-
-"""
-SetupChain with layout (type inferable) and a vector for every
-callback-type where all the callback functions are stored (type inference
-is lost). See `CV_SceneSetupChain` for the reasons of this tradeoff.
-"""
-struct CV_StdSetupChain{layoutT} <: CV_SceneSetupChain # {{{
-    layout               :: layoutT
-    draw_once_func       :: Vector{Any}
-    update_painter_func  :: Vector{Any}
-    update_state_func    :: Vector{Any}
-end
-
-function CV_StdSetupChain(layout)
-    return CV_StdSetupChain(layout, Vector(), Vector(), Vector())
-end
-
-function cv_combine(old::CV_StdSetupChain;
-        layout=missing, draw_once_func=missing, update_painter_func=missing,
-        update_state_func=missing)
-    new = ismissing(layout) ? old : CV_StdSetupChain(layout,
-        old.draw_once_func, old.update_painter_func, old.update_state_func)
-    !ismissing(draw_once_func) && push!(new.draw_once_func, draw_once_func)
-    !ismissing(update_painter_func) && push!(new.update_painter_func, update_painter_func)
-    !ismissing(update_state_func) && push!(new.update_state_func, update_state_func)
-    return new
-end
-# }}}
-
 
 """
 Layout with degree of freedoms: state_counter
