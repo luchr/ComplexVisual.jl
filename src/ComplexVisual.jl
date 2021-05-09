@@ -31,6 +31,7 @@ include("layout.jl")
 include("text.jl")
 include("axis.jl")
 include("decoration.jl")
+include("scene.jl")
 include("lrdomains.jl")
 
 
@@ -48,6 +49,7 @@ macro import_huge()
         @ComplexVisual.import_text_huge
         @ComplexVisual.import_axis_huge
         @ComplexVisual.import_decoration_huge
+        @ComplexVisual.import_scene_huge
         @ComplexVisual.import_lrdomains_huge
     end
 end

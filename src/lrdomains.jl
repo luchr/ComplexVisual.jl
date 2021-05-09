@@ -22,7 +22,6 @@ end
 
 import Base:show
 
-
 """
 SetupChain with layout (type inferable) and a vector for every
 callback-type where all the callback functions are stored (type inference
@@ -234,23 +233,6 @@ function cv_destroy(scene::CV_DomainCodomainScene)
     return nothing
 end
 
-function show(io::IO, s::CV_DomainCodomainScene)
-    print(io, "CV_DomainCodomainScene(can_layout: "); show(io, s.can_layout)
-    print(io, ", parent_layout: "); show(io, s.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_DomainCodomainScene)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_DomainCodomainScene(")
-    print(io, indent, "can_layout: "); show(iio, m, s.can_layout); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
 
 """
 create scene for given scene setup.

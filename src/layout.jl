@@ -9,7 +9,7 @@ macro import_layout_huge()
             cv_ensure_size!,
             cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
             cv_pixel2math,
-            CV_StateLayout, cv_setup_cycle_state, cv_get_state_counter,
+            CV_StateLayout, cv_get_state_counter,
             CV_SceneSetupChain, CV_2DScene
     )
 end
@@ -49,15 +49,6 @@ Field access is done with (type-inferable) "getter"-methods.
 abstract type CV_2DLayoutWrapper <: CV_Abstract2DLayout end
 
 """
-A scene is a layout which has everything to be shown and to be used
-interactively.
-
-A `CV_2DScene` must support:
-`cv_get_can_layout`, `cv_get_actionpixel_update`, `cv_get_statepixel_update`
-"""
-abstract type CV_2DScene <: CV_2DLayoutWrapper end
-
-"""
 internal macro to (semi-)automatically create the "getter"-methods
 for 2D layout (wrappers).
 
@@ -65,9 +56,12 @@ For the owner `getproperty` is skipped. `getfield` gets called directly.
 """
 macro layout_composition_getter(field, owner_type)
     func_sym = Symbol("cv_get_", field)
+    func_quote = Meta.quot(func_sym)
     field_sym = Meta.quot(Symbol(field))
     return esc(quote
-        $func_sym(al::CV_2DLayoutWrapper) = $func_sym(al.parent_layout)
+        if !isdefined(ComplexVisual, $func_quote)
+            $func_sym(al::CV_2DLayoutWrapper) = $func_sym(al.parent_layout)
+        end
         $func_sym(layout::$owner_type) = getfield(layout, $field_sym)
     end)
 end
@@ -400,59 +394,6 @@ function cv_ensure_size!(layout::CV_Abstract2DLayout,
 end # }}}
 
 """
-Scene construction with a chain idea.
-
-## What is a Scene?
-
-A scene is layout together with all the callbacks/functions to update/draw all
-relevant parts. Often painters depends on "degrees of freedom" that change.
-[The change of such degrees of freedom may be triggered by a mouse or other
-"events".]
-
-Scenes are constructed step-by-step. If an new painter is "added" to the
-scene, there must be a possibility to ensure, that also this new painter
-is called if the degrees of freedom changed.
-
-Here is, where a `CV_SceneSetupChain` helps.
-
-## How does this work?
-
-All callback functions are gathered in vectors. This is the point where
-the type information about the callback functions are completely lost.
-For the return value (which is always `nothing`) this is not a problem.
-For the call this is a tradeoff: If elements of such a vector are
-called then this are purely "runtime"-calls (i.e. what to call, with
-what types, etc. is determined at runtime). That's the negative part.
-The positive part: Julia doesn't need to do the type-book-keeping (which
-is rather tough if e.g. types informations should not be lost and all
-these methods are nested: meaning every new method calls the old one first;
-because every call is typically are closure with a lot of types;
-preserving the type-info with this way would result in an unbearable
-compile-time).
-
-If a new part (e.g. a painter) changes the layout then a new
-`CV_SceneSetupChain` is built (with the new layout). This is very important,
-because for the (nested) layouts all type informations are preserved (also
-in the `CV_SceneSetupChain`). So the painter calls (which use parts of
-the layout) can make use of this type informations.
-
-All the given callback functions are appended to the callback vectors.
-
-Required fields:
-* `layout`
-* `draw_once_func`:      callbacks that a called after the layout is fixed
-                         and a Layout-Canvas was constructed.
-                         Argument: last layout
-* `actionpixel_update`:  callbacks that are called after "the main action"
-                         occured (e.g. mouse dragged).
-                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
-* `statepixel_update`:   callbacks that are called after the
-                         "state-change action" occured.
-                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
-"""
-abstract type CV_SceneSetupChain end
-
-"""
 Layout with degree of freedoms: state_counter
 """
 struct CV_StateLayout{parentT, maxV} <: CV_2DLayoutWrapper # {{{
@@ -480,15 +421,6 @@ function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_StateLayout)
     return nothing
 end  
 
-function cv_setup_cycle_state(setup::CV_SceneSetupChain)
-    state_counter = cv_get_state_counter(setup.layout)
-
-    update_state_func = z -> begin
-        state_counter()
-        return nothing
-    end
-    return cv_combine(setup; update_state_func)
-end
 
 # }}}
 
