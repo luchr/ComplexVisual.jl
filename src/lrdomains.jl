@@ -13,7 +13,6 @@ macro import_lrdomains_huge()
             cv_get_can_layout, cv_get_cc_can_layout,
             cv_get_update_math_domains, cv_get_actionpixel_update,
             cv_get_statepixel_update,
-            cv_setup_can_layout_drawing_cb,
             cv_setup_domain_codomain_scene,
             cv_setup_lr_axis, cv_setup_lr_painters, cv_setup_lr_border,
             cv_scene_lr_start, cv_scene_lr_std,
@@ -320,14 +319,6 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
     return cv_combine(setup; layout=new_layout)
 end
 # }}}
-
-function cv_setup_can_layout_drawing_cb(setup::CV_SceneSetupChain, drawing_cb)
-    draw_once_func = layout -> begin
-        drawing_cb(cv_get_cc_can_layout(layout))
-        return nothing
-    end
-    return cv_combine(setup; draw_once_func)
-end
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain,
         domain_re_ruler::CV_Ruler, domain_im_ruler::CV_Ruler,
