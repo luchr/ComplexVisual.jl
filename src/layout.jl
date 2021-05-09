@@ -10,7 +10,7 @@ macro import_layout_huge()
             cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
             cv_pixel2math,
             CV_StateLayout, cv_setup_cycle_state, cv_get_state_counter,
-            CV_SceneSetupChain
+            CV_SceneSetupChain, CV_2DScene
     )
 end
 
@@ -47,6 +47,15 @@ the "original" layout is saved inside in a field called `parent_layout`.
 Field access is done with (type-inferable) "getter"-methods.
 """
 abstract type CV_2DLayoutWrapper <: CV_Abstract2DLayout end
+
+"""
+A scene is a layout which has everything to be shown and to be used
+interactively.
+
+A `CV_2DScene` must support:
+`cv_get_can_layout`, `cv_get_actionpixel_update`, `cv_get_statepixel_update`
+"""
+abstract type CV_2DScene <: CV_2DLayoutWrapper end
 
 """
 internal macro to (semi-)automatically create the "getter"-methods

@@ -212,7 +212,7 @@ end # }}}
 Scene with domain and codomain painter update and domain pixel2coor.
 """
 struct CV_DomainCodomainScene{parentT, ccclT, apuT, spuT,
-                              umdT} <: CV_2DLayoutWrapper # {{{
+                              umdT} <: CV_2DScene # {{{
     parent_layout            :: parentT
     can_layout               :: CV_2DLayoutCanvas
     cc_can_layout            :: ccclT
