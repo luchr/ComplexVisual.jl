@@ -208,26 +208,14 @@ function cv_do_lr_layout(layout::CV_Abstract2DLayout, gap::Integer=50) # {{{
 end # }}}
 
 """
-Scene with domain and codomain painter update and domain pixel2coor.
+Scene with `update_math_domains` for domain and codomain.
 """
-struct CV_DomainCodomainLayout{parentT, ccclT, umdT} <: CV_Framed2DLayout # {{{
+struct CV_DomainCodomainLayout{parentT, umdT} <: CV_2DLayoutWrapper # {{{
     parent_layout            :: parentT
-    can_layout               :: CV_2DLayoutCanvas
-    cc_can_layout            :: ccclT
     update_math_domains      :: umdT
 end
 
-@layout_composition_getter(can_layout,              CV_DomainCodomainLayout)
-@layout_composition_getter(cc_can_layout,           CV_DomainCodomainLayout)
 @layout_composition_getter(update_math_domains,     CV_DomainCodomainLayout)
-
-function cv_destroy(scene::CV_DomainCodomainLayout)
-    cv_destroy(scene.cc_can_layout)
-    cv_destroy(scene.can_layout)
-    cv_destroy(scene.parent_layout)
-    return nothing
-end
-
 
 """
 create scene for given scene setup.
@@ -238,10 +226,8 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
     can_domain_l = cv_get_can_domain_l(layout)
     can_codomain_l = cv_get_can_codomain_l(layout)
 
-    can_layout = cv_canvas_for_layout(layout)
-    cc_can_layout = cv_create_context(can_layout)
-
-    update_math_domains = (z) -> begin
+    update_math_domains = (z, future_layout) -> begin
+        cc_can_layout = cv_get_cc_can_layout(future_layout)
         for func in setup.update_painter_func
             func(z)
         end
@@ -250,10 +236,10 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    new_layout = CV_DomainCodomainLayout(
-        layout, can_layout, cc_can_layout, update_math_domains)
+    new_layout = CV_DomainCodomainLayout(layout, update_math_domains)
 
     actionpixel_update = (px, py, future_layout) -> begin
+        can_layout = cv_get_can_layout(future_layout)
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -261,11 +247,12 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
             return nothing
         end
         x, y = cv_pixel2math(canvas, lx, ly)
-        update_math_domains(x + y*1im)
+        update_math_domains(x + y*1im, future_layout)
         return nothing
     end
 
     statepixel_update = (px, py, future_layout) -> begin
+        can_layout = cv_get_can_layout(future_layout)
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -279,23 +266,10 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    scene_actionpixel_update = (px, py) -> begin
-        for func in setup.actionpixel_update
-            func(px, py, new_layout)
-        end
-        actionpixel_update(px, py, new_layout)
-    end
-    scene_statepixel_update = (px, py) -> begin
-        for func in setup.statepixel_update
-            func(px, py, new_layout)
-        end
-        statepixel_update(px, py, new_layout)
-    end
+    setup = cv_combine(setup; layout=new_layout,
+        actionpixel_update, statepixel_update)
 
-    scene = CV_2DMinimalScene(new_layout,
-        scene_actionpixel_update, scene_statepixel_update)
-
-    return cv_combine(setup; layout=scene)
+    return cv_setup_2dminimal_scene(setup)
 end
 # }}}
 
@@ -484,7 +458,7 @@ end
 function cv_scene_lr_start(scene::CV_SceneSetupChain;
         z_start::Union{ComplexF64, Missing}=missing,
         state_start::Union{Int, Missing}=missing) # {{{
-    
+
     layout = scene.layout
     z = 0.0+0.0im
     if ismissing(z_start)
@@ -496,10 +470,7 @@ function cv_scene_lr_start(scene::CV_SceneSetupChain;
     if !ismissing(state_start)
         cv_set_value!(cv_get_state_counter(layout), state_start)
     end
-    cv_get_update_math_domains(layout)(z)
-    for func in scene.draw_once_func
-        func(scene.layout)
-    end
+    cv_get_update_math_domains(layout)(z, layout)
     return nothing
 end # }}}
 
