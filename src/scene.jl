@@ -60,6 +60,10 @@ Required fields:
 * `statepixel_update`:   callbacks that are called after the
                          "state-change action" occured.
                          Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
+* `redraw_func`:         callbacks that are called after a redraw
+                         is triggered (e.g. because some trafo-parameters have
+                         changed; typically all painters react and clear their
+                         caches and recompute their paintings)
 """
 abstract type CV_SceneSetupChain end
 
@@ -72,10 +76,11 @@ struct CV_MinimalSetupChain{layoutT} <: CV_SceneSetupChain # {{{
     draw_once_func       :: Vector{Any}
     actionpixel_update   :: Vector{Any}
     statepixel_update    :: Vector{Any}
+    redraw_func          :: Vector{Any}
 end
 
 function CV_MinimalSetupChain(layout)
-    return CV_MinimalSetupChain(layout, Vector(), Vector(), Vector())
+    return CV_MinimalSetupChain(layout, Vector(), Vector(), Vector(), Vector())
 end
 
 """
@@ -83,12 +88,14 @@ end
 """
 function cv_combine(old::CV_MinimalSetupChain;
         layout=missing, draw_once_func=missing,
-        actionpixel_update=missing, statepixel_update=missing)
+        actionpixel_update=missing, statepixel_update=missing,
+        redraw_func=missing)
     new = ismissing(layout) ? old : CV_MinimalSetupChain(layout,
         old.draw_once_func, old.actionpixel_update, old.statepixel_update)
     !ismissing(draw_once_func) && push!(new.draw_once_func, draw_once_func)
     !ismissing(actionpixel_update) && push!(new.actionpixel_update, actionpixel_update)
     !ismissing(statepixel_update) && push!(new.statepixel_update, statepixel_update)
+    !ismissing(redraw_func) && push!(new.redraw_func, redraw_func)
     return new
 end
 
@@ -100,25 +107,29 @@ A scene is a framed layout which has everything to be shown and to be used
 interactively.
 
 A `CV_2DScene` must support:
-`cv_get_actionpixel_update`, `cv_get_statepixel_update`
+`cv_get_actionpixel_update`, `cv_get_statepixel_update`,
+`cv`get_redraw_func`
 """
 abstract type CV_2DScene <: CV_Framed2DLayout
     # actionpixel_update
     # statepixel_update
+    # redraw_func
 end
 
 
 """
 A minimalistic `CV_2DScene`.
 """
-struct CV_2DMinimalScene{parentT, apuT, spuT} <: CV_2DScene    # {{{
+struct CV_2DMinimalScene{parentT, apuT, spuT, rfT} <: CV_2DScene    # {{{
     parent_layout            :: parentT
     actionpixel_update       :: apuT
     statepixel_update        :: spuT
+    redraw_func              :: rfT
 end
 
 @layout_composition_getter(actionpixel_update,      CV_2DMinimalScene)
 @layout_composition_getter(statepixel_update,       CV_2DMinimalScene)
+@layout_composition_getter(redraw_func,             CV_2DMinimalScene)
 
 
 function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
@@ -130,16 +141,26 @@ function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
         for func in setup.actionpixel_update
             func(px, py, layout)
         end
+        return nothing
     end
 
     scene_statepixel_update = (px, py) -> begin
         for func in setup.statepixel_update
             func(px, py, layout)
         end
+        return nothing
+    end
+
+    scene_redraw_func = () -> begin
+        for func in setup.redraw_func
+            func(layout)
+        end
+        return nothing
     end
 
     scene = CV_2DMinimalScene(layout,
-        scene_actionpixel_update, scene_statepixel_update)
+        scene_actionpixel_update, scene_statepixel_update,
+        scene_redraw_func)
     for func in setup.draw_once_func
         func(scene)
     end
