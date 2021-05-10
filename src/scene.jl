@@ -91,7 +91,8 @@ function cv_combine(old::CV_MinimalSetupChain;
         actionpixel_update=missing, statepixel_update=missing,
         redraw_func=missing)
     new = ismissing(layout) ? old : CV_MinimalSetupChain(layout,
-        old.draw_once_func, old.actionpixel_update, old.statepixel_update)
+        old.draw_once_func, old.actionpixel_update, old.statepixel_update,
+        old.redraw_func)
     !ismissing(draw_once_func) && push!(new.draw_once_func, draw_once_func)
     !ismissing(actionpixel_update) && push!(new.actionpixel_update, actionpixel_update)
     !ismissing(statepixel_update) && push!(new.statepixel_update, statepixel_update)

@@ -2,7 +2,8 @@ macro import_layout_huge()
     :(
         using ComplexVisual:
             cv_destroy,
-            CV_Layout, CV_Abstract2DLayout, CV_2DLayoutWrapper, CV_2DLayout,
+            CV_Layout, CV_Abstract2DLayout, CV_2DLayoutWrapper,
+            CV_2DContainer, CV_2DLayout,
             CV_Framed2DLayout, CV_MinimalFramed2DLayout,
             CV_2DLayoutPosition, CV_2DLayoutCanvas, cv_create_context,
             cv_get_seen_boxes,
@@ -146,9 +147,14 @@ end
 # }}}
 
 """
+A container with a `bounding_box` and `user_box` (pixel-)coordinates.
+"""
+abstract type  CV_2DContainer   <: CV_2DCanvas end
+
+"""
 `CV_2DCanvas` with size and trafo adapted to `CV_2DLayout`.
 """
-struct CV_2DLayoutCanvas{afT} <: CV_2DCanvas  # {{{
+struct CV_2DLayoutCanvas{afT} <: CV_2DContainer  # {{{
     surface      :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width  :: Int32
     pixel_height :: Int32
@@ -172,7 +178,7 @@ function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
     return can.anchor_func(can, anchor_name) :: Tuple{Int32, Int32}
 end
 
-function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true,
+function cv_create_context(canvas::CV_2DContainer; prepare::Bool=true,
         fill_with::CV_ContextStyle=cv_color(1,1,1))
     con = CV_2DCanvasContext(canvas)
     if prepare
@@ -271,7 +277,7 @@ end
 use 2DLayoutPosition to transform a global pixel position `(gx, gy)` to
 local/relative pixels w.r.t. the positon's coordinates.
 """
-function cv_global2local(canvas::CV_2DLayoutCanvas,
+function cv_global2local(canvas::CV_2DContainer,
                         cl::CV_2DLayoutPosition, gx::Integer, gy::Integer)
     ubox = canvas.user_box
     rect = cl.rectangle
@@ -285,7 +291,7 @@ w.r.t. the positon's coordinates to global pixels.
 
 This is the opposite of `cv_global2local`.
 """
-function cv_local2global(canvas::CV_2DLayoutCanvas,
+function cv_local2global(canvas::CV_2DContainer,
                          cl::CV_2DLayoutPosition, lx::Integer, ly::Integer)
     ubox = canvas.user_box
     rect = cl.rectangle
@@ -297,7 +303,7 @@ end
 use 2DLayoutPosition (for a `CV_Math2DCanvas`) to convert a global
 pixel position `(gx, gy)` coordinates in math units.
 """
-function cv_pixel2math(canvas::CV_2DLayoutCanvas,
+function cv_pixel2math(canvas::CV_2DContainer,
                        cl::CV_2DLayoutPosition{canT,styleT},
                        gx::Integer, gy::Integer) where {styleT,
                                                 canT<:CV_Math2DCanvas}
