@@ -2,14 +2,14 @@ macro import_lrdomains_huge()
     :(
         using ComplexVisual:
             cv_destroy,
-            CV_DomainCodomainLayout, 
+            CV_DomainCodomainParts, 
             cv_get_trafo, cv_get_can_domain, cv_get_can_codomain,
             cv_get_cc_can_domain, cv_get_cc_can_codomain,
             cv_add, 
             CV_DomainPosLayout, CV_CodomainPosLayout,
             cv_get_can_domain_l, cv_get_can_codomain_l,
             cv_do_lr_layout,
-            CV_DomainCodomainScene,
+            CV_DomainCodomainLayout,
             cv_get_can_layout, cv_get_cc_can_layout,
             cv_get_update_math_domains, cv_get_actionpixel_update,
             cv_get_statepixel_update,
@@ -63,7 +63,7 @@ end
 Saves domain and codomain (and their contexts) together with a trafo in
 (the) layout.
 """
-struct CV_DomainCodomainLayout{parentT<:CV_Abstract2DLayout,
+struct CV_DomainCodomainParts{parentT<:CV_Abstract2DLayout,
                     trafoT, domainT<:CV_Canvas, codomainT<:CV_Canvas,
                     ccdT, cccT} <: CV_2DLayoutWrapper  # {{{
     parent_layout   :: parentT
@@ -74,13 +74,13 @@ struct CV_DomainCodomainLayout{parentT<:CV_Abstract2DLayout,
     cc_can_codomain :: cccT
 end
 
-@layout_composition_getter(trafo,           CV_DomainCodomainLayout)
-@layout_composition_getter(can_domain,      CV_DomainCodomainLayout)
-@layout_composition_getter(can_codomain,    CV_DomainCodomainLayout)
-@layout_composition_getter(cc_can_domain,   CV_DomainCodomainLayout)
-@layout_composition_getter(cc_can_codomain, CV_DomainCodomainLayout)
+@layout_composition_getter(trafo,           CV_DomainCodomainParts)
+@layout_composition_getter(can_domain,      CV_DomainCodomainParts)
+@layout_composition_getter(can_codomain,    CV_DomainCodomainParts)
+@layout_composition_getter(cc_can_domain,   CV_DomainCodomainParts)
+@layout_composition_getter(cc_can_codomain, CV_DomainCodomainParts)
 
-function cv_destroy(l::CV_DomainCodomainLayout)
+function cv_destroy(l::CV_DomainCodomainParts)
     cv_destroy(l.cc_can_domain)
     cv_destroy(l.cc_can_codomain)
     cv_destroy(l.can_domain)
@@ -89,21 +89,21 @@ function cv_destroy(l::CV_DomainCodomainLayout)
     return nothing
 end
 
-function show(io::IO, l::CV_DomainCodomainLayout)
+function show(io::IO, l::CV_DomainCodomainParts)
     fio = IOContext(io, :compact => true)
-    print(io, "CV_DomainCodomainLayout(trafo: "); show(fio, l.trafo)
-    print(io, ", can_domain: ");                  show(io, l.can_domain)
-    print(io, ", can_codomain: ");                show(io, l.can_codomain)
-    print(io, ", parent_layout: ");               show(io, l.parent_layout)
+    print(io, "CV_DomainCodomainParts(trafo: "); show(fio, l.trafo)
+    print(io, ", can_domain: ");                 show(io, l.can_domain)
+    print(io, ", can_codomain: ");               show(io, l.can_codomain)
+    print(io, ", parent_layout: ");              show(io, l.parent_layout)
     print(io, ')')
     return nothing
 end
 
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainLayout)
+function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainParts)
     outer_indent = (get(io, :cv_indent, "")::AbstractString)
     indent = outer_indent * "  "
     iio = IOContext(io, :cv_indent => indent, :compact => true)
-    println(io, "CV_DomainCodomainLayout(")
+    println(io, "CV_DomainCodomainParts(")
     print(io, indent, "trafo: "); show(iio, m, l.trafo); println(io)
     print(io, indent, "can_domain: "); show(iio, m, l.can_domain); println(io)
     print(io, indent, "can_codomain: "); show(iio, m, l.can_codomain); println(io)
@@ -123,7 +123,7 @@ function cv_add(layout::CV_Abstract2DLayout, trafo,
         cc_can_codomain::CV_CanvasContext=cv_create_context(can_codomain)
         ) where {domainT<:CV_Canvas, codomainT<:CV_Canvas}
 
-    return CV_DomainCodomainLayout(
+    return CV_DomainCodomainParts(
         layout, trafo, can_domain, can_codomain, 
         cc_can_domain, cc_can_codomain)
 end
@@ -210,23 +210,18 @@ end # }}}
 """
 Scene with domain and codomain painter update and domain pixel2coor.
 """
-struct CV_DomainCodomainScene{parentT, ccclT, apuT, spuT,
-                              umdT} <: CV_2DScene # {{{
+struct CV_DomainCodomainLayout{parentT, ccclT, umdT} <: CV_Framed2DLayout # {{{
     parent_layout            :: parentT
     can_layout               :: CV_2DLayoutCanvas
     cc_can_layout            :: ccclT
-    actionpixel_update       :: apuT
-    statepixel_update        :: spuT
     update_math_domains      :: umdT
 end
 
-@layout_composition_getter(can_layout,              CV_DomainCodomainScene)
-@layout_composition_getter(cc_can_layout,           CV_DomainCodomainScene)
-@layout_composition_getter(actionpixel_update,      CV_DomainCodomainScene)
-@layout_composition_getter(statepixel_update,       CV_DomainCodomainScene)
-@layout_composition_getter(update_math_domains,     CV_DomainCodomainScene)
+@layout_composition_getter(can_layout,              CV_DomainCodomainLayout)
+@layout_composition_getter(cc_can_layout,           CV_DomainCodomainLayout)
+@layout_composition_getter(update_math_domains,     CV_DomainCodomainLayout)
 
-function cv_destroy(scene::CV_DomainCodomainScene)
+function cv_destroy(scene::CV_DomainCodomainLayout)
     cv_destroy(scene.cc_can_layout)
     cv_destroy(scene.can_layout)
     cv_destroy(scene.parent_layout)
@@ -255,7 +250,10 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    actionpixel_update = (px, py) -> begin
+    new_layout = CV_DomainCodomainLayout(
+        layout, can_layout, cc_can_layout, update_math_domains)
+
+    actionpixel_update = (px, py, future_layout) -> begin
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -267,7 +265,7 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    statepixel_update = (px, py) -> begin
+    statepixel_update = (px, py, future_layout) -> begin
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -283,22 +281,21 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
 
     scene_actionpixel_update = (px, py) -> begin
         for func in setup.actionpixel_update
-            func(px, py)
+            func(px, py, new_layout)
         end
-        actionpixel_update(px, py)
+        actionpixel_update(px, py, new_layout)
     end
     scene_statepixel_update = (px, py) -> begin
         for func in setup.statepixel_update
-            func(px, py)
+            func(px, py, new_layout)
         end
-        statepixel_update(px, py)
+        statepixel_update(px, py, new_layout)
     end
 
-    new_layout = CV_DomainCodomainScene(
-        layout, can_layout, cc_can_layout,
-        scene_actionpixel_update, scene_statepixel_update,
-        update_math_domains)
-    return cv_combine(setup; layout=new_layout)
+    scene = CV_2DMinimalScene(new_layout,
+        scene_actionpixel_update, scene_statepixel_update)
+
+    return cv_combine(setup; layout=scene)
 end
 # }}}
 

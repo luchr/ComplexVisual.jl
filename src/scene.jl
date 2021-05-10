@@ -96,82 +96,52 @@ end
 
 
 """
-A scene is a layout which has everything to be shown and to be used
+A scene is a framed layout which has everything to be shown and to be used
 interactively.
 
 A `CV_2DScene` must support:
-`cv_get_can_layout`, `cv_get_cc_can_layout`,
 `cv_get_actionpixel_update`, `cv_get_statepixel_update`
 """
-abstract type CV_2DScene <: CV_2DLayoutWrapper end
-
-function show(io::IO, s::CV_2DScene)
-    t = typeof(s)
-    print(io, t, "(can_layout: "); show(io, cv_get_can_layout(s))
-    print(io, ", parent_layout: "); show(io, s.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_2DScene)
-    t = typeof(s)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, t, '(')
-    print(io, indent, "can_layout: "); show(iio, m, cv_get_can_layout(s)); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
+abstract type CV_2DScene <: CV_Framed2DLayout
+    # actionpixel_update
+    # statepixel_update
 end
 
 
 """
 A minimalistic `CV_2DScene`.
 """
-struct CV_2DMinimalScene{parentT, ccclT, apuT, spuT} <: CV_2DScene    # {{{
+struct CV_2DMinimalScene{parentT, apuT, spuT} <: CV_2DScene    # {{{
     parent_layout            :: parentT
-    can_layout               :: CV_2DLayoutCanvas
-    cc_can_layout            :: ccclT
     actionpixel_update       :: apuT
     statepixel_update        :: spuT
 end
 
-@layout_composition_getter(can_layout,              CV_2DMinimalScene)
-@layout_composition_getter(cc_can_layout,           CV_2DMinimalScene)
 @layout_composition_getter(actionpixel_update,      CV_2DMinimalScene)
 @layout_composition_getter(statepixel_update,       CV_2DMinimalScene)
 
-function cv_destroy(scene::CV_2DMinimalScene)
-    cv_destroy(scene.cc_can_layout)
-    cv_destroy(scene.can_layout)
-    cv_destroy(scene.parent_layout)
-    return nothing
-end
-
 
 function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
-    layout = setup.layout
-
-    can_layout = cv_canvas_for_layout(layout)
+    can_layout = cv_canvas_for_layout(setup.layout)
     cc_can_layout = cv_create_context(can_layout)
+    layout = CV_MinimalFramed2DLayout(setup.layout, can_layout, cc_can_layout)
 
     scene_actionpixel_update = (px, py) -> begin
         for func in setup.actionpixel_update
-            func(px, py)
+            func(px, py, layout)
         end
     end
 
     scene_statepixel_update = (px, py) -> begin
         for func in setup.statepixel_update
-            func(px, py)
+            func(px, py, layout)
         end
     end
 
-    scene = CV_2DMinimalScene(layout, can_layout, cc_can_layout,
+    scene = CV_2DMinimalScene(layout,
         scene_actionpixel_update, scene_statepixel_update)
     for func in setup.draw_once_func
-        func(scene.layout)
+        func(scene)
     end
 
     return cv_combine(setup; layout=scene)

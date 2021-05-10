@@ -3,6 +3,7 @@ macro import_layout_huge()
         using ComplexVisual:
             cv_destroy,
             CV_Layout, CV_Abstract2DLayout, CV_2DLayoutWrapper, CV_2DLayout,
+            CV_Framed2DLayout, CV_MinimalFramed2DLayout,
             CV_2DLayoutPosition, CV_2DLayoutCanvas, cv_create_context,
             cv_get_seen_boxes,
             cv_translate, cv_add_canvas!, cv_add_rectangle!, cv_add_padding!,
@@ -21,6 +22,15 @@ import Base:show
 """
 A layout is able to position other objects (e.g. canvas, rectangles)
 relative to already positioned objects.
+
+Typically a layout "grows" (in the size) with new objects. Even additional
+information may be stored in a layout, see `CV_2DLayoutWrapper`.
+
+At some time a layout gets "framed", see `CV_Framed2DLayout`. At this time
+such a layout has a `can_layout`  and `cc_can_layout` field.
+
+At the ende a layout becomes a "scene", see `CV_2DScene`. At this time
+there are some callback-functions for interaction available as fields.
 """
 abstract type CV_Layout         end
 
@@ -47,6 +57,16 @@ the "original" layout is saved inside in a field called `parent_layout`.
 Field access is done with (type-inferable) "getter"-methods.
 """
 abstract type CV_2DLayoutWrapper <: CV_Abstract2DLayout end
+
+"""
+A Layout which supports the fields `can_layout` and `cc_can_layout`.
+At this time the size of the layout cannot grow anymore (because the canvas
+is already allocated).
+"""
+abstract type CV_Framed2DLayout <: CV_2DLayoutWrapper
+    # can_layout      :: CV_2DLayoutCanvas
+    # cc_can_layout
+end
 
 """
 internal macro to (semi-)automatically create the "getter"-methods
@@ -83,6 +103,44 @@ cv_destroy(layout::CV_2DLayout) = nothing
 function show(io::IO, l::CV_2DLayout)
     print(io, "CV_2DLayout(seen_boxes: "); show(io, l.seen_boxes);
     print(io, ')')
+    return nothing
+end
+
+function show(io::IO, l::CV_Framed2DLayout)
+    t = typeof(l)
+    print(io, t, "(can_layout: "); show(io, cv_get_can_layout(l));
+    print(io, ')')
+    return nothing
+end
+
+function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_Framed2DLayout)
+    t = typeof(s)
+    outer_indent = (get(io, :cv_indent, "")::AbstractString)
+    indent = outer_indent * "  "
+    iio = IOContext(io, :cv_indent => indent)
+    println(io, t, '(')
+    print(io, indent, "can_layout: "); show(iio, m, cv_get_can_layout(s)); println(io)
+    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
+    print(io, outer_indent, ')')
+    return nothing
+end
+
+# }}}
+
+struct CV_MinimalFramed2DLayout{parentT,
+            canT <: CV_2DCanvas, cccT} <: CV_Framed2DLayout # {{{
+    parent_layout   :: parentT
+    can_layout      :: canT
+    cc_can_layout   :: cccT
+end
+
+@layout_composition_getter(can_layout,    CV_MinimalFramed2DLayout)
+@layout_composition_getter(cc_can_layout, CV_MinimalFramed2DLayout)
+
+function cv_destroy(layout::CV_MinimalFramed2DLayout)
+    cv_destroy(layout.cc_can_layout)
+    cv_destroy(layout.can_layout)
+    cv_destroy(layout.parent_layout)
     return nothing
 end
 # }}}
