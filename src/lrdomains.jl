@@ -228,6 +228,13 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
     can_domain_l = cv_get_can_domain_l(layout)
     can_codomain_l = cv_get_can_codomain_l(layout)
 
+    redraw_func = (future_layout) -> begin
+        cc_can_layout = cv_get_cc_can_layout(future_layout)
+        can_domain_l(cc_can_layout)
+        can_codomain_l(cc_can_layout)
+        return nothing
+    end
+
     update_math_domains = (z, future_layout) -> begin
         cc_can_layout = cv_get_cc_can_layout(future_layout)
         for func in setup.update_painter_func
@@ -269,7 +276,7 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
     end
 
     setup = cv_combine(setup; layout=new_layout,
-        actionpixel_update, statepixel_update)
+        actionpixel_update, statepixel_update, redraw_func)
 
     return cv_setup_2dminimal_scene(setup)
 end
