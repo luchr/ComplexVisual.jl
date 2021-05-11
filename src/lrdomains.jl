@@ -2,14 +2,14 @@ macro import_lrdomains_huge()
     :(
         using ComplexVisual:
             cv_destroy,
-            CV_DomainCodomainLayout, 
+            CV_DomainCodomainParts, 
             cv_get_trafo, cv_get_can_domain, cv_get_can_codomain,
             cv_get_cc_can_domain, cv_get_cc_can_codomain,
             cv_add, 
             CV_DomainPosLayout, CV_CodomainPosLayout,
             cv_get_can_domain_l, cv_get_can_codomain_l,
             cv_do_lr_layout,
-            CV_DomainCodomainScene,
+            CV_DomainCodomainLayout,
             cv_get_can_layout, cv_get_cc_can_layout,
             cv_get_update_math_domains, cv_get_actionpixel_update,
             cv_get_statepixel_update,
@@ -21,7 +21,6 @@ macro import_lrdomains_huge()
 end
 
 import Base:show
-
 
 """
 SetupChain with layout (type inferable) and a vector for every
@@ -35,25 +34,27 @@ struct CV_LRSetupChain{layoutT} <: CV_SceneSetupChain # {{{
     statepixel_update    :: Vector{Any}
     update_painter_func  :: Vector{Any}
     update_state_func    :: Vector{Any}
+    redraw_func          :: Vector{Any}
 end
 
 function CV_LRSetupChain(layout)
     return CV_LRSetupChain(layout, Vector(), Vector(), Vector(), 
-        Vector(), Vector())
+        Vector(), Vector(), Vector())
 end
 
 function cv_combine(old::CV_LRSetupChain;
         layout=missing, draw_once_func=missing, update_painter_func=missing,
         update_state_func=missing, actionpixel_update=missing,
-        statepixel_update=missing)
+        statepixel_update=missing, redraw_func=missing)
     new = ismissing(layout) ? old : CV_LRSetupChain(layout,
         old.draw_once_func, old.actionpixel_update, old.statepixel_update,
-        old.update_painter_func, old.update_state_func)
+        old.update_painter_func, old.update_state_func, old.redraw_func)
     !ismissing(draw_once_func) && push!(new.draw_once_func, draw_once_func)
     !ismissing(actionpixel_update) && push!(new.actionpixel_update, actionpixel_update)
     !ismissing(statepixel_update) && push!(new.statepixel_update, statepixel_update)
     !ismissing(update_painter_func) && push!(new.update_painter_func, update_painter_func)
     !ismissing(update_state_func) && push!(new.update_state_func, update_state_func)
+    !ismissing(redraw_func) && push!(new.redraw_func, redraw_func)
     return new
 end
 # }}}
@@ -64,7 +65,7 @@ end
 Saves domain and codomain (and their contexts) together with a trafo in
 (the) layout.
 """
-struct CV_DomainCodomainLayout{parentT<:CV_Abstract2DLayout,
+struct CV_DomainCodomainParts{parentT<:CV_Abstract2DLayout,
                     trafoT, domainT<:CV_Canvas, codomainT<:CV_Canvas,
                     ccdT, cccT} <: CV_2DLayoutWrapper  # {{{
     parent_layout   :: parentT
@@ -75,13 +76,13 @@ struct CV_DomainCodomainLayout{parentT<:CV_Abstract2DLayout,
     cc_can_codomain :: cccT
 end
 
-@layout_composition_getter(trafo,           CV_DomainCodomainLayout)
-@layout_composition_getter(can_domain,      CV_DomainCodomainLayout)
-@layout_composition_getter(can_codomain,    CV_DomainCodomainLayout)
-@layout_composition_getter(cc_can_domain,   CV_DomainCodomainLayout)
-@layout_composition_getter(cc_can_codomain, CV_DomainCodomainLayout)
+@layout_composition_getter(trafo,           CV_DomainCodomainParts)
+@layout_composition_getter(can_domain,      CV_DomainCodomainParts)
+@layout_composition_getter(can_codomain,    CV_DomainCodomainParts)
+@layout_composition_getter(cc_can_domain,   CV_DomainCodomainParts)
+@layout_composition_getter(cc_can_codomain, CV_DomainCodomainParts)
 
-function cv_destroy(l::CV_DomainCodomainLayout)
+function cv_destroy(l::CV_DomainCodomainParts)
     cv_destroy(l.cc_can_domain)
     cv_destroy(l.cc_can_codomain)
     cv_destroy(l.can_domain)
@@ -90,21 +91,21 @@ function cv_destroy(l::CV_DomainCodomainLayout)
     return nothing
 end
 
-function show(io::IO, l::CV_DomainCodomainLayout)
+function show(io::IO, l::CV_DomainCodomainParts)
     fio = IOContext(io, :compact => true)
-    print(io, "CV_DomainCodomainLayout(trafo: "); show(fio, l.trafo)
-    print(io, ", can_domain: ");                  show(io, l.can_domain)
-    print(io, ", can_codomain: ");                show(io, l.can_codomain)
-    print(io, ", parent_layout: ");               show(io, l.parent_layout)
+    print(io, "CV_DomainCodomainParts(trafo: "); show(fio, l.trafo)
+    print(io, ", can_domain: ");                 show(io, l.can_domain)
+    print(io, ", can_codomain: ");               show(io, l.can_codomain)
+    print(io, ", parent_layout: ");              show(io, l.parent_layout)
     print(io, ')')
     return nothing
 end
 
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainLayout)
+function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainParts)
     outer_indent = (get(io, :cv_indent, "")::AbstractString)
     indent = outer_indent * "  "
     iio = IOContext(io, :cv_indent => indent, :compact => true)
-    println(io, "CV_DomainCodomainLayout(")
+    println(io, "CV_DomainCodomainParts(")
     print(io, indent, "trafo: "); show(iio, m, l.trafo); println(io)
     print(io, indent, "can_domain: "); show(iio, m, l.can_domain); println(io)
     print(io, indent, "can_codomain: "); show(iio, m, l.can_codomain); println(io)
@@ -124,7 +125,7 @@ function cv_add(layout::CV_Abstract2DLayout, trafo,
         cc_can_codomain::CV_CanvasContext=cv_create_context(can_codomain)
         ) where {domainT<:CV_Canvas, codomainT<:CV_Canvas}
 
-    return CV_DomainCodomainLayout(
+    return CV_DomainCodomainParts(
         layout, trafo, can_domain, can_codomain, 
         cc_can_domain, cc_can_codomain)
 end
@@ -209,48 +210,14 @@ function cv_do_lr_layout(layout::CV_Abstract2DLayout, gap::Integer=50) # {{{
 end # }}}
 
 """
-Scene with domain and codomain painter update and domain pixel2coor.
+Scene with `update_math_domains` for domain and codomain.
 """
-struct CV_DomainCodomainScene{parentT, ccclT, apuT, spuT,
-                              umdT} <: CV_2DLayoutWrapper # {{{
+struct CV_DomainCodomainLayout{parentT, umdT} <: CV_2DLayoutWrapper # {{{
     parent_layout            :: parentT
-    can_layout               :: CV_2DLayoutCanvas
-    cc_can_layout            :: ccclT
-    actionpixel_update       :: apuT
-    statepixel_update        :: spuT
     update_math_domains      :: umdT
 end
 
-@layout_composition_getter(can_layout,              CV_DomainCodomainScene)
-@layout_composition_getter(cc_can_layout,           CV_DomainCodomainScene)
-@layout_composition_getter(actionpixel_update,      CV_DomainCodomainScene)
-@layout_composition_getter(statepixel_update,       CV_DomainCodomainScene)
-@layout_composition_getter(update_math_domains,     CV_DomainCodomainScene)
-
-function cv_destroy(scene::CV_DomainCodomainScene)
-    cv_destroy(scene.cc_can_layout)
-    cv_destroy(scene.can_layout)
-    cv_destroy(scene.parent_layout)
-    return nothing
-end
-
-function show(io::IO, s::CV_DomainCodomainScene)
-    print(io, "CV_DomainCodomainScene(can_layout: "); show(io, s.can_layout)
-    print(io, ", parent_layout: "); show(io, s.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_DomainCodomainScene)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_DomainCodomainScene(")
-    print(io, indent, "can_layout: "); show(iio, m, s.can_layout); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+@layout_composition_getter(update_math_domains,     CV_DomainCodomainLayout)
 
 """
 create scene for given scene setup.
@@ -261,10 +228,15 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
     can_domain_l = cv_get_can_domain_l(layout)
     can_codomain_l = cv_get_can_codomain_l(layout)
 
-    can_layout = cv_canvas_for_layout(layout)
-    cc_can_layout = cv_create_context(can_layout)
+    redraw_func = (future_layout) -> begin
+        cc_can_layout = cv_get_cc_can_layout(future_layout)
+        can_domain_l(cc_can_layout)
+        can_codomain_l(cc_can_layout)
+        return nothing
+    end
 
-    update_math_domains = (z) -> begin
+    update_math_domains = (z, future_layout) -> begin
+        cc_can_layout = cv_get_cc_can_layout(future_layout)
         for func in setup.update_painter_func
             func(z)
         end
@@ -273,7 +245,10 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    actionpixel_update = (px, py) -> begin
+    new_layout = CV_DomainCodomainLayout(layout, update_math_domains)
+
+    actionpixel_update = (px, py, future_layout) -> begin
+        can_layout = cv_get_can_layout(future_layout)
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -281,11 +256,12 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
             return nothing
         end
         x, y = cv_pixel2math(canvas, lx, ly)
-        update_math_domains(x + y*1im)
+        update_math_domains(x + y*1im, future_layout)
         return nothing
     end
 
-    statepixel_update = (px, py) -> begin
+    statepixel_update = (px, py, future_layout) -> begin
+        can_layout = cv_get_can_layout(future_layout)
         canvas = can_domain_l.canvas
         lx, ly = cv_global2local(can_layout, can_domain_l, px, py)
         if (lx < 0) || (ly < 0) ||
@@ -299,24 +275,10 @@ function cv_setup_domain_codomain_scene(setup::CV_SceneSetupChain)
         return nothing
     end
 
-    scene_actionpixel_update = (px, py) -> begin
-        for func in setup.actionpixel_update
-            func(px, py)
-        end
-        actionpixel_update(px, py)
-    end
-    scene_statepixel_update = (px, py) -> begin
-        for func in setup.statepixel_update
-            func(px, py)
-        end
-        statepixel_update(px, py)
-    end
+    setup = cv_combine(setup; layout=new_layout,
+        actionpixel_update, statepixel_update, redraw_func)
 
-    new_layout = CV_DomainCodomainScene(
-        layout, can_layout, cc_can_layout,
-        scene_actionpixel_update, scene_statepixel_update,
-        update_math_domains)
-    return cv_combine(setup; layout=new_layout)
+    return cv_setup_2dminimal_scene(setup)
 end
 # }}}
 
@@ -435,7 +397,18 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain,
         return nothing
     end
 
-    return cv_combine(setup; update_painter_func)
+    redraw_func = layout -> begin
+        if portrait_painter_domain !== nothing
+            cv_clear_cache(portrait_painter_domain)
+        end
+        if portrait_painter_codomain !== nothing
+            cv_clear_cache(portrait_painter_codomain)
+        end
+        update_painter_func(translate_pos.value)
+        return nothing
+    end
+
+    return cv_combine(setup; update_painter_func, redraw_func)
 end # }}}
 
 const cv_setup_lr_painters_default_phs = cv_op_source → 
@@ -505,7 +478,7 @@ end
 function cv_scene_lr_start(scene::CV_SceneSetupChain;
         z_start::Union{ComplexF64, Missing}=missing,
         state_start::Union{Int, Missing}=missing) # {{{
-    
+
     layout = scene.layout
     z = 0.0+0.0im
     if ismissing(z_start)
@@ -517,10 +490,7 @@ function cv_scene_lr_start(scene::CV_SceneSetupChain;
     if !ismissing(state_start)
         cv_set_value!(cv_get_state_counter(layout), state_start)
     end
-    cv_get_update_math_domains(layout)(z)
-    for func in scene.draw_once_func
-        func(scene.layout)
-    end
+    cv_get_update_math_domains(layout)(z, layout)
     return nothing
 end # }}}
 

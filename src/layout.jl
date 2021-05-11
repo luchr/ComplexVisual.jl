@@ -2,15 +2,17 @@ macro import_layout_huge()
     :(
         using ComplexVisual:
             cv_destroy,
-            CV_Layout, CV_Abstract2DLayout, CV_2DLayoutWrapper, CV_2DLayout,
+            CV_Layout, CV_Abstract2DLayout, CV_2DLayoutWrapper,
+            CV_2DContainer, CV_2DLayout,
+            CV_Framed2DLayout, CV_MinimalFramed2DLayout,
             CV_2DLayoutPosition, CV_2DLayoutCanvas, cv_create_context,
             cv_get_seen_boxes,
             cv_translate, cv_add_canvas!, cv_add_rectangle!, cv_add_padding!,
             cv_ensure_size!,
             cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
             cv_pixel2math,
-            CV_StateLayout, cv_setup_cycle_state, cv_get_state_counter,
-            CV_SceneSetupChain
+            CV_StateLayout, cv_get_state_counter,
+            CV_SceneSetupChain, CV_2DScene
     )
 end
 
@@ -21,6 +23,15 @@ import Base:show
 """
 A layout is able to position other objects (e.g. canvas, rectangles)
 relative to already positioned objects.
+
+Typically a layout "grows" (in the size) with new objects. Even additional
+information may be stored in a layout, see `CV_2DLayoutWrapper`.
+
+At some time a layout gets "framed", see `CV_Framed2DLayout`. At this time
+such a layout has a `can_layout`  and `cc_can_layout` field.
+
+At the ende a layout becomes a "scene", see `CV_2DScene`. At this time
+there are some callback-functions for interaction available as fields.
 """
 abstract type CV_Layout         end
 
@@ -49,6 +60,16 @@ Field access is done with (type-inferable) "getter"-methods.
 abstract type CV_2DLayoutWrapper <: CV_Abstract2DLayout end
 
 """
+A Layout which supports the fields `can_layout` and `cc_can_layout`.
+At this time the size of the layout cannot grow anymore (because the canvas
+is already allocated).
+"""
+abstract type CV_Framed2DLayout <: CV_2DLayoutWrapper
+    # can_layout      :: CV_2DLayoutCanvas
+    # cc_can_layout
+end
+
+"""
 internal macro to (semi-)automatically create the "getter"-methods
 for 2D layout (wrappers).
 
@@ -56,9 +77,12 @@ For the owner `getproperty` is skipped. `getfield` gets called directly.
 """
 macro layout_composition_getter(field, owner_type)
     func_sym = Symbol("cv_get_", field)
+    func_quote = Meta.quot(func_sym)
     field_sym = Meta.quot(Symbol(field))
     return esc(quote
-        $func_sym(al::CV_2DLayoutWrapper) = $func_sym(al.parent_layout)
+        if !isdefined(ComplexVisual, $func_quote)
+            $func_sym(al::CV_2DLayoutWrapper) = $func_sym(al.parent_layout)
+        end
         $func_sym(layout::$owner_type) = getfield(layout, $field_sym)
     end)
 end
@@ -82,12 +106,55 @@ function show(io::IO, l::CV_2DLayout)
     print(io, ')')
     return nothing
 end
+
+function show(io::IO, l::CV_Framed2DLayout)
+    t = typeof(l)
+    print(io, t, "(can_layout: "); show(io, cv_get_can_layout(l));
+    print(io, ')')
+    return nothing
+end
+
+function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_Framed2DLayout)
+    t = typeof(s)
+    outer_indent = (get(io, :cv_indent, "")::AbstractString)
+    indent = outer_indent * "  "
+    iio = IOContext(io, :cv_indent => indent)
+    println(io, t, '(')
+    print(io, indent, "can_layout: "); show(iio, m, cv_get_can_layout(s)); println(io)
+    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
+    print(io, outer_indent, ')')
+    return nothing
+end
+
 # }}}
+
+struct CV_MinimalFramed2DLayout{parentT,
+            canT <: CV_2DCanvas, cccT} <: CV_Framed2DLayout # {{{
+    parent_layout   :: parentT
+    can_layout      :: canT
+    cc_can_layout   :: cccT
+end
+
+@layout_composition_getter(can_layout,    CV_MinimalFramed2DLayout)
+@layout_composition_getter(cc_can_layout, CV_MinimalFramed2DLayout)
+
+function cv_destroy(layout::CV_MinimalFramed2DLayout)
+    cv_destroy(layout.cc_can_layout)
+    cv_destroy(layout.can_layout)
+    cv_destroy(layout.parent_layout)
+    return nothing
+end
+# }}}
+
+"""
+A container with a `bounding_box` and `user_box` (pixel-)coordinates.
+"""
+abstract type  CV_2DContainer   <: CV_2DCanvas end
 
 """
 `CV_2DCanvas` with size and trafo adapted to `CV_2DLayout`.
 """
-struct CV_2DLayoutCanvas{afT} <: CV_2DCanvas  # {{{
+struct CV_2DLayoutCanvas{afT} <: CV_2DContainer  # {{{
     surface      :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width  :: Int32
     pixel_height :: Int32
@@ -111,7 +178,7 @@ function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
     return can.anchor_func(can, anchor_name) :: Tuple{Int32, Int32}
 end
 
-function cv_create_context(canvas::CV_2DLayoutCanvas; prepare::Bool=true,
+function cv_create_context(canvas::CV_2DContainer; prepare::Bool=true,
         fill_with::CV_ContextStyle=cv_color(1,1,1))
     con = CV_2DCanvasContext(canvas)
     if prepare
@@ -210,7 +277,7 @@ end
 use 2DLayoutPosition to transform a global pixel position `(gx, gy)` to
 local/relative pixels w.r.t. the positon's coordinates.
 """
-function cv_global2local(canvas::CV_2DLayoutCanvas,
+function cv_global2local(canvas::CV_2DContainer,
                         cl::CV_2DLayoutPosition, gx::Integer, gy::Integer)
     ubox = canvas.user_box
     rect = cl.rectangle
@@ -224,7 +291,7 @@ w.r.t. the positon's coordinates to global pixels.
 
 This is the opposite of `cv_global2local`.
 """
-function cv_local2global(canvas::CV_2DLayoutCanvas,
+function cv_local2global(canvas::CV_2DContainer,
                          cl::CV_2DLayoutPosition, lx::Integer, ly::Integer)
     ubox = canvas.user_box
     rect = cl.rectangle
@@ -236,7 +303,7 @@ end
 use 2DLayoutPosition (for a `CV_Math2DCanvas`) to convert a global
 pixel position `(gx, gy)` coordinates in math units.
 """
-function cv_pixel2math(canvas::CV_2DLayoutCanvas,
+function cv_pixel2math(canvas::CV_2DContainer,
                        cl::CV_2DLayoutPosition{canT,styleT},
                        gx::Integer, gy::Integer) where {styleT,
                                                 canT<:CV_Math2DCanvas}
@@ -391,59 +458,6 @@ function cv_ensure_size!(layout::CV_Abstract2DLayout,
 end # }}}
 
 """
-Scene construction with a chain idea.
-
-## What is a Scene?
-
-A scene is layout together with all the callbacks/functions to update/draw all
-relevant parts. Often painters depends on "degrees of freedom" that change.
-[The change of such degrees of freedom may be triggered by a mouse or other
-"events".]
-
-Scenes are constructed step-by-step. If an new painter is "added" to the
-scene, there must be a possibility to ensure, that also this new painter
-is called if the degrees of freedom changed.
-
-Here is, where a `CV_SceneSetupChain` helps.
-
-## How does this work?
-
-All callback functions are gathered in vectors. This is the point where
-the type information about the callback functions are completely lost.
-For the return value (which is always `nothing`) this is not a problem.
-For the call this is a tradeoff: If elements of such a vector are
-called then this are purely "runtime"-calls (i.e. what to call, with
-what types, etc. is determined at runtime). That's the negative part.
-The positive part: Julia doesn't need to do the type-book-keeping (which
-is rather tough if e.g. types informations should not be lost and all
-these methods are nested: meaning every new method calls the old one first;
-because every call is typically are closure with a lot of types;
-preserving the type-info with this way would result in an unbearable
-compile-time).
-
-If a new part (e.g. a painter) changes the layout then a new
-`CV_SceneSetupChain` is built (with the new layout). This is very important,
-because for the (nested) layouts all type informations are preserved (also
-in the `CV_SceneSetupChain`). So the painter calls (which use parts of
-the layout) can make use of this type informations.
-
-All the given callback functions are appended to the callback vectors.
-
-Required fields:
-* `layout`
-* `draw_once_func`:      callbacks that a called after the layout is fixed
-                         and a Layout-Canvas was constructed.
-                         Argument: last layout
-* `actionpixel_update`:  callbacks that are called after "the main action"
-                         occured (e.g. mouse dragged).
-                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
-* `statepixel_update`:   callbacks that are called after the
-                         "state-change action" occured.
-                         Arguments: pixel_x, pixel_y (both w.r.t. Layout Canvas)
-"""
-abstract type CV_SceneSetupChain end
-
-"""
 Layout with degree of freedoms: state_counter
 """
 struct CV_StateLayout{parentT, maxV} <: CV_2DLayoutWrapper # {{{
@@ -471,15 +485,6 @@ function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_StateLayout)
     return nothing
 end  
 
-function cv_setup_cycle_state(setup::CV_SceneSetupChain)
-    state_counter = cv_get_state_counter(setup.layout)
-
-    update_state_func = z -> begin
-        state_counter()
-        return nothing
-    end
-    return cv_combine(setup; update_state_func)
-end
 
 # }}}
 

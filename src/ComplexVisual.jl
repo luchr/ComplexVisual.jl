@@ -31,7 +31,9 @@ include("layout.jl")
 include("text.jl")
 include("axis.jl")
 include("decoration.jl")
+include("scene.jl")
 include("lrdomains.jl")
+include("slider.jl")
 
 
 """macro for importing the *huge* set of symbols."""
@@ -48,7 +50,9 @@ macro import_huge()
         @ComplexVisual.import_text_huge
         @ComplexVisual.import_axis_huge
         @ComplexVisual.import_decoration_huge
+        @ComplexVisual.import_scene_huge
         @ComplexVisual.import_lrdomains_huge
+        @ComplexVisual.import_slider_huge
     end
 end
 
