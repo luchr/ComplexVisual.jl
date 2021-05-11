@@ -34,25 +34,27 @@ struct CV_LRSetupChain{layoutT} <: CV_SceneSetupChain # {{{
     statepixel_update    :: Vector{Any}
     update_painter_func  :: Vector{Any}
     update_state_func    :: Vector{Any}
+    redraw_func          :: Vector{Any}
 end
 
 function CV_LRSetupChain(layout)
     return CV_LRSetupChain(layout, Vector(), Vector(), Vector(), 
-        Vector(), Vector())
+        Vector(), Vector(), Vector())
 end
 
 function cv_combine(old::CV_LRSetupChain;
         layout=missing, draw_once_func=missing, update_painter_func=missing,
         update_state_func=missing, actionpixel_update=missing,
-        statepixel_update=missing)
+        statepixel_update=missing, redraw_func=missing)
     new = ismissing(layout) ? old : CV_LRSetupChain(layout,
         old.draw_once_func, old.actionpixel_update, old.statepixel_update,
-        old.update_painter_func, old.update_state_func)
+        old.update_painter_func, old.update_state_func, old.redraw_func)
     !ismissing(draw_once_func) && push!(new.draw_once_func, draw_once_func)
     !ismissing(actionpixel_update) && push!(new.actionpixel_update, actionpixel_update)
     !ismissing(statepixel_update) && push!(new.statepixel_update, statepixel_update)
     !ismissing(update_painter_func) && push!(new.update_painter_func, update_painter_func)
     !ismissing(update_state_func) && push!(new.update_state_func, update_state_func)
+    !ismissing(redraw_func) && push!(new.redraw_func, redraw_func)
     return new
 end
 # }}}
@@ -388,7 +390,18 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain,
         return nothing
     end
 
-    return cv_combine(setup; update_painter_func)
+    redraw_func = layout -> begin
+        if portrait_painter_domain !== nothing
+            cv_clear_cache(portrait_painter_domain)
+        end
+        if portrait_painter_codomain !== nothing
+            cv_clear_cache(portrait_painter_codomain)
+        end
+        update_painter_func(translate_pos.value)
+        return nothing
+    end
+
+    return cv_combine(setup; update_painter_func, redraw_func)
 end # }}}
 
 const cv_setup_lr_painters_default_phs = cv_op_source → 

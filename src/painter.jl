@@ -7,6 +7,7 @@ macro import_painter_huge()
                 CV_2DCanvasFillPainter, CV_2DValueMarkPainter, 
                 CV_2DAxisGridPainter, CV_LineSegment, CV_LineSegments,
                 CV_2DCanvasLinePainter, CV_Math2DCanvasPortraitPainter,
+                cv_clear_cache,
                 CV_CombiPainter, →, CV_StyledPainter, ↦, 
                 CV_Math2DCanvasPainter,
                 cv_parallel_lines, cv_arc_lines, cv_star_lines,
@@ -317,6 +318,13 @@ function show(io::IO, p::CV_Math2DCanvasPortraitPainter)
     print(io, "CV_Math2DCanvasPortraitPainter(colorscheme: "); show(fio, p.colorscheme);
     print(io, ", cache_flag: "); show(io, p.cache_flag)
     print(io, ')')
+    return nothing
+end
+
+function cv_clear_cache(pp::CV_Math2DCanvasPortraitPainter)
+    if (pp.cache_flag)
+        pp.cache.last_canvas = nothing
+    end
     return nothing
 end
 

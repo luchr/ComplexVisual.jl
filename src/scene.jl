@@ -3,6 +3,7 @@ macro import_scene_huge()
         using ComplexVisual:
             CV_SceneSetupChain, CV_2DScene,
             CV_MinimalSetupChain, CV_2DMinimalScene,
+            CV_Response,
             cv_setup_2dminimal_scene,
             cv_setup_cycle_state
     )
@@ -67,6 +68,15 @@ Required fields:
 """
 abstract type CV_SceneSetupChain end
 
+
+"""
+Possible response for callback functions
+"""
+struct CV_Response
+    redraw_flag  :: Bool
+end
+
+CV_Response(; redraw_flag=false) = CV_Response(redraw_flag)
 
 """
 A minimalistic `CV_SceneSetupChain`.
@@ -138,26 +148,41 @@ function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
     cc_can_layout = cv_create_context(can_layout)
     layout = CV_MinimalFramed2DLayout(setup.layout, can_layout, cc_can_layout)
 
-    scene_actionpixel_update = (px, py) -> begin
-        for func in setup.actionpixel_update
-            func(px, py, layout)
-        end
-        return nothing
-    end
-
-    scene_statepixel_update = (px, py) -> begin
-        for func in setup.statepixel_update
-            func(px, py, layout)
-        end
-        return nothing
-    end
-
     scene_redraw_func = () -> begin
         for func in setup.redraw_func
             func(layout)
         end
         return nothing
     end
+
+    scene_actionpixel_update = (px, py) -> begin
+        redraw_flag = false
+        for func in setup.actionpixel_update
+            resp = func(px, py, layout)
+            if resp isa CV_Response  && resp.redraw_flag
+                redraw_flag = true
+            end
+        end
+        if redraw_flag
+            scene_redraw_func()
+        end
+        return nothing
+    end
+
+    scene_statepixel_update = (px, py) -> begin
+        redraw_flag = false
+        for func in setup.statepixel_update
+            resp = func(px, py, layout)
+            if resp isa CV_Response && resp.redraw_flag
+                redraw_flag = true
+            end
+        end
+        if redraw_flag
+            scene_redraw_func()
+        end
+        return nothing
+    end
+
 
     scene = CV_2DMinimalScene(layout,
         scene_actionpixel_update, scene_statepixel_update,
