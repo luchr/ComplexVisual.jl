@@ -9,7 +9,7 @@ end
 """
 A (Container-)Canvas with a slider (a `CV_Math2DCanvas`) inside and its rulers.
 """
-struct CV_SliderContainer{ccsT} <: CV_2DContainer # {{{
+struct CV_SliderContainer{ccsT, dcbT} <: CV_2DContainer # {{{
     surface        :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width    :: Int32
     pixel_height   :: Int32
@@ -20,6 +20,7 @@ struct CV_SliderContainer{ccsT} <: CV_2DContainer # {{{
     can_slider_l   :: CV_2DLayoutPosition # postion of can_slider inside
                                           # container
     cc_can_slider  :: ccsT
+    decorator_cb   :: dcbT
 end
 
 function cv_anchor(cont::CV_SliderContainer, name::Symbol)
@@ -38,7 +39,8 @@ end
 function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
         value_min::Real, value_max::Real,
         rulers::NTuple{N, CV_Ruler};
-        attach::CV_AttachType=cv_south) where {N}  # {{{
+        attach::CV_AttachType=cv_south,
+        decoraction_with_layout_and_position_callback=nothing) where {N}  # {{{
 
     if pixel_width < 0  ||  pixel_height < 0
         cv_error("pixel_width and pixel_height must be postive")
@@ -60,6 +62,10 @@ function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
     can_slider_l = cv_add_canvas!(slider_layout, can_slider, (0,0), (0,0))
     cc_can_slider = cv_create_context(can_slider)
 
+    decorator_cb = (decoraction_with_layout_and_position_callback !== nothing) ?
+        decoraction_with_layout_and_position_callback(
+            slider_layout, can_slider_l) : nothing
+
     if N > 0
         can_axis_l = cv_ticks_labels(slider_layout, can_slider_l, attach, rulers)
     end
@@ -69,7 +75,7 @@ function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
         cv_create_cairo_image_surface(cv_width(bb), cv_height(bb)),
         cv_width(bb), cv_height(bb),
         CV_Rectangle(cv_height(bb), Int32(0), Int32(0), cv_width(bb)),
-        bb, can_slider, can_slider_l, cc_can_slider)
+        bb, can_slider, can_slider_l, cc_can_slider, decorator_cb)
 
     cc_container = cv_create_context(slider_container; fill_with=cv_color(0, 0, 0, 0))
     if N >0 
@@ -104,6 +110,9 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
     end
 
     draw_once_func = layout -> begin
+        if cont.decorator_cb !== nothing
+            cont.decorator_cb(cc_cont)
+        end
         cv_paint(cont.cc_can_slider, painter, ec)
         cont.can_slider_l(cc_cont)
         cc_can_layout = cv_get_cc_can_layout(layout)
