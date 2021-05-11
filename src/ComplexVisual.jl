@@ -17,6 +17,7 @@ using ComplexPortraits
 using Colors
 using Cairo
 using Printf
+using RecipesBase
 
 include("monkeypatch.jl")
 
@@ -32,6 +33,7 @@ include("text.jl")
 include("axis.jl")
 include("decoration.jl")
 include("lrdomains.jl")
+include("plotrecipes.jl")
 
 
 """macro for importing the *huge* set of symbols."""
@@ -49,6 +51,7 @@ macro import_huge()
         @ComplexVisual.import_axis_huge
         @ComplexVisual.import_decoration_huge
         @ComplexVisual.import_lrdomains_huge
+        @ComplexVisual.import_plotrecipes_huge
     end
 end
 

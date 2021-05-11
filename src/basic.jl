@@ -13,7 +13,7 @@ end
 struct CV_Error <: Exception
     msg :: String;
 end
-cv_error(messages::String...) = throw(CV_Error(join(messages)))
+cv_error(messages...) = throw(CV_Error(join(collect(messages))))
 # }}}
 
 # {{{ Dynamic helpers
