@@ -19,6 +19,10 @@ struct CV_TickLabel{LocT}
     text        :: AbstractString
 end
 
+show(io::IO, tl::CV_TickLabel) = cv_show_impl(io, tl)
+show(io::IO, m::MIME{Symbol("text/plain")}, tl::CV_TickLabel) =
+    cv_show_impl(io, m, tl)
+
 """
 Styles and data needed to render/draw axis-ticks with labels.
 """
@@ -35,27 +39,11 @@ struct CV_TickLabelAppearance{tsT <: CV_ContextStyle, lsT <: CV_ContextStyle} # 
     end
 end
 
-function show(io::IO, app::CV_TickLabelAppearance)
-    print(io, "CV_TickLabelAppearance(tick_length: "); show(io, app.tick_length)
-    print(io, ", gap: "); show(io, app.gap)
-    print(io, ", tick_style: "); show(io, app.tick_style)
-    print(io, ", label_style: "); show(io, app.label_style)
-    print(io, ')')
-    return nothing
-end
+show(io::IO, app::CV_TickLabelAppearance) = cv_show_impl(io, app)
 
-function show(io::IO, m::MIME{Symbol("text/plain")}, app::CV_TickLabelAppearance)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_TickLabelAppearance(")
-    print(io, indent, "tick_length: "); show(iio, app.tick_length); println(io)
-    print(io, indent, "gap: "); show(iio, app.gap); println(io)
-    print(io, indent, "tick_style: "); show(iio, m, app.tick_style); println(io)
-    print(io, indent, "label_style: "); show(iio, m, app.label_style); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end # }}}
+show(io::IO, m::MIME{Symbol("text/plain")}, app::CV_TickLabelAppearance) =
+    cv_show_impl(io, m, app)
+# }}}
 
 function CV_TickLabelAppearance(;
         tick_length::Integer=Int32(10),
@@ -74,23 +62,9 @@ struct CV_Ruler{N, LocT, tsT, lsT}    # {{{
     app        :: CV_TickLabelAppearance{tsT, lsT}
 end
 
-function show(io::IO, ruler::CV_Ruler)
-    print(io, "CV_Ruler(ticklabels: "); show(io, ruler.ticklabels)
-    print(io, ", app: "); show(io, ruler.app)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, ruler::CV_Ruler)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_Ruler(")
-    print(io, indent, "ticklabels: "); show(iio, ruler.ticklabels); println(io)
-    print(io, indent, "app: "); show(iio, m, ruler.app); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+show(io::IO, ruler::CV_Ruler) = cv_show_impl(io, ruler)
+show(io::IO, m::MIME{Symbol("text/plain")}, ruler::CV_Ruler) =
+    cv_show_impl(io, m, ruler)
 
 function CV_Ruler(ticklabels::Vararg{CV_TickLabel{LocT}, N}) where {N, LocT}
     return CV_Ruler(

@@ -51,6 +51,8 @@ systems (e.g. `CV_Math2DCanvas`).
 """
 abstract type CV_Painter end
 
+show(io::IO, p::CV_Painter) = cv_show_impl(io, p)
+
 """
 Instances of this type can paint inside canvases with math coordinate
 systems (e.g. `CV_Math2DCanvas`).
@@ -67,11 +69,6 @@ abstract type CV_2DCanvasPainter <: CV_CanvasPainter end
 A painter filling  the complete canvas.
 """
 struct CV_2DCanvasFillPainter <: CV_2DCanvasPainter # {{{
-end
-
-function show(io::IO, p::CV_2DCanvasFillPainter)
-    print(io, "CV_2DCanvasFillPainter()")
-    return nothing
 end
 
 function cv_paint(cc::CV_2DCanvasContext, fill_painter::CV_2DCanvasFillPainter,
@@ -99,15 +96,6 @@ struct CV_2DValueMarkPainter{N<:Number} <: CV_2DCanvasPainter # {{{
     start     :: Float64
     len       :: Float64
     vertical  :: Bool
-end
-
-function show(io::IO, p::CV_2DValueMarkPainter)
-    print(io, "CV_2DValueMarkPainter(where: "); show(io, p.where)
-    print(io, ", start: "); show(io, p.start)
-    print(io, ", len: "); show(io, p.len)
-    print(io, ", vertical: "); show(io, p.vertical)
-    print(io, ')')
-    return nothing
 end
 
 function cv_paint(cc::CV_2DCanvasContext, mark_painter::CV_2DValueMarkPainter,
@@ -143,24 +131,8 @@ function CV_2DAxisGridPainter(reals::NTuple{N, Real},
         [Float64(y) for y in imags])
 end
 
-function show(io::IO, gp::CV_2DAxisGridPainter)
-    cio = IOContext(io, :compact => true)
-    print(io, "CV_2DAxisGridPainter(reals: "); show(cio, gp.reals)
-    print(io, ", imags: "); show(cio, gp.imags)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, gp::CV_2DAxisGridPainter)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    cio = IOContext(io, :compact => true)
-    println(io, "CV_2DAxisGridPainter(")
-    print(io, indent, "reals: "); show(cio, gp.reals); println(io)
-    print(io, indent, "imags: "); show(cio, gp.imags); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+show(io::IO, m::MIME{Symbol("text/plain")}, gp::CV_2DAxisGridPainter) =
+    cv_show_impl(io, m, gp)
 
 function cv_paint(cc::CV_2DCanvasContext, grid_painter::CV_2DAxisGridPainter,
                   pc::CV_PaintingContext)
@@ -190,13 +162,6 @@ struct CV_2DCanvasLinePainter <: CV_2DCanvasPainter # {{{
 end
 CV_2DCanvasLinePainter(segments::CV_LineSegments) = CV_2DCanvasLinePainter(
     segments, false)
-
-function show(io::IO, p::CV_2DCanvasLinePainter)
-    print(io, "CV_2DCanvasLinePainter(segments: #"); show(io, length(p.segments))
-    print(io, ", auto_close_path: "); show(io, p.auto_close_path)
-    print(io, ')')
-    return nothing
-end
 
 """
 Implementation without cut-test
@@ -313,14 +278,6 @@ end
 CV_Math2DCanvasPortraitPainter() = CV_Math2DCanvasPortraitPainter(
     ComplexPortraits.cs_j(), true)
 
-function show(io::IO, p::CV_Math2DCanvasPortraitPainter)
-    fio = IOContext(io, :compact => true)
-    print(io, "CV_Math2DCanvasPortraitPainter(colorscheme: "); show(fio, p.colorscheme);
-    print(io, ", cache_flag: "); show(io, p.cache_flag)
-    print(io, ')')
-    return nothing
-end
-
 function cv_clear_cache(pp::CV_Math2DCanvasPortraitPainter)
     if (pp.cache_flag)
         pp.cache.last_canvas = nothing
@@ -371,23 +328,8 @@ function →(painter1::T, painter2::S) where {T<:CV_Painter, S<:CV_Painter}
   return CV_CombiPainter(painter1, painter2)
 end
 
-function show(io::IO, p::CV_CombiPainter)
-    print(io, "CV_CombiPainter(painter1: "); show(io, p.painter1)
-    print(io, ", painter2: "); show(io, p.painter2);
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_CombiPainter)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_CombiPainter(")
-    print(io, indent, "painter1: "); show(iio, m, p.painter1); println(io)
-    print(io, indent, "painter2: "); show(iio, m, p.painter2); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_CombiPainter) =
+    cv_show_impl(io, m, p)
 
 # }}}
 
@@ -399,23 +341,8 @@ end
 ↦(style::CV_ContextStyle, painter::CV_Painter) = CV_StyledPainter(
     style, painter)
 
-function show(io::IO, p::CV_StyledPainter)
-    print(io, "CV_StyledPainter(style: "); show(io, p.style)
-    print(io, ", painter: "); show(io, p.painter)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_StyledPainter)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_StyledPainter(")
-    print(io, indent, "style: "); show(iio, m, p.style); println(io)
-    print(io, indent, "painter: "); show(iio, m, p.painter); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_StyledPainter) =
+    cv_show_impl(io, m, p)
 
 function cv_paint(cc::CV_CanvasContext,
                   styled_painter::CV_StyledPainter,
@@ -429,21 +356,8 @@ struct CV_Math2DCanvasPainter{T<:CV_Math2DCanvas} <: CV_2DCanvasPainter # {{{
     canvas :: T
 end
 
-function show(io::IO, p::CV_Math2DCanvasPainter)
-    print(io, "CV_Math2DCanvasPainter(canvas: "); show(io, p.canvas)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_Math2DCanvasPainter)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_Math2DCanvasPainter(")
-    print(io, indent, "canvas: "); show(iio, m, p.canvas);println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
+show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_Math2DCanvasPainter) =
+    cv_show_impl(io, m, p)
 
 """
 Implementation without cut-test

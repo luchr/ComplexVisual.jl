@@ -91,29 +91,6 @@ function cv_destroy(l::CV_DomainCodomainParts)
     return nothing
 end
 
-function show(io::IO, l::CV_DomainCodomainParts)
-    fio = IOContext(io, :compact => true)
-    print(io, "CV_DomainCodomainParts(trafo: "); show(fio, l.trafo)
-    print(io, ", can_domain: ");                 show(io, l.can_domain)
-    print(io, ", can_codomain: ");               show(io, l.can_codomain)
-    print(io, ", parent_layout: ");              show(io, l.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainParts)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent, :compact => true)
-    println(io, "CV_DomainCodomainParts(")
-    print(io, indent, "trafo: "); show(iio, m, l.trafo); println(io)
-    print(io, indent, "can_domain: "); show(iio, m, l.can_domain); println(io)
-    print(io, indent, "can_codomain: "); show(iio, m, l.can_codomain); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
-
 """
 convenience function to combine domain and codomain (and their contexts)
 together with a trafo to (the) layout.
@@ -142,26 +119,6 @@ struct CV_DomainPosLayout{parentT<:CV_Abstract2DLayout, canT, dcbT, styleT
 end
 
 @layout_composition_getter(can_domain_l, CV_DomainPosLayout)
-
-function show(io::IO, l::CV_DomainPosLayout)
-    print(io, "CV_DomainPosLayout(can_domain_l: ")
-    show(io, l.can_domain_l)
-    print(io, ", parent_layout: ")
-    show(io, l.parent_layout)
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainPosLayout)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_DomainPosLayout(")
-    print(io, indent, "can_domain_l: "); show(iio, m, l.can_domain_l); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
-
 # }}}
 
 """
@@ -174,25 +131,6 @@ struct CV_CodomainPosLayout{parentT<:CV_Abstract2DLayout,canT, dcbT, styleT
 end
 
 @layout_composition_getter(can_codomain_l, CV_CodomainPosLayout)
-
-function show(io::IO, l::CV_CodomainPosLayout)
-    print(io, "CV_CodomainPosLayout(can_codomain_l: ")
-    show(io, l.can_codomain_l)
-    print(io, ", parent_layout: ")
-    show(io, l.parent_layout)
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_CodomainPosLayout)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_CodomainPosLayout(")
-    print(io, indent, "can_codomain_l: "); show(iio, m, l.can_codomain_l); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ")")
-    return nothing
-end   # }}}
 
 """
 Do a left-right layout of domain and codomain canvas with a gap between.

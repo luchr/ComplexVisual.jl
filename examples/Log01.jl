@@ -144,7 +144,7 @@ function create_scene(trafo,
     setup = cv_setup_domain_codomain_scene(setup)
     cv_scene_lr_start(setup)
     return setup.layout
-end
+end # }}}
 
 slider_pos = CV_TranslateByOffset(Float64)
 slider_pos.value = 1.0

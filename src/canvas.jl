@@ -18,14 +18,9 @@ abstract type CV_2DCanvas <: CV_Canvas    # {{{
     # bounding_box  (CV_Rectangle{Int32})  bottom=0, left=0 (i.e. zero-based)
 end
 
-function show(io::IO, canvas::CV_2DCanvas)
-    t = typeof(canvas)
-    show(io, t)
-    print(io, '(')
-    show(io, canvas.bounding_box)
-    print(io, ')')
-    return nothing
-end
+show(io::IO, canvas::CV_2DCanvas) = cv_show_impl(io, canvas)
+show(io::IO, m::MIME{Symbol("text/plain")}, canvas::CV_2DCanvas) =
+    cv_show_impl(io, m, canvas)
 
 function cv_destroy(can::CV_2DCanvas)
     destroy(can.surface)
@@ -134,8 +129,7 @@ end
 
 function show(io::IO, canvas::CV_Math2DCanvas)
     t = typeof(canvas)
-    show(io, t)
-    print(io, "(⌜")
+    print(io, string(t.name.name), "(⌜")
     show(io, canvas.corner_ul)
     print(io, ", ")
     show(io, canvas.corner_lr)
@@ -146,6 +140,9 @@ function show(io::IO, canvas::CV_Math2DCanvas)
     print(io, ')')
     return nothing
 end
+
+show(io::IO, m::MIME{Symbol("text/plain")}, canvas::CV_Math2DCanvas) =
+    show(io, canvas)
 
 function cv_math2pixel(canvas::CV_Math2DCanvas, mx::Float64, my::Float64)
     res = canvas.resolution

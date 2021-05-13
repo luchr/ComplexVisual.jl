@@ -16,6 +16,77 @@ end
 cv_error(messages::String...) = throw(CV_Error(join(messages)))
 # }}}
 
+# {{{ helper functions for showing concrete datatypes with their fields
+
+"""
+return fieldnames of a Datatype. Put the `parent_...` fields at the end.
+"""
+function cv_sorted_fieldnames(t::DataType)
+    fnames = fieldnames(t)
+    return tuple(
+        filter(x -> !contains(string(x), "parent_"), fnames)...,
+        filter(x ->  contains(string(x), "parent_"), fnames)...)
+end
+
+function cv_show_value_replacements(value)
+    if value isa Cairo.CairoSurfaceImage  || value isa Cairo.CairoContext
+        value = value.ptr
+    end
+    if value isa CV_LineSegments
+        value = string(length(value)) * " CV_LineSegments"
+    end
+    return value
+end
+
+"""
+implementation for `show(io, obj)` for ComplexVisual-objects with
+`typeof(obj) isa DataType`
+"""
+function cv_show_impl(io::IO, obj)
+    t = typeof(obj)::DataType
+    print(io, string(t.name.name), '(')
+    first = true
+    fnames = cv_sorted_fieldnames(t)
+    for name_sym in fnames
+        value = getfield(obj, name_sym)
+        vtype = typeof(value)
+        value = cv_show_value_replacements(value)
+        if !first
+            print(io, ", ")
+        end
+        print(io, string(name_sym), ": ")
+        if contains(string(vtype.name.name), '#')
+            show(io, MIME("text/plain"), value)
+        else
+            show(io, value)
+        end
+        first = false
+    end
+    print(io, ')')
+    return nothing
+end
+
+"""
+implementation for `show(io, mime, obj)` for ComplexVisual-objects with
+`typeof(obj) isa DataType` and where `mime` is "text/plain".
+"""
+function cv_show_impl(io::IO, m::MIME{Symbol("text/plain")}, obj)
+    t = typeof(obj)
+    outer_indent = (get(io, :cv_indent, "")::AbstractString)
+    indent = outer_indent * "  "
+    iio = IOContext(io, :cv_indent => indent)
+    println(io, string(t.name.name), '(')
+    fnames = cv_sorted_fieldnames(t)
+    for name_sym in fnames
+        print(io, indent, string(name_sym), ": ")
+        show(iio, m, cv_show_value_replacements(getfield(obj, name_sym)))
+        println(io)
+    end
+    print(io, outer_indent, ')')
+    return nothing
+end
+# }}} 
+
 # {{{ Dynamic helpers
 """
 A mutable struct with one (mutable) `value` (i.e. degree of freedom).
