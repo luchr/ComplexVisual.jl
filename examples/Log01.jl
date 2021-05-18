@@ -102,10 +102,13 @@ function create_slider(setup, slider_pos)
     bottom = min(can_domain_l.rectangle.bottom, can_codomain_l.rectangle.bottom)
     height = 15
 
-    cont_slider, cc_cont_slider = cv_create_hslider(
+    slider_data = cv_create_hslider(
         width, height, 0.5, 55.5, get_slider_rulers();
         decoraction_with_layout_and_position_callback=(inner_layout, pos) ->
             cv_border(inner_layout, pos, 1))
+
+    cont_slider = slider_data.slider_container
+    cc_cont_slider = slider_data.container_context
     cont_slider_l = cv_add_canvas!(layout,
         cont_slider,
         cv_anchor(cont_slider, :slider_south, cont_slider, :south),

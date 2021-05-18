@@ -5,7 +5,8 @@ macro import_scene_huge()
             CV_MinimalSetupChain, CV_2DMinimalScene,
             CV_Response,
             cv_setup_2dminimal_scene,
-            cv_setup_cycle_state
+            cv_setup_cycle_state,
+            CV_Create_Data
     )
 end
 
@@ -70,7 +71,7 @@ abstract type CV_SceneSetupChain end
 
 
 """
-Possible response for callback functions
+Possible response for some (scene-)callback functions
 """
 struct CV_Response
     redraw_flag  :: Bool
@@ -204,5 +205,13 @@ function cv_setup_cycle_state(setup::CV_SceneSetupChain)
     end
     return cv_combine(setup; update_state_func)
 end
+
+"""
+If some advanced/complicated graphic objects are constructed (e.g. a slider
+with rulers, etc.) then often such `cv_create_...` methods may want to
+return further informations about the constructed objects. This is done
+in concrete subtype of this (abstract) type.
+"""
+abstract type CV_Create_Data end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

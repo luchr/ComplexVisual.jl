@@ -2,7 +2,7 @@ macro import_slider_huge()
     :(
         using ComplexVisual:
             CV_SliderContainer, cv_create_hslider, cv_setup_hslider,
-            cv_anchor
+            cv_anchor, CV_Slider_Create_Data
     )
 end
 
@@ -35,6 +35,12 @@ function cv_anchor(cont::CV_SliderContainer, name::Symbol)
 end
 # }}}
 
+struct CV_Slider_Create_Data{ccsT, dcbT, contextT <: CV_2DCanvasContext
+                            } <: CV_Create_Data
+    slider_container   :: CV_SliderContainer{ccsT, dcbT}
+    container_context  :: contextT
+    internal_layout    :: CV_2DLayout
+end
 
 function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
         value_min::Real, value_max::Real,
@@ -82,7 +88,7 @@ function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
         can_axis_l(cc_container)
     end
 
-    return slider_container, cc_container
+    return CV_Slider_Create_Data(slider_container, cc_container, slider_layout)
 end # }}}
 
 
