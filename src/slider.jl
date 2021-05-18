@@ -89,11 +89,13 @@ end # }}}
 function cv_setup_hslider(setup::CV_SceneSetupChain,
         cont::CV_SliderContainer, cc_cont::CV_2DCanvasContext,
         cont_l::CV_2DLayoutPosition,
-        painter::CV_Painter, set_slider_value_func) # {{{
+        painter::CV_Painter, set_slider_value_func;
+        react_to_actionpixel_update::Bool=true,
+        react_to_statepixel_update::Bool=false) # {{{
 
     ec = CV_EmptyPaintingContext()
 
-    actionpixel_update = (px, py, layout) -> begin
+    reaction = (px, py, layout) -> begin
         resp = nothing
         can_layout = cv_get_can_layout(layout)
         cc_can_layout = cv_get_cc_can_layout(layout)
@@ -109,6 +111,15 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
         return resp
     end
 
+    redraw_func = layout -> begin
+        can_layout = cv_get_can_layout(layout)
+        cc_can_layout = cv_get_cc_can_layout(layout)
+        cv_paint(cont.cc_can_slider, painter, ec)
+        cont.can_slider_l(cc_cont)
+        cont_l(cc_can_layout)
+        return nothing
+    end
+
     draw_once_func = layout -> begin
         if cont.decorator_cb !== nothing
             cont.decorator_cb(cc_cont)
@@ -120,7 +131,9 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
         return nothing
     end
 
-    return cv_combine(setup; draw_once_func, actionpixel_update)
+    return cv_combine(setup; draw_once_func, redraw_func,
+        actionpixel_update=react_to_actionpixel_update ? reaction : missing,
+        statepixel_update=react_to_statepixel_update ? reaction : missing)
 end # }}}
 
 
