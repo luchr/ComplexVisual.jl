@@ -6,7 +6,7 @@ macro import_scene_huge()
             CV_Response,
             cv_setup_2dminimal_scene,
             cv_setup_cycle_state,
-            CV_Create_Data
+            CV_CreateData
     )
 end
 
@@ -212,6 +212,6 @@ with rulers, etc.) then often such `cv_create_...` methods may want to
 return further informations about the constructed objects. This is done
 in concrete subtype of this (abstract) type.
 """
-abstract type CV_Create_Data end
+abstract type CV_CreateData end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
