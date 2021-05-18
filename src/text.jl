@@ -90,7 +90,7 @@ end
 Create 2DCanvas with given text (rendered inside).
 """
 function cv_text(text::AbstractString,
-                 style::CV_ContextStyle=cv_color(0,0,0) → 
+                 style::CV_ContextStyle=cv_black → 
                     cv_fontface("serif") → cv_fontsize(15);
                 use_temp_can=nothing,
                 use_mem=Vector{Float64}(undef, 6)::Vector{Float64})

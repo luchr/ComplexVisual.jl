@@ -48,8 +48,8 @@ show(io::IO, m::MIME{Symbol("text/plain")}, app::CV_TickLabelAppearance) =
 function CV_TickLabelAppearance(;
         tick_length::Integer=Int32(10),
         gap::Integer=cv_half(tick_length),
-        tick_style::CV_ContextStyle=cv_linewidth(2) → cv_color(0,0,0),
-        label_style::CV_ContextStyle=cv_color(0,0,0) →
+        tick_style::CV_ContextStyle=cv_linewidth(2) → cv_black,
+        label_style::CV_ContextStyle=cv_black →
             cv_fontface("serif") → cv_fontsize(15))
     return CV_TickLabelAppearance(tick_length, gap, tick_style, label_style)
 end

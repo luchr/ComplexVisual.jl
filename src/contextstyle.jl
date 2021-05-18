@@ -3,7 +3,7 @@ macro import_contextstyle_huge()
         using ComplexVisual:
             CV_ContextStyle, cv_create_context, CV_CanvasContextStyle,
             CV_CombiContextStyle, cv_prepare, →,
-            CV_ContextColorStyle, cv_color,
+            CV_ContextColorStyle, cv_color, cv_black, cv_white,
             CV_ContextLineWidthStyle, cv_linewidth,
             CV_ContextAntialiasStyle, cv_antialias,
             CV_ContextOperatorStyle, cv_operatormode, cv_opmode,
@@ -81,6 +81,9 @@ function cv_prepare(cc::CV_CanvasContext, style::CV_ContextColorStyle)
     set_source_rgba(cc.ctx, style.red, style.green, style.blue, style.alpha)
     return nothing
 end 
+
+const cv_black = cv_color(0, 0, 0)
+const cv_white = cv_color(1, 1, 1)
 
 # }}}
 

@@ -161,7 +161,7 @@ function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
 end
 
 function cv_create_context(canvas::CV_2DContainer; prepare::Bool=true,
-        fill_with::Union{CV_ContextStyle, Nothing}=cv_color(1,1,1))
+        fill_with::Union{CV_ContextStyle, Nothing}=cv_white)
     con = CV_2DCanvasContext(canvas)
     if prepare
         ctx = con.ctx

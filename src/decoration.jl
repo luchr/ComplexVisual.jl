@@ -17,7 +17,7 @@ function cv_border(layout::CV_Abstract2DLayout, for_position::CV_2DLayoutPositio
         north::Integer=2, east::Integer=north, south::Integer=north,
         west::Integer=east; gap_north::Integer=0, gap_east::Integer=gap_north,
         gap_south::Integer=gap_north, gap_west::Integer=gap_east,
-        style=cv_color(0,0,0)) # {{{
+        style=cv_black) # {{{
 
     rect = for_position.rectangle
     inner_rect = CV_Rectangle(

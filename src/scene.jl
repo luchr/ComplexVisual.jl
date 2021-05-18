@@ -192,8 +192,6 @@ function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
 
     return cv_combine(setup; layout=scene)
 end
-
-
 # }}}
 
 

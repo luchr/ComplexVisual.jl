@@ -259,7 +259,7 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
 end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
-        label_style::CV_ContextStyle = cv_color(0,0,0) → 
+        label_style::CV_ContextStyle = cv_black → 
                 cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
 
     layout = setup.layout
@@ -351,10 +351,10 @@ end # }}}
 
 const cv_setup_lr_painters_default_phs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(0,0,0)
+                cv_linewidth(3) → cv_black
 const cv_setup_lr_painters_default_vhs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(1,1,1)
+                cv_linewidth(3) → cv_white
 const cv_setup_lr_painters_default_hlines = cv_parallel_lines(1.0+0.0im)
 const cv_setup_lr_painters_default_vlines = cv_parallel_lines(0.0+1.0im)
 const cv_setup_lr_painters_default_imgps = cv_op_over → 
@@ -396,7 +396,7 @@ end # }}}
 creates borders for the domain and codomain canvas.
 """
 function cv_setup_lr_border(setup::CV_SceneSetupChain; width::Integer=2,
-        style=cv_color(0,0,0))
+        style=cv_black)
     layout = setup.layout
     domain_border = cv_border(layout, cv_get_can_domain_l(layout), width;
         style)
@@ -437,7 +437,7 @@ creates "standard" scene with domain and codomain in a left-right layout.
 """
 function cv_scene_lr_std(trafo,
         domain, codomain; cut_test=nothing, gap=80,
-        axis_label_style=cv_color(0,0,0) → 
+        axis_label_style=cv_black → 
                   cv_fontface("sans-serif", Cairo.FONT_WEIGHT_BOLD) → 
                   cv_fontsize(20), padding=30) # {{{
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))
