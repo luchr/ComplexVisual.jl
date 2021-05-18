@@ -254,32 +254,32 @@ end
 
 # }}}
 
-mutable struct CV_Math2DCanvasPortraitPainterCache # {{{
+mutable struct CV_Math2DCanvasPainterCache # {{{
     last_canvas
     last_pc
     last_color_matrix :: Matrix{UInt32}
 end
-CV_Math2DCanvasPortraitPainterCache() = CV_Math2DCanvasPortraitPainterCache(
+CV_Math2DCanvasPainterCache() = CV_Math2DCanvasPainterCache(
     nothing, nothing, zeros(UInt32, 1, 1))
-cv_is_in_cache(cache::CV_Math2DCanvasPortraitPainterCache, canvas, pc) = (
+cv_is_in_cache(cache::CV_Math2DCanvasPainterCache, canvas, pc) = (
     cache.last_canvas === canvas && cache.last_pc === pc
 )
 
 struct CV_Math2DCanvasPortraitPainter{CS} <: CV_2DCanvasPainter
     colorscheme :: CS
     cache_flag  :: Bool
-    cache       :: CV_Math2DCanvasPortraitPainterCache    
+    cache       :: CV_Math2DCanvasPainterCache    
     function CV_Math2DCanvasPortraitPainter(colorscheme::CS,
                                             cache_flag::Bool) where {CS}
         return new{CS}(colorscheme, cache_flag,
-                       CV_Math2DCanvasPortraitPainterCache())
+                       CV_Math2DCanvasPainterCache())
     end
 end
 CV_Math2DCanvasPortraitPainter() = CV_Math2DCanvasPortraitPainter(
     ComplexPortraits.cs_j(), true)
 
 function cv_clear_cache(pp::CV_Math2DCanvasPortraitPainter)
-    if (pp.cache_flag)
+    if pp.cache_flag
         pp.cache.last_canvas = nothing
     end
     return nothing
