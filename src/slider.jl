@@ -93,12 +93,13 @@ end # }}}
 
 
 function cv_setup_hslider(setup::CV_SceneSetupChain,
-        cont::CV_SliderContainer, cc_cont::CV_2DCanvasContext,
+        slider_data::CV_Slider_Create_Data,
         cont_l::CV_2DLayoutPosition,
         painter::CV_Painter, set_slider_value_func;
         react_to_actionpixel_update::Bool=true,
         react_to_statepixel_update::Bool=false) # {{{
 
+    cont, cc_cont = slider_data.slider_container, slider_data.container_context
     ec = CV_EmptyPaintingContext()
 
     reaction = (px, py, layout) -> begin

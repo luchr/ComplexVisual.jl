@@ -124,7 +124,7 @@ function create_slider(setup, slider_pos)
         CV_2DValueMarkPainter(slider_pos,
             0.0, imag(cont_slider.can_slider.corner_ul), false)
 
-    setup = cv_setup_hslider(setup, cont_slider, cc_cont_slider, cont_slider_l,
+    setup = cv_setup_hslider(setup, slider_data, cont_slider_l,
         bg_painter → mark_painter, set_slider_value)
     return setup
 end
