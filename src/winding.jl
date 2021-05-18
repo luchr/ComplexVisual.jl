@@ -2,7 +2,9 @@ macro import_winding_huge()
     :(
         using ComplexVisual:
             CV_2DWindingPainterContext, CV_Math2DCanvasWindingPainter,
-            cv_clear_cache, CV_2DWindingColorbarPainter 
+            cv_clear_cache, CV_2DWindingColorbarPainter,
+            CV_WindingColorBarCreateData, cv_create_winding_colorbar,
+            cv_setup_winding_colorbar
     )
 end
 
@@ -409,6 +411,64 @@ function cv_paint(cc::CV_2DCanvasContext,
 end
 
 # }}}
+
+struct CV_WindingColorBarCreateData{ccsT, dcbT, contextT, rfuncT} <: CV_CreateData
+    internal_slider     :: CV_SliderCreateData{ccsT, dcbT, contextT}
+    colorbar_container  :: CV_SliderContainer{ccsT, dcbT}
+    container_context   :: contextT
+    react_func          :: rfuncT
+    colorbar_painter    :: CV_2DWindingColorbarPainter
+end
+
+function cv_create_winding_colorbar(
+        pixel_width::Integer, pixel_height::Integer,
+        winding_painter::CV_Math2DCanvasWindingPainter,
+        winding_pc::CV_2DWindingPainterContext,
+        wnr_min::Integer, wnr_max::Integer,
+        rulers::Union{NTuple{N, CV_Ruler}, Missing}=missing;
+        attach::CV_AttachType=cv_south,
+        decoraction_with_layout_and_position_callback=(inner_layout, pos) ->
+            cv_border(inner_layout, pos, 1)) where {N} # {{{
+
+    if rulers === missing
+        rulers=(CV_Ruler(
+            cv_format_ticks("%.0f", Float64.(wnr_min:1:wnr_max)...),
+            CV_TickLabelAppearance()), )
+    end
+
+    slider_data = cv_create_hslider(pixel_width, pixel_height,
+        wnr_min-0.5, wnr_max+0.5, rulers;
+        attach, decoraction_with_layout_and_position_callback)
+
+    react_func = z -> begin
+        wnr = round(Int32, real(z))
+        if haskey(winding_painter.helpers.color_dict, wnr)
+            winding_pc.hide_winding_numbers[wnr] =
+                !get(winding_pc.hide_winding_numbers, wnr, false)
+            return CV_Response(; redraw_flag=true)
+        else
+            return nothing
+        end
+    end
+
+    colorbar_painter = CV_2DWindingColorbarPainter(
+        winding_painter, winding_pc,
+        0.0, imag(slider_data.slider_container.can_slider.corner_ul), false)
+
+    return CV_WindingColorBarCreateData(
+        slider_data, slider_data.slider_container,
+        slider_data.container_context, react_func, colorbar_painter)
+end # }}}
+
+function cv_setup_winding_colorbar(setup::CV_SceneSetupChain,
+        colorbar_data::CV_WindingColorBarCreateData,
+        cont_l::CV_2DLayoutPosition)
+    return cv_setup_hslider(setup, colorbar_data.internal_slider,
+        cont_l, colorbar_data.colorbar_painter,
+        colorbar_data.react_func;
+        react_to_actionpixel_update=false,
+        react_to_statepixel_update=true)
+end
 
 # }}}
 
