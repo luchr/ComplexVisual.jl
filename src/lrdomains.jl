@@ -132,6 +132,8 @@ end
 
 @layout_composition_getter(can_codomain_l, CV_CodomainPosLayout)
 
+# }}}
+
 """
 Do a left-right layout of domain and codomain canvas with a gap between.
 """
