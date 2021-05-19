@@ -32,10 +32,6 @@ struct CV_Rectangle{N<:Number}
         return new{T}(top, left, bottom, right, empty)
     end
 end
-function CV_Rectangle(type::Type{T}) where {T<:Number}
-    null = zero(T)
-    return CV_Rectangle(null, null, null, null)
-end
 
 """
 creates rectangle (with given number type) with the data:
@@ -45,7 +41,16 @@ function cv_rect_blwh(::Type{T},
         bottom::Real, left::Real, width::Real, height::Real) where {T<:Real}
     return CV_Rectangle(T(bottom + height), T(left), T(bottom), T(left + width))
 end
-
+function CV_Rectangle(type::Type{T}) where {T<:Number}
+    null = zero(T)
+    return CV_Rectangle(null, null, null, null)
+end
+function CV_Rectangle(width::T, height::T) where {T<:Number}
+    return cv_rect_blwh(T, zero(T), zero(T), width, height)
+end
+function CV_Rectangle(type::Type{T}, width::Real, height::Real) where {T<:Number}
+    return cv_rect_blwh(T, zero(T), zero(T), T(width), T(height))
+end
 
 function show(io::IO, rect::CV_Rectangle) # {{{
     char = rect.empty ? '▭' : '▬'

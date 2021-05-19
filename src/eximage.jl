@@ -5,9 +5,9 @@ macro import_eximage_huge()
     )
 end
 
-const ex_image_letter_circle_style = cv_linewidth(2) → cv_color(0,0,0)
+const ex_image_letter_circle_style = cv_linewidth(2) → cv_black
 const ex_image_letter_font_style = cv_fontface("cairo:monospace")
-const ex_image_letter_letter_stroke_style = cv_linewidth(1) → cv_color(0,0,0)
+const ex_image_letter_letter_stroke_style = cv_linewidth(1) → cv_black
 const ex_image_letter_letter_fill_style = cv_color(0,0,1,1)
 const ex_image_letter_letter_shadow_style = cv_color(0.2, 0.2, 0.2, 0.1)
 

@@ -91,29 +91,6 @@ function cv_destroy(l::CV_DomainCodomainParts)
     return nothing
 end
 
-function show(io::IO, l::CV_DomainCodomainParts)
-    fio = IOContext(io, :compact => true)
-    print(io, "CV_DomainCodomainParts(trafo: "); show(fio, l.trafo)
-    print(io, ", can_domain: ");                 show(io, l.can_domain)
-    print(io, ", can_codomain: ");               show(io, l.can_codomain)
-    print(io, ", parent_layout: ");              show(io, l.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainCodomainParts)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent, :compact => true)
-    println(io, "CV_DomainCodomainParts(")
-    print(io, indent, "trafo: "); show(iio, m, l.trafo); println(io)
-    print(io, indent, "can_domain: "); show(iio, m, l.can_domain); println(io)
-    print(io, indent, "can_codomain: "); show(iio, m, l.can_codomain); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
-
 """
 convenience function to combine domain and codomain (and their contexts)
 together with a trafo to (the) layout.
@@ -142,26 +119,6 @@ struct CV_DomainPosLayout{parentT<:CV_Abstract2DLayout, canT, dcbT, styleT
 end
 
 @layout_composition_getter(can_domain_l, CV_DomainPosLayout)
-
-function show(io::IO, l::CV_DomainPosLayout)
-    print(io, "CV_DomainPosLayout(can_domain_l: ")
-    show(io, l.can_domain_l)
-    print(io, ", parent_layout: ")
-    show(io, l.parent_layout)
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_DomainPosLayout)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_DomainPosLayout(")
-    print(io, indent, "can_domain_l: "); show(iio, m, l.can_domain_l); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
-
 # }}}
 
 """
@@ -175,24 +132,7 @@ end
 
 @layout_composition_getter(can_codomain_l, CV_CodomainPosLayout)
 
-function show(io::IO, l::CV_CodomainPosLayout)
-    print(io, "CV_CodomainPosLayout(can_codomain_l: ")
-    show(io, l.can_codomain_l)
-    print(io, ", parent_layout: ")
-    show(io, l.parent_layout)
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_CodomainPosLayout)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_CodomainPosLayout(")
-    print(io, indent, "can_codomain_l: "); show(iio, m, l.can_codomain_l); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ")")
-    return nothing
-end   # }}}
+# }}}
 
 """
 Do a left-right layout of domain and codomain canvas with a gap between.
@@ -321,7 +261,7 @@ function cv_setup_lr_axis(setup::CV_SceneSetupChain,
 end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
-        label_style::CV_ContextStyle = cv_color(0,0,0) → 
+        label_style::CV_ContextStyle = cv_black → 
                 cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
 
     layout = setup.layout
@@ -413,10 +353,10 @@ end # }}}
 
 const cv_setup_lr_painters_default_phs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(0,0,0)
+                cv_linewidth(3) → cv_black
 const cv_setup_lr_painters_default_vhs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(1,1,1)
+                cv_linewidth(3) → cv_white
 const cv_setup_lr_painters_default_hlines = cv_parallel_lines(1.0+0.0im)
 const cv_setup_lr_painters_default_vlines = cv_parallel_lines(0.0+1.0im)
 const cv_setup_lr_painters_default_imgps = cv_op_over → 
@@ -458,7 +398,7 @@ end # }}}
 creates borders for the domain and codomain canvas.
 """
 function cv_setup_lr_border(setup::CV_SceneSetupChain; width::Integer=2,
-        style=cv_color(0,0,0))
+        style=cv_black)
     layout = setup.layout
     domain_border = cv_border(layout, cv_get_can_domain_l(layout), width;
         style)
@@ -499,7 +439,7 @@ creates "standard" scene with domain and codomain in a left-right layout.
 """
 function cv_scene_lr_std(trafo,
         domain, codomain; cut_test=nothing, gap=80,
-        axis_label_style=cv_color(0,0,0) → 
+        axis_label_style=cv_black → 
                   cv_fontface("sans-serif", Cairo.FONT_WEIGHT_BOLD) → 
                   cv_fontsize(20), padding=30) # {{{
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))

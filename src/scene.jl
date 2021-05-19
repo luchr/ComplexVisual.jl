@@ -5,7 +5,8 @@ macro import_scene_huge()
             CV_MinimalSetupChain, CV_2DMinimalScene,
             CV_Response,
             cv_setup_2dminimal_scene,
-            cv_setup_cycle_state
+            cv_setup_cycle_state,
+            CV_CreateData
     )
 end
 
@@ -70,7 +71,7 @@ abstract type CV_SceneSetupChain end
 
 
 """
-Possible response for callback functions
+Possible response for some (scene-)callback functions
 """
 struct CV_Response
     redraw_flag  :: Bool
@@ -142,7 +143,6 @@ end
 @layout_composition_getter(statepixel_update,       CV_2DMinimalScene)
 @layout_composition_getter(redraw_func,             CV_2DMinimalScene)
 
-
 function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
     can_layout = cv_canvas_for_layout(setup.layout)
     cc_can_layout = cv_create_context(can_layout)
@@ -193,8 +193,6 @@ function cv_setup_2dminimal_scene(setup::CV_SceneSetupChain)
 
     return cv_combine(setup; layout=scene)
 end
-
-
 # }}}
 
 
@@ -207,5 +205,13 @@ function cv_setup_cycle_state(setup::CV_SceneSetupChain)
     end
     return cv_combine(setup; update_state_func)
 end
+
+"""
+If some advanced/complicated graphic objects are constructed (e.g. a slider
+with rulers, etc.) then often such `cv_create_...` methods may want to
+return further informations about the constructed objects. This is done
+in concrete subtype of this (abstract) type.
+"""
+abstract type CV_CreateData end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

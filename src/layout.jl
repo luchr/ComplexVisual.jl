@@ -35,6 +35,10 @@ there are some callback-functions for interaction available as fields.
 """
 abstract type CV_Layout         end
 
+show(io::IO, l::CV_Layout) = cv_show_impl(io, l)
+show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_Layout) =
+    cv_show_impl(io, m, l)
+
 """
 A 2D layout.
 
@@ -100,32 +104,6 @@ struct CV_2DLayout  <: CV_Abstract2DLayout         # {{{
 end
 cv_destroy(layout::CV_2DLayout) = nothing
 @layout_composition_getter(seen_boxes, CV_2DLayout)
-
-function show(io::IO, l::CV_2DLayout)
-    print(io, "CV_2DLayout(seen_boxes: "); show(io, l.seen_boxes);
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, l::CV_Framed2DLayout)
-    t = typeof(l)
-    print(io, t, "(can_layout: "); show(io, cv_get_can_layout(l));
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, s::CV_Framed2DLayout)
-    t = typeof(s)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, t, '(')
-    print(io, indent, "can_layout: "); show(iio, m, cv_get_can_layout(s)); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, s.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end
-
 # }}}
 
 struct CV_MinimalFramed2DLayout{parentT,
@@ -148,6 +126,10 @@ end
 
 """
 A container with a `bounding_box` and `user_box` (pixel-)coordinates.
+
+For the `bounding_box` the bottom left corner is at `(0, 0)`.
+
+The `user_box` coordinates may be shifted but must not be scaled.
 """
 abstract type  CV_2DContainer   <: CV_2DCanvas end
 
@@ -179,17 +161,19 @@ function cv_anchor(can::CV_2DLayoutCanvas, anchor_name::Symbol)
 end
 
 function cv_create_context(canvas::CV_2DContainer; prepare::Bool=true,
-        fill_with::CV_ContextStyle=cv_color(1,1,1))
+        fill_with::Union{CV_ContextStyle, Nothing}=cv_white)
     con = CV_2DCanvasContext(canvas)
     if prepare
         ctx = con.ctx
         reset_transform(ctx)
 
-        set_operator(ctx, Cairo.OPERATOR_SOURCE)
-        cv_prepare(con, fill_with)
-        rectangle(ctx, 0, 0, canvas.pixel_width, canvas.pixel_height)
-        fill(ctx)
-        set_operator(ctx, Cairo.OPERATOR_OVER)
+        if fill_with isa CV_ContextStyle
+            set_operator(ctx, Cairo.OPERATOR_SOURCE)
+            cv_prepare(con, fill_with)
+            rectangle(ctx, 0, 0, canvas.pixel_width, canvas.pixel_height)
+            fill(ctx)
+            set_operator(ctx, Cairo.OPERATOR_OVER)
+        end
 
         ubox = canvas.user_box
         translate(ctx, -ubox.left, -ubox.bottom)
@@ -230,22 +214,9 @@ struct CV_2DLayoutPosition{canT<:Union{CV_2DCanvas, Nothing},
     style       :: styleT
 end
 
-function show(io::IO, p::CV_2DLayoutPosition)
-    print(io, "CV_2DLayoutPosition(rectangle: "); show(io, p.rectangle)
-    print(io, ", canvas: ");                      show(io, p.canvas)
-    print(io, ')')
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_2DLayoutPosition)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_2DLayoutPosition(")
-    print(io, indent, "rectangle: "); show(iio, p.rectangle); println(io)
-    print(io, indent, "canvas: "); show(iio, p.canvas); println(io)
-    print(io, outer_indent, ")")
-    return nothing
-end
+show(io::IO, p::CV_2DLayoutPosition) = cv_show_impl(io, p)
+show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_2DLayoutPosition) =
+    cv_show_impl(io, m, p)
 
 """
 if canvas was given:
@@ -466,25 +437,6 @@ struct CV_StateLayout{parentT, maxV} <: CV_2DLayoutWrapper # {{{
 end
 
 @layout_composition_getter(state_counter, CV_StateLayout)
-
-function show(io::IO, l::CV_StateLayout)
-    print(io, "CV_StateLayout(state_counter: "); show(io, l.state_counter)
-    print(io, ", parent_layout: ");   show(io, l.parent_layout)
-    print(io, ')')
-    return nothing
-end
-
-function show(io::IO, m::MIME{Symbol("text/plain")}, l::CV_StateLayout)
-    outer_indent = (get(io, :cv_indent, "")::AbstractString)
-    indent = outer_indent * "  "
-    iio = IOContext(io, :cv_indent => indent)
-    println(io, "CV_StateLayout(")
-    print(io, indent, "state_counter: "); show(iio, m, l.state_counter); println(io)
-    print(io, indent, "parent_layout: "); show(iio, m, l.parent_layout); println(io)
-    print(io, outer_indent, ')')
-    return nothing
-end  
-
 
 # }}}
 

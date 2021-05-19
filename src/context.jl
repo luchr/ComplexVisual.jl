@@ -16,16 +16,9 @@ abstract type CV_CanvasContext  <: CV_Context
     # ctx     (CairoContext)
 end
 
-function show(io::IO, cc::CV_CanvasContext)
-    t = typeof(cc)
-    show(io, t)
-    print(io, '(')
-    show(io, cc.canvas)
-    print(io, ", ctx: ")
-    show(io, cc.ctx.ptr)
-    print(io, ')')
-    return nothing
-end
+show(io::IO, cc::CV_CanvasContext) = cv_show_impl(io, cc)
+show(io::IO, m::MIME{Symbol("text/plain")}, cc::CV_CanvasContext) =
+    cv_show_impl(io, m, cc)
 
 function cv_destroy(cc::canvasT) where {canvasT<:CV_CanvasContext}
     destroy(cc.ctx)
