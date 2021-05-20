@@ -6,8 +6,10 @@ macro import_painter_huge()
                 CV_Painter, cv_paint, CV_CanvasPainter, CV_2DCanvasPainter,
                 CV_2DCanvasFillPainter, CV_2DValueMarkPainter, 
                 CV_2DAxisGridPainter, CV_LineSegment, CV_LineSegments,
-                CV_2DCanvasLinePainter, CV_Math2DCanvasPortraitPainter,
-                cv_clear_cache,
+                CV_2DCanvasLinePainter, CV_2DCanvasLineDirectionPainter,
+                CV_2DCanvasLineDirectionPainterContext,
+                cv_line_direction_context,
+                CV_Math2DCanvasPortraitPainter, cv_clear_cache,
                 CV_CombiPainter, →, CV_StyledPainter, ↦, 
                 CV_Math2DCanvasPainter,
                 cv_parallel_lines, cv_arc_lines, cv_star_lines,
@@ -254,6 +256,66 @@ end
 
 # }}}
 
+
+"""
+Painting Context for `CV_2DCanvasLineDirectionPainter`.
+
+Description of the appearance of the arrow pointers und where to place them.
+"""
+struct CV_2DCanvasLineDirectionPainterContext{trafoT} <: CV_PaintingContext
+    trafo         :: trafoT
+    every_len     :: Float64
+    pre_gap       :: Float64
+    arrow         :: ComplexF64
+end
+
+function cv_line_direction_context(trafo;
+        every_len=2.0, pre_gap=0.0, arrow=0.3*exp(1im*π*8/9))
+    return CV_2DCanvasLineDirectionPainterContext(trafo, Float64(every_len),
+        Float64(pre_gap), ComplexF64(arrow))
+end
+
+struct CV_2DCanvasLineDirectionPainter <: CV_2DCanvasPainter # {{{
+    segments        :: CV_LineSegments
+    auto_close_path :: Bool
+end
+
+function cv_paint(cc::CV_2DCanvasContext,
+        ldirp::CV_2DCanvasLineDirectionPainter,
+        pc::CV_2DCanvasLineDirectionPainterContext)
+    ctx, trafo, arrow = cc.ctx, pc.trafo, pc.arrow
+
+    needed_len = pc.pre_gap + pc.every_len
+    for segment in ldirp.segments
+        wold = trafo(segment[1])
+        for point in segment[2:end]
+            wnew = trafo(point)
+            wdiff = wnew - wold
+            needed_len -= abs(wdiff)
+            if needed_len ≤ 0
+                needed_len = pc.every_len
+
+                zcenter = wold + 0.5*wdiff
+                move_to(ctx, real(zcenter), imag(zcenter))
+
+                wnorm = wdiff/abs(wdiff)
+
+                z = zcenter + arrow * wnorm
+                line_to(ctx, real(z), imag(z))
+                
+                z = zcenter + conj(arrow) * wnorm
+                line_to(ctx, real(z), imag(z))
+
+                close_path(ctx)
+                fill(ctx)
+            end
+            wold = wnew
+        end
+    end
+    return nothing
+end
+# }}}
+
 mutable struct CV_Math2DCanvasPainterCache # {{{
     last_canvas
     last_pc
@@ -490,6 +552,7 @@ function cv_paint(cc::CV_2DCanvasContext{canvasT},
     return cv_paint_2dmathcanvaspainter(cc, canvas_painter, pc)
 end
 # }}}
+
 
 function cv_parallel_lines(direction::Complex{Float64};
                            width::Real=1.0, lines::Integer=5,

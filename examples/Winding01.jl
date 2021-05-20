@@ -58,6 +58,11 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
     style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias(Cairo.ANTIALIAS_BEST)
     styled_curve_painter = style ↦ curve_painter
 
+    dir_pc = cv_line_direction_context(trafo; every_len=3)
+    dir_painter = CV_2DCanvasLineDirectionPainter(curve_painter.segments, true)
+    dir_style = cv_color(0,0,1) → cv_op_source
+    styled_dir_painter = dir_style ↦ dir_painter
+
     setup = CV_MinimalSetupChain(layout)
 
     actionpixel_update = (px, py, future_layout) -> begin
@@ -65,6 +70,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
         cv_paint(cc_can_codomain, styled_fill_painter, ec)
         cv_paint(cc_can_codomain, wind_painter, wind_pc)
         cv_paint(cc_can_codomain, styled_curve_painter, curve_pc)
+        cv_paint(cc_can_codomain, styled_dir_painter, dir_pc)
         can_codomain_l(cc_can_layout)
         return nothing
     end
