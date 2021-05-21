@@ -99,7 +99,7 @@ replace some "markers" inside markdown with actual code from
 the file here. This is done to make sure the code in the documentation
 is exactly the same code as the one used in the example functions.
 """
-function substitue_marker_in_markdown(context::SubstMDcontext, md)
+function substitute_marker_in_markdown(context::SubstMDcontext, md)
     substitute_code_func(context, md)
     substitute_canvas_image(context, md)
     return nothing

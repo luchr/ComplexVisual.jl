@@ -64,7 +64,7 @@ All these layout positions are callable (they are callable structs). What happen
 
 ### creating a layout canvas and drawing the content
 
-With `cv_canvas_for_layout` the last smallest bounding box of all positioned objects (in the example there is only the `first_object`) is used to contruct a canvas of this size of the bounding box.
+With `cv_canvas_for_layout` the smallest bounding box of all positioned objects (in the example there is only the `first_object`) is used to contruct a canvas of this size of the bounding box.
 
 With `cv_create_context` a drawing context `con_layout` is constructed and alle the layout position.
 
@@ -73,3 +73,42 @@ Now all layout positions can be called with such a context to draw/show their vi
 The output of this example is very boring:
 
 ![./LayoutTutorial_helleoworld.png](./LayoutTutorial_helleoworld.png)
+## More advanced example
+
+One can use the `cv_anchor` method on layout positions to place the next objects. This is much more convenient than computing the absolute coordinates for the positions.
+
+There is also a `cv_translate` method to modifiy (anchor-)position (tuples) by translating them.
+
+Here this methods can be seen in action:
+
+```julia
+function more_advanced_example()
+    layout = CV_2DLayout()
+
+    red_canvas = cv_filled_canvas(200, 200, cv_color(1, 0, 0))
+    red_canvas_l = cv_add_canvas!(layout, red_canvas,
+        cv_anchor(red_canvas, :center), (0, 0))
+
+    green_canvas = cv_filled_canvas(50, 50, cv_color(0, 1, 0, 0.8))
+    green_canvas_l = cv_add_canvas!(layout, green_canvas,
+        cv_anchor(green_canvas, :center), cv_anchor(red_canvas_l, :east))
+
+    blue_canvas = cv_filled_canvas(cv_width(red_canvas_l), 10, cv_color(0, 0, 1))
+    blue_canvas_l = cv_add_canvas!(layout, blue_canvas,
+        cv_anchor(blue_canvas, :south), 
+        cv_translate(cv_anchor(red_canvas_l, :north), 0, -10))
+
+    can_layout = cv_canvas_for_layout(layout)
+    cv_create_context(can_layout) do con_layout
+        red_canvas_l(con_layout)
+        green_canvas_l(con_layout)
+        blue_canvas_l(con_layout)
+    end
+
+    return can_layout
+end
+```
+
+and thats the result:
+
+![./LayoutTutorial_advanced.png](./LayoutTutorial_advanced.png)

@@ -83,7 +83,7 @@ happens if they are called is explained in the next section.
 
 ### creating a layout canvas and drawing the content
 
-With `cv_canvas_for_layout` the last smallest bounding box of all
+With `cv_canvas_for_layout` the smallest bounding box of all
 positioned objects (in the example there is only the `first_object`)
 is used to contruct a canvas of this size of the bounding box.
 
@@ -112,17 +112,68 @@ function hello_world_example()
     return can_layout
 end
 
+
+"""
+## More advanced example
+
+One can use the `cv_anchor` method on layout positions to place the
+next objects. This is much more convenient than computing the
+absolute coordinates for the positions.
+
+There is also a `cv_translate` method to modifiy (anchor-)position (tuples)
+by translating them.
+
+Here this methods can be seen in action:
+
+```julia
+{func: more_advanced_example}
+```
+
+and thats the result:
+
+![./LayoutTutorial_advanced.png]({image_from_canvas: more_advanced_example()})
+
+"""
+function more_advanced_example()
+    layout = CV_2DLayout()
+
+    red_canvas = cv_filled_canvas(200, 200, cv_color(1, 0, 0))
+    red_canvas_l = cv_add_canvas!(layout, red_canvas,
+        cv_anchor(red_canvas, :center), (0, 0))
+
+    green_canvas = cv_filled_canvas(50, 50, cv_color(0, 1, 0, 0.8))
+    green_canvas_l = cv_add_canvas!(layout, green_canvas,
+        cv_anchor(green_canvas, :center), cv_anchor(red_canvas_l, :east))
+
+    blue_canvas = cv_filled_canvas(cv_width(red_canvas_l), 10, cv_color(0, 0, 1))
+    blue_canvas_l = cv_add_canvas!(layout, blue_canvas,
+        cv_anchor(blue_canvas, :south), 
+        cv_translate(cv_anchor(red_canvas_l, :north), 0, -10))
+
+    can_layout = cv_canvas_for_layout(layout)
+    cv_create_context(can_layout) do con_layout
+        red_canvas_l(con_layout)
+        green_canvas_l(con_layout)
+        blue_canvas_l(con_layout)
+    end
+
+    return can_layout
+end
+
+
+# cvg_create_win_for_canvas(more_advanced_example(), "more adv")
+
+
 open("./LayoutTutorial.md", "w") do fio
-    for part in (layout_intro, hello_world_example)
+    for part in (layout_intro, hello_world_example, more_advanced_example)
         md = Base.Docs.doc(part)
-        substitue_marker_in_markdown(md_context, md)
+        substitute_marker_in_markdown(md_context, md)
         write(fio, string(md))
     end
 end
 
 nothing
 
-# cvg_create_win_for_canvas(hello_world_example(), "hello world")
 
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
