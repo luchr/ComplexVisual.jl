@@ -82,7 +82,7 @@ function cv_is_inside(rect::CV_Rectangle{N}, x::N, y::N) where {N}
 end
 
 """
-return anchor for Integer rectangle. 
+return anchor for a rectangle. 
 
 Coor-system
 
@@ -93,6 +93,13 @@ Coor-system
      │  s│   │s
      │  t└───┘t
      v   south/top
+
+Supported anchors (for a rectangle) are:
+```
+:north        :south        :east    :west    :center    
+:northeast    :southeast    
+:southwest    :northwest    
+```
 """
 function cv_anchor(r::CV_Rectangle{N},
                    anchor_name::Symbol) where {N<:Number}
