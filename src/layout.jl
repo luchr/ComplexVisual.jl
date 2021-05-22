@@ -6,7 +6,7 @@ macro import_layout_huge()
             CV_2DContainer, CV_2DLayout,
             CV_Framed2DLayout, CV_MinimalFramed2DLayout,
             CV_2DLayoutPosition, CV_2DLayoutCanvas, cv_create_context,
-            cv_get_seen_boxes,
+            cv_get_seen_boxes, cv_width, cv_height,
             cv_translate, cv_add_canvas!, cv_add_rectangle!, cv_add_padding!,
             cv_ensure_size!,
             cv_canvas_for_layout, cv_anchor, cv_global2local, cv_local2global,
@@ -300,6 +300,12 @@ function cv_anchor(lres::CV_2DLayoutPosition, anchor_name::Symbol)
         return (rect.left + inner[1], rect.bottom + inner[2])
     end
 end
+
+"""
+width and/or height of `CV_2DLayoutPosition` is given by its rectangle.
+"""
+cv_width(lpos::CV_2DLayoutPosition) = cv_width(lpos.rectangle)
+cv_height(lpos::CV_2DLayoutPosition) = cv_height(lpos.rectangle)
 
 """
 build a new anchor using the x-coordinate of the `anchor1` of object `obj1`
