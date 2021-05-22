@@ -11,6 +11,8 @@ At the end of the layout process (after every object has its position and size) 
 ## Coordinate system
 
 All the layout process uses the [pixel coordinate system](./PixelCoordinates.md).
+
+
 ## "Hello-world" example
 
 Let's start with a hello-world example.
@@ -73,6 +75,8 @@ Now all layout positions can be called with such a context to draw/show their vi
 The output of this example is very boring:
 
 ![./LayoutTutorial_helleoworld.png](./LayoutTutorial_helleoworld.png)
+
+
 ## More advanced example
 
 One can use the `cv_anchor` method on layout positions to place the next objects. This is much more convenient than computing the absolute coordinates for the positions.
@@ -112,3 +116,79 @@ end
 and thats the result:
 
 ![./LayoutTutorial_advanced.png](./LayoutTutorial_advanced.png)
+
+
+## Other anchors (e.g. with axis)
+
+There are canvases that define further anchors (in addition to the anchors that are possible for rectangles). Typically example are axes.
+
+The ticks of an axis need to be aligned with a mathematical coordinate system (it's the main task of an axis to exactly show such coordinate positions). But because of the labels/text below the ticks the axis canvas north-west corner ist typically not the place where the first tick of an horitzonal axis starts.
+
+Let's look at the following example.
+
+```julia
+function other_anchors_axis()
+    layout = CV_2DLayout()
+
+    math_canvas = CV_Math2DCanvas(0.0 +1.0im, 1.0 + 0.0im, 180)
+    math_canvas_l = cv_add_canvas!(layout, math_canvas,
+        cv_anchor(math_canvas, :center), (0, 0))
+    cv_create_context(math_canvas) do con_math # just to fill it blue
+        cv_paint(con_math, cv_color(0,0,1) ↦ CV_2DCanvasFillPainter(),
+            CV_EmptyPaintingContext())
+    end
+
+    rulers = (CV_Ruler(CV_TickLabel(0.0, "left"),
+            CV_TickLabel(0.5, "center"), CV_TickLabel(1.0, "right")),)
+
+    south_axis_canvas = cv_create_2daxis_canvas(math_canvas, cv_south, rulers)
+    south_axis_canvas_l = cv_add_canvas!(layout, south_axis_canvas,
+        cv_anchor(south_axis_canvas, :default),
+        cv_anchor(math_canvas_l, :southwest))
+
+    show_axis_bg_l = cv_add_rectangle!(layout, south_axis_canvas_l.rectangle,
+        cv_fill_rectangle_cb, cv_color(0.7, 0.7, 0.7)) # fill axis bg with gray
+
+    north_axis_l = cv_ticks_labels(layout, math_canvas_l, cv_north, rulers)
+
+    cv_add_padding!(layout, 10)
+
+    can_layout = cv_canvas_for_layout(layout)
+    cv_create_context(can_layout) do con_layout
+        math_canvas_l(con_layout)
+        show_axis_bg_l(con_layout)
+        south_axis_canvas_l(con_layout)
+        north_axis_l(con_layout)
+    end
+
+    return can_layout
+end
+```
+
+which generates the following layout:
+
+![./LayoutTutorial_anchorsaxis.png](./LayoutTutorial_anchorsaxis.png)
+
+Here a `CV_Math2DCanvas` is used to have an canvas with a mathematical coordinate system (inside) [in order to make this canvas visibile it is filled with blue].
+
+The background of the axis at the south is filled (on purpose) with gray to see that the north-west corner of this axis is not the place where the first axis tick is located (that's because the tick label "left" below the first tick needs to be rendered and needs some horizontal space to the left). Every axis has an anchor with `:default` which is the location/position of the first tick. That's why put the position `:default` of the axis at the south-west corner of the math canvas.
+
+Typically this can be done more conveniently with the function `cv_ticks_labels`. The axis at the north was constructed with this function in one line.
+
+
+## Other anchors (e.g. with text)
+
+A text canvas is another case where additonal anchors are useful. With `cv_text(text_to_show, style)` a canvas with text can be constructed.
+
+For the text canvas
+
+```julia
+    ctext = cv_text("TestJ",
+        cv_black → cv_op_over → cv_fontface("serif") → cv_fontsize(120))
+```
+
+some available anchors are shown in this picture:
+
+![./LayoutTutorial_anchorstext.png](./LayoutTutorial_anchorstext.png)
+
+
