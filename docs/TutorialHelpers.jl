@@ -40,12 +40,17 @@ look for `Markdown.Code` with content "{func: name_of_function}"
 and replace the content with the acutal code of the function.
 """
 substitute_code_func(context::SubstMDcontext, md) = nothing
-function substitute_code_func(context::SubstMDcontext, md::Markdown.MD)
-    for part in md.content
+function substitute_code_func(context::SubstMDcontext, v::Vector)
+    for part in v
         substitute_code_func(context, part)
     end
     return nothing
 end
+substitute_code_func(context::SubstMDcontext,
+        md::Union{Markdown.MD, Markdown.Paragraph}) = 
+    substitute_code_func(context, md.content)
+substitute_code_func(context::SubstMDcontext, md::Markdown.List) =
+    substitute_code_func(context, md.items)
 function substitute_code_func(context::SubstMDcontext, md::Markdown.Code)
     match_obj = match(re_substitute_code_func, md.code)
     if match_obj !== nothing
@@ -76,13 +81,17 @@ Then
 * replace the url with the name of the created png.
 """
 substitute_canvas_image(context::SubstMDcontext, md) = nothing
-function substitute_canvas_image(context::SubstMDcontext,
-        md::Union{Markdown.MD, Markdown.Paragraph})
-    for part in md.content
+function substitute_canvas_image(context::SubstMDcontext, v::Vector)
+    for part in v
         substitute_canvas_image(context, part)
     end
     return nothing
 end
+substitute_canvas_image(context::SubstMDcontext,
+        md::Union{Markdown.MD, Markdown.Paragraph}) = 
+    substitute_canvas_image(context, md.content)
+substitute_canvas_image(context::SubstMDcontext, md::Markdown.List) =
+    substitute_canvas_image(context, md.items)
 
 function substitute_canvas_image(context::SubstMDcontext, md::Markdown.Image)
     match_obj = match(re_substitute_canvas_image, md.url)

@@ -54,6 +54,18 @@ function CV_TickLabelAppearance(;
     return CV_TickLabelAppearance(tick_length, gap, tick_style, label_style)
 end
 
+function CV_TickLabelAppearance(old::CV_TickLabelAppearance;
+        tick_length::Union{Missing, Integer}=missing,
+        gap::Union{Missing, Integer}=missing,
+        tick_style::Union{Missing, CV_ContextStyle}=missing,
+        label_style::Union{Missing, CV_ContextStyle}=missing)
+    return CV_TickLabelAppearance(;
+        tick_length = ismissing(tick_length) ? old.tick_length : tick_length,
+        gap = ismissing(gap) ? old.gap : gap,
+        tick_style = ismissing(tick_style) ? old.tick_style : tick_style,
+        label_style = ismissing(label_style) ? old.label_style : label_style)
+end
+
 """
 Ticks with their labels and appearance.
 """
@@ -66,11 +78,13 @@ show(io::IO, ruler::CV_Ruler) = cv_show_impl(io, ruler)
 show(io::IO, m::MIME{Symbol("text/plain")}, ruler::CV_Ruler) =
     cv_show_impl(io, m, ruler)
 
-function CV_Ruler(ticklabels::Vararg{CV_TickLabel{LocT}, N}) where {N, LocT}
-    return CV_Ruler(
-        NTuple{N, CV_TickLabel{LocT}}(ticklabels),
-        CV_TickLabelAppearance())
+function CV_Ruler(ticklabels::NTuple{N, CV_TickLabel{LocT}}) where {N, LocT}
+    return CV_Ruler(ticklabels, CV_TickLabelAppearance())
 end
+function CV_Ruler(ticklabels::Vararg{CV_TickLabel{LocT}, N}) where {N, LocT}
+    return CV_Ruler(NTuple{N, CV_TickLabel{LocT}}(ticklabels))
+end
+
 # }}}
 
 """
@@ -298,6 +312,9 @@ function cv_add_rect_for_ticks(rstore, ticklabelsdata, tick_length,
     z, o = zero(Int32), one(Int32)
     if min_loc == max_loc
         max_loc += o
+    end
+    if tick_length == 0
+        tick_length = o
     end
     cv_add_rectangle!(rstore, (
         attach isa CV_southT ? CV_Rectangle(tick_length, min_loc, z, max_loc)  :
