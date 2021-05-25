@@ -3,6 +3,8 @@ macro import_scene_huge()
         using ComplexVisual:
             CV_SceneSetupChain, CV_2DScene,
             CV_MinimalSetupChain, CV_2DMinimalScene,
+            cv_get_actionpixel_update, cv_get_statepixel_update,
+            cv_get_redraw_func,
             CV_Response,
             cv_setup_2dminimal_scene,
             cv_setup_cycle_state,

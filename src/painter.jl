@@ -67,6 +67,8 @@ systems (e.g. `CV_Math2DCanvas`).
 """
 abstract type CV_2DCanvasPainter <: CV_CanvasPainter end
 
+cv_clear_cache(canvas_painter::CV_2DCanvasPainter) = nothing
+
 """
 A painter filling  the complete canvas.
 """
@@ -379,6 +381,12 @@ struct CV_CombiPainter{T<:CV_Painter, S<:CV_Painter} <: CV_Painter # {{{
     painter2 :: S
 end
 
+function cv_clear_cache(cpainter::CV_CombiPainter)
+    cv_clear_cache(cpainter.painter1)
+    cv_clear_cache(cpainter.painter2)
+    return nothing
+end
+
 function cv_paint(cc::CV_Context,
                   cpainter::CV_CombiPainter, pc::CV_PaintingContext)
     cv_paint(cc, cpainter.painter1, pc)
@@ -405,6 +413,11 @@ end
 
 show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_StyledPainter) =
     cv_show_impl(io, m, p)
+
+function cv_clear_cache(spainter::CV_StyledPainter)
+    cv_clear_cache(spainter.painter)
+    return nothing
+end
 
 function cv_paint(cc::CV_CanvasContext,
                   styled_painter::CV_StyledPainter,

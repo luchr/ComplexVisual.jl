@@ -1,8 +1,6 @@
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
 
 include("./TutorialHelpers.jl")
 
@@ -322,13 +320,77 @@ function other_anchors_text(show_text="TestJ")
     return can_layout
 end
 
+"""
+## Graphic "objects" that are not canvases
 
-# cvg_create_win_for_canvas(other_anchors_text(), "other anchors")
+Until now all the objects that were added to layouts were canvases.
+There is an additional possibility to show/visulize something in a layout:
+a rectangle (region) with a "drawing callback".
+
+With `cv_add_rectangle!` it is possible to a add rectangle region to the
+layout and also give a `drawing_cb` function of the form
+
+```julia
+    drawing_cb(context::CV_2DCanvasContext, layout_pos::CV_2DLayoutPosition)
+```
+
+This "drawing callback" will be called every time the layout position is
+called.
+
+Typically this method is used for drawing (rectangular) borders via
+`cv_border` (which calls `cv_add_rectangle!`) or directly
+calling `cv_add_rectangle!` and using as `drawing_cb` e.g. `cv_fill_circle_cb`.
+
+Here ist an exmaple:
+
+```julia
+{func: graphic_callbacks}
+```
+
+and its output:
+
+![./LayoutTutorial_graphiccallbacks.png]({image_from_canvas: graphic_callbacks()})
+
+"""
+function graphic_callbacks()
+    layout = CV_2DLayout()
+
+    red_canvas = cv_filled_canvas(200, 200, cv_color(1, 0, 0))
+    red_canvas_l = cv_add_canvas!(layout, red_canvas,
+        cv_anchor(red_canvas, :center), (0, 0))
+
+    ball_size = 50
+
+    border1_l = cv_border(layout, red_canvas_l; style=cv_black)
+    border2_l = cv_border(layout, border1_l; style=cv_color(0,0,1), gap_north=3)
+    border3_l = cv_border(layout, border2_l; style=cv_color(0,1,0),
+        gap_north=ball_size, gap_east=3, gap_south=3)
+
+    ball_l = cv_add_rectangle!(layout, ball_size, ball_size,
+        (ball_size ÷ 2, ball_size), cv_anchor(border2_l, :north),
+        cv_fill_circle_cb, cv_color(0.8, 0.8, 0.8))
+
+    cv_add_padding!(layout, 10)
+
+    can_layout = cv_canvas_for_layout(layout)
+    cv_create_context(can_layout) do con_layout
+        red_canvas_l(con_layout)
+        border1_l(con_layout)
+        border2_l(con_layout)
+        border3_l(con_layout)
+        ball_l(con_layout)
+    end
+
+    return can_layout
+end
+
+
+# cvg_create_win_for_canvas(graphic_callbacks(), "gra callbacks")
 
 
 open("./LayoutTutorial.md", "w") do fio
     for part in (layout_intro, hello_world_example, more_advanced_example,
-                 other_anchors_axis, other_anchors_text)
+                 other_anchors_axis, other_anchors_text, graphic_callbacks)
         md = Base.Docs.doc(part)
         substitute_marker_in_markdown(md_context, md)
         write(fio, string(md))
