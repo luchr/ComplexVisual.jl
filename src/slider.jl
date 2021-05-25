@@ -83,7 +83,7 @@ function cv_create_hslider(pixel_width::Integer, pixel_height::Integer,
         CV_Rectangle(cv_height(bb), Int32(0), Int32(0), cv_width(bb)),
         bb, can_slider, can_slider_l, cc_can_slider, decorator_cb)
 
-    cc_container = cv_create_context(slider_container; fill_with=cv_color(0, 0, 0, 0))
+    cc_container = cv_create_context(slider_container; fill_with=cv_color(1, 1, 1))
     if N >0 
         can_axis_l(cc_container)
     end
@@ -119,7 +119,6 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
     end
 
     redraw_func = layout -> begin
-        can_layout = cv_get_can_layout(layout)
         cc_can_layout = cv_get_cc_can_layout(layout)
         cv_paint(cont.cc_can_slider, painter, ec)
         cont.can_slider_l(cc_cont)
