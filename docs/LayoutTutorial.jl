@@ -8,6 +8,8 @@ include("./TutorialHelpers.jl")
 const md_context = SubstMDcontext(@__FILE__)
 
 """
+![./LayoutTutorial_docicon.png]({image_from_canvas: get_doc_icon()})
+
 # Layout (Positioning of graphic objects)
 
 In order to visualize functions, phase portraits, etc. we have to place
@@ -384,8 +386,11 @@ function graphic_callbacks()
     return can_layout
 end
 
-
-# cvg_create_win_for_canvas(graphic_callbacks(), "gra callbacks")
+function get_doc_icon()
+    src_canvas = more_advanced_example()
+    icon = create_doc_icon(src_canvas, cv_pad(src_canvas.bounding_box, 50))
+    return icon
+end
 
 
 open("./LayoutTutorial.md", "w") do fio

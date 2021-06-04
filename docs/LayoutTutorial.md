@@ -1,3 +1,5 @@
+![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png)
+
 # Layout (Positioning of graphic objects)
 
 In order to visualize functions, phase portraits, etc. we have to place graphical objects for the visualization. We call this: "to layout".

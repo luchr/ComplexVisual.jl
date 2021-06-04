@@ -2,6 +2,10 @@ using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
+include("./TutorialHelpers.jl")
+
+const md_context = SubstMDcontext(@__FILE__)
+
 """
 Use a `CV_Math2DCanvas`, an axis grid painter and  ad-hoc painting with
 Cairo to show/simulate a zoomed/enlarged `CV_Std2DCanvas` pixel canvas .
@@ -51,6 +55,7 @@ function create_axis(layout, can_l)
 end
 
 """
+![./PixelCoordinates_docicon.png]({image_from_canvas: get_doc_icon()})
 # Pixel Coordinates
 
 ## Axes directions and integer coordinates
@@ -59,7 +64,7 @@ For the layout process and for low level painting operations (typically using
 Cairo) pixel coordinates are used. Let's have a look at the pixel
 coordinate system.
 
-![coordinate system for pixel](./PixelCoordinate01.png)
+![./PixelCoordinates01.png]({image_from_canvas: explain_pixel_coordinates()})
 
 The horizontal axis points from west to east and the vertical axis
 points from north to south. Integer coordinates, e.g. `(2,0)`, are located
@@ -123,15 +128,22 @@ function explain_pixel_coordinates()
     return can_layout
 end
 
-can_layout = explain_pixel_coordinates()
-write_to_png(can_layout.surface, "./PixelCoordinate01.png")
-
-open("./PixelCoordinates.md", "w") do fio
-    write(fio, string(@doc(explain_pixel_coordinates)))
+function get_doc_icon()
+    src_canvas = explain_pixel_coordinates()
+    icon = create_doc_icon(src_canvas, cv_rect_blwh(Int32, 0, 80, 200, 200))
+    return icon
 end
 
-# win, gtk_canvas = cvg_create_win_for_canvas(can_layout, "Pixel Coordinates")
-# cvg_wait_for_destroy(win)
 
+open("./PixelCoordinates.md", "w") do fio
+    for part in (explain_pixel_coordinates, )
+        md = Base.Docs.doc(part)
+        substitute_marker_in_markdown(md_context, md)
+        write(fio, string(md))
+        write(fio, "\n\n")
+    end
+end
+
+nothing
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

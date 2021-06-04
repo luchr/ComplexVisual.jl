@@ -1,6 +1,15 @@
 using Markdown
+using Cairo
+using ComplexVisual
+@ComplexVisual.import_huge()
 
 """
+    extract_lines(filename, start_re, stop_re; include_start_stop=true)
+
+    start_re             Regexp
+    stop_re              Regexp
+    include_start_stop   Bool
+
 extract some lines of a file.
 """
 function extract_lines(filename, start_re::Regex, stop_re::Regex;
@@ -116,10 +125,17 @@ end
 
 
 """
-creates a surface (width `w` and height `h`) where the alpha component
-is decreased (to 0) near the boundary.
+    create_fadeout_surface(w, h, dist=30)
+
+    w     Integer           width
+    h     Integer           height
+    dist  Integer           distance to boundary where to decrease alpha
+
+creates a surface where the alpha component is decreased (to 0) near
+the boundary.
 """
-function create_fadeout_surface(w::Int32, h::Int32, dist::Int32=30)
+function create_fadeout_surface(w::Integer, h::Integer, dist::Integer=30)
+    w, h, dist = Int32(w), Int32(h), Int32(dist)
     if 2*dist > w || 2*dist > h
         cv_error("d too large: 2*dist > w  or 2*dist > h")
     end
@@ -152,6 +168,56 @@ function create_fadeout_surface(w::Int32, h::Int32, dist::Int32=30)
     Cairo.mark_dirty(canvas.surface)
     return canvas
 end
+
+"""
+default fadeout canvas for `create_doc_icon`.
+"""
+const cv_default_fadeout_canvas = create_fadeout_surface(70, 70, 20)
+
+"""
+    create_doc_icon(src_canvas, src_rect=src_canvas.bounding_box,
+                    fadeout_canvas=cv_default_fadeout_canvas)
+
+    src_canvas      CV_2DCanvas         canvas with the source image
+    src_rect        CV_Rectangle{Int32} rectangle to use for icon
+    fadeout_canvas  CV_2DCanvas         canvas used for fadeout effect
+
+creates a canvas with an "icon" for the documentation. The size of the
+icon is determined by the size of the `fadeout_canvas`. The `src_rect`
+is scaled to the icon size.
+"""
+function create_doc_icon(
+        src_canvas::CV_2DCanvas,
+        src_rect::CV_Rectangle{Int32}=src_canvas.bounding_box,
+        fadeout_canvas::CV_2DCanvas=cv_default_fadeout_canvas)  # {{{
+
+    w, h = fadeout_canvas.pixel_width, fadeout_canvas.pixel_height
+    icon = CV_Std2DCanvas(w, h)
+
+    sw, sh = cv_width(src_rect), cv_height(src_rect)
+    cv_create_context(icon) do con
+        ctx = con.ctx
+
+        set_operator(ctx, Cairo.OPERATOR_SOURCE)
+        set_source_rgb(ctx, 1, 1, 1)
+        rectangle(ctx, 0, 0, w, h)
+        fill_preserve(ctx)
+
+        pat = CairoPattern(src_canvas.surface)
+        pattern_set_filter(pat, Cairo.FILTER_BEST)
+        pat_mat = CairoMatrix(sw/w, 0, 0, sh/h, src_rect.left, src_rect.bottom)
+        set_matrix(pat, pat_mat)
+        set_source(ctx, pat)
+        set_operator(ctx, Cairo.OPERATOR_OVER)
+        fill_preserve(ctx)
+        
+        set_source(ctx, fadeout_canvas.surface)
+        set_operator(ctx, Cairo.OPERATOR_DEST_IN)
+        fill(ctx)
+    end
+
+    return icon
+end # }}}
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
 
