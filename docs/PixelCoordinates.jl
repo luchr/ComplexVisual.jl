@@ -1,10 +1,12 @@
+module PixelCoordinates
+
+using Markdown
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
-include("./TutorialHelpers.jl")
-
-const md_context = SubstMDcontext(@__FILE__)
+import Main.DocGenerator: Document, SubstMDcontext,
+        substitute_marker_in_markdown, create_doc_icon
 
 """
 Use a `CV_Math2DCanvas`, an axis grid painter and  ad-hoc painting with
@@ -134,16 +136,19 @@ function get_doc_icon()
     return icon
 end
 
-
-open("./PixelCoordinates.md", "w") do fio
+function create_document()
+    md_context = SubstMDcontext(@__FILE__, @__MODULE__().eval)
+    md = Markdown.MD()
     for part in (explain_pixel_coordinates, )
-        md = Base.Docs.doc(part)
-        substitute_marker_in_markdown(md_context, md)
-        write(fio, string(md))
-        write(fio, "\n\n")
+        part_md = Base.Docs.doc(part)
+        substitute_marker_in_markdown(md_context, part_md)
+        md = Markdown.MD(md, part_md)
     end
+
+    doc = Document("PixelCoordinates", md, Dict{Symbol, AbstractString}())
+    return doc
 end
 
-nothing
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

@@ -1,3 +1,4 @@
+
 ![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png)
 
 # Layout (Positioning of graphic objects)
@@ -13,7 +14,6 @@ At the end of the layout process (after every object has its position and size) 
 ## Coordinate system
 
 All the layout process uses the [pixel coordinate system](./PixelCoordinates.md).
-
 
 ## "Hello-world" example
 
@@ -78,7 +78,6 @@ The output of this example is very boring:
 
 ![./LayoutTutorial_helleoworld.png](./LayoutTutorial_helleoworld.png)
 
-
 ## More advanced example
 
 One can use the `cv_anchor` method on layout positions to place the next objects. This is much more convenient than computing the absolute coordinates for the positions.
@@ -118,7 +117,6 @@ end
 and thats the result:
 
 ![./LayoutTutorial_advanced.png](./LayoutTutorial_advanced.png)
-
 
 ## Other anchors (e.g. with axis)
 
@@ -177,7 +175,6 @@ The background of the axis at the south is filled (on purpose) with gray to see 
 
 Typically this can be done more conveniently with the function `cv_ticks_labels`. The axis at the north was constructed with this function in one line.
 
-
 ## Other anchors (e.g. with text)
 
 A text canvas is another case where additonal anchors are useful. With `cv_text(text_to_show, style)` a canvas with text can be constructed.
@@ -192,7 +189,6 @@ For the text canvas
 some available anchors are shown in this picture:
 
 ![./LayoutTutorial_anchorstext.png](./LayoutTutorial_anchorstext.png)
-
 
 ## Graphic "objects" that are not canvases
 

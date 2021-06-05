@@ -1,11 +1,12 @@
+module LayoutTutorial
+
+using Markdown
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
-include("./TutorialHelpers.jl")
-
-
-const md_context = SubstMDcontext(@__FILE__)
+import Main.DocGenerator: Document, SubstMDcontext,
+        substitute_marker_in_markdown, create_doc_icon
 
 """
 ![./LayoutTutorial_docicon.png]({image_from_canvas: get_doc_icon()})
@@ -392,18 +393,22 @@ function get_doc_icon()
     return icon
 end
 
-
-open("./LayoutTutorial.md", "w") do fio
+function create_document()
+    md_context = SubstMDcontext(@__FILE__, @__MODULE__().eval)
+    md = Markdown.MD()
     for part in (layout_intro, hello_world_example, more_advanced_example,
                  other_anchors_axis, other_anchors_text, graphic_callbacks)
-        md = Base.Docs.doc(part)
-        substitute_marker_in_markdown(md_context, md)
-        write(fio, string(md))
-        write(fio, "\n\n")
+        part_md = Base.Docs.doc(part)
+        substitute_marker_in_markdown(md_context, part_md)
+        md = Markdown.MD(md, part_md)
     end
+
+    doc = Document("LayoutTutorial", md, Dict{Symbol, AbstractString}())
+    return doc
 end
 
-nothing
+
+end
 
 
 
