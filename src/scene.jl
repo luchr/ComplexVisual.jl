@@ -198,15 +198,6 @@ end
 # }}}
 
 
-function cv_setup_cycle_state(setup::CV_SceneSetupChain)
-    state_counter = cv_get_state_counter(setup.layout)
-
-    update_state_func = z -> begin
-        state_counter()
-        return nothing
-    end
-    return cv_combine(setup; update_state_func)
-end
 
 """
 If some advanced/complicated graphic objects are constructed (e.g. a slider
