@@ -1,24 +1,25 @@
+module Axis
+
 using Printf
+using Markdown
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
-include("./TutorialHelpers.jl")
-
-
-const md_context = SubstMDcontext(@__FILE__)
+import Main.DocGenerator: Document, SubstMDcontext,
+        substitute_marker_in_markdown, create_doc_icon
 
 """
 # Axes
 
-## Definitions
+## Names
 
 Let's start with some vocabulary
 
 * ![./Axis_ticks.png]({image_from_canvas: vocab_tick()})
   tick: A marker for a mathematical coordinate
 * ![./Axis_ticklabels.png]({image_from_canvas: vocab_ticklabel()})
-  tick label: A text below a tick
+  tick label: A text below a tick (may be the empty string, i.e. no text)
 * ![./Axis_ruler.png]({image_from_canvas: vocab_ruler()})
   ruler: several ticks (with optional tick labels) and information about
   styling
@@ -26,6 +27,16 @@ Let's start with some vocabulary
   axis: several rulers
 """
 axes_intro() = nothing
+
+"""
+## Tick labels
+
+### `doc: CV_TickLabel`
+
+### `doc: cv_format_ticks`
+"""
+help_ticklabel() = nothing
+
 
 
 function vocab_basic(format_string="", app=CV_TickLabelAppearance())
@@ -39,6 +50,7 @@ function vocab_basic(format_string="", app=CV_TickLabelAppearance())
     axis_canvas = cv_create_2daxis_canvas(math_canvas, cv_south, rulers)
     axis_canvas_l = cv_add_canvas!(layout, axis_canvas, (0,0), (0,0))
 
+    cv_add_padding!(layout, 5)
     can_layout = cv_canvas_for_layout(layout)
     cv_create_context(can_layout) do con_layout
         axis_canvas_l(con_layout)
@@ -78,6 +90,7 @@ function vocab_axis()
     axis_canvas = cv_create_2daxis_canvas(math_canvas, cv_south, rulers)
     axis_canvas_l = cv_add_canvas!(layout, axis_canvas, (0,0), (0,0))
 
+    cv_add_padding!(layout, 5)
     can_layout = cv_canvas_for_layout(layout)
     cv_create_context(can_layout) do con_layout
         axis_canvas_l(con_layout)
@@ -158,19 +171,20 @@ function example_inches_cm()
     return can_layout
 end
 
-cvg_create_win_for_canvas(example_inches_cm(), "axis")
+function create_document()
+    md_context = SubstMDcontext(@__FILE__, @__MODULE__().eval)
+    md = Markdown.MD()
+    for part in (axes_intro, help_ticklabel)
+        part_md = Base.Docs.doc(part)
+        substitute_marker_in_markdown(md_context, part_md)
+        md = Markdown.MD(md, part_md)
+    end
 
+    doc = Document("Axis", md, Dict{Symbol, AbstractString}())
+    return doc
+end
 
-# open("./Axis.md", "w") do fio
-#     for part in (axes_intro, )
-#         md = Base.Docs.doc(part)
-#         substitute_marker_in_markdown(md_context, md)
-#         write(fio, string(md))
-#         write(fio, "\n\n")
-#     end
-# end
-
-nothing
+end
 
 
 

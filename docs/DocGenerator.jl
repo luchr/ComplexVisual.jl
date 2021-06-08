@@ -1,5 +1,6 @@
 module DocGenerator
 
+using Base.Docs
 using Printf
 using Markdown
 using Cairo
@@ -67,6 +68,18 @@ end # }}}
 
 # }}}
 
+# Functions to extract Markdown subparts {{{
+
+const MD_has_content = Union{Markdown.Paragraph, Markdown.BlockQuote,
+        Markdown.Admonition, Markdown.MD}
+const MD_has_items = Union{Markdown.List}
+const MD_has_subparts = Union{MD_has_content, MD_has_items}
+
+get_subparts(md) = []
+get_subparts(md::MD_has_content) = md.content
+get_subparts(md::MD_has_items) = md.items
+# }}}
+
 # Subst `{func: name_of_function}`  {{{
 const re_substitute_code_func = r"^\s*\{func:\s*([^\s}]+)\s*\}"
 
@@ -81,11 +94,8 @@ function substitute_code_func(context::SubstMDcontext, v::Vector)
     end
     return nothing
 end
-substitute_code_func(context::SubstMDcontext,
-        md::Union{Markdown.MD, Markdown.Paragraph}) = 
-    substitute_code_func(context, md.content)
-substitute_code_func(context::SubstMDcontext, md::Markdown.List) =
-    substitute_code_func(context, md.items)
+substitute_code_func(context::SubstMDcontext, md::MD_has_subparts) = 
+    substitute_code_func(context, get_subparts(md))
 function substitute_code_func(context::SubstMDcontext, md::Markdown.Code)
     match_obj = match(re_substitute_code_func, md.code)
     if match_obj !== nothing
@@ -102,7 +112,7 @@ end
 const re_substitute_canvas_image = r"^\s*\{image_from_canvas:\s*([^\s}]+)\s*\}"
 
 """
-look für `Markdown.Image` with `url` of the form 
+look for `Markdown.Image` with `url` of the form 
 
 ```
   {image_from_canvas: expression}
@@ -122,11 +132,8 @@ function substitute_canvas_image(context::SubstMDcontext, v::Vector)
     end
     return nothing
 end
-substitute_canvas_image(context::SubstMDcontext,
-        md::Union{Markdown.MD, Markdown.Paragraph}) = 
-    substitute_canvas_image(context, md.content)
-substitute_canvas_image(context::SubstMDcontext, md::Markdown.List) =
-    substitute_canvas_image(context, md.items)
+substitute_canvas_image(context::SubstMDcontext, md::MD_has_subparts) = 
+    substitute_canvas_image(context, get_subparts(md))
 
 function substitute_canvas_image(context::SubstMDcontext, md::Markdown.Image)
     match_obj = match(re_substitute_canvas_image, md.url)
@@ -139,6 +146,79 @@ function substitute_canvas_image(context::SubstMDcontext, md::Markdown.Image)
 end
 # }}}
 
+# Subst Paragraphs of the form `[inline](<name>)` {{{
+"""
+look für Paragraphs which have exactly one link of the form `[inline](<name>)`.
+
+Then replace the whole paragraph with the Markdown documentation of `<name>`.
+"""
+get_inline_replacement_for(context::SubstMDcontext, md) = nothing
+function get_inline_replacement_for(context::SubstMDcontext,
+        md::Markdown.Paragraph)
+    if length(md.content) == 1 && md.content[1] isa Markdown.Link
+        link = md.content[1]
+        if link.text isa Vector && length(link.text) == 1 &&
+                link.text[1] == "inline"
+            doc_md = doc(getproperty(ComplexVisual, Symbol(link.url)))
+            return doc_md.content
+        end
+    end
+    return nothing
+end
+substitute_inline_markdown(context::SubstMDcontext, md) = nothing
+function substitute_inline_markdown(context::SubstMDcontext, v::Vector)
+    index = 1
+    while index <= length(v)
+        part = v[index]
+        replacement = get_inline_replacement_for(context, part)
+        if replacement !== nothing
+            deleteat!(v, index)
+            for elem in reverse(replacement)
+                insert!(v, index, elem)
+            end
+            continue
+        end
+        substitute_inline_markdown(context, part)
+        index += 1
+    end
+    return nothing
+end
+substitute_inline_markdown(context::SubstMDcontext, md::MD_has_subparts) =
+    substitute_inline_markdown(context, get_subparts(md))
+# }}}
+
+# Extend Headers of the form `doc: <name>` with object documentation {{{
+const re_substitute_doc = r"^\s*doc:\s*([^\s]+)\s*$"
+substitute_obj_header(context::SubstMDcontext, md) = nothing
+function substitute_obj_header(context::SubstMDcontext, v::Vector)
+    index = 1
+    while index <= length(v)
+        part = v[index]
+        if part isa Markdown.Header  &&  part.text isa Vector  && 
+                length(part.text) == 1  && part.text[1] isa Markdown.Code
+            code_md = part.text[1]
+            match_obj = match(re_substitute_doc, code_md.code)
+            if match_obj !== nothing
+                func_name = match_obj.captures[1]
+                code_md.code = func_name
+
+                sub_md = Markdown.parse("[inline](" * func_name * ")")
+                substitute_marker_in_markdown(context, sub_md)
+
+                for elem in reverse(sub_md.content)
+                    insert!(v, index+1, elem)
+                end
+            end
+        end
+        substitute_obj_header(context, part)
+        index += 1
+    end
+    return nothing
+end
+substitute_obj_header(context::SubstMDcontext, md::MD_has_subparts) =
+    substitute_obj_header(context, get_subparts(md))
+# }}}
+
 """
 replace some "markers" inside markdown with actual code from
 the file here. This is done to make sure the code in the documentation
@@ -147,6 +227,8 @@ is exactly the same code as the one used in the example functions.
 function substitute_marker_in_markdown(context::SubstMDcontext, md)
     substitute_code_func(context, md)
     substitute_canvas_image(context, md)
+    substitute_inline_markdown(context, md)
+    substitute_obj_header(context, md)
     return nothing
 end
 
@@ -385,7 +467,9 @@ end
 
 documents = Vector{Document}()
 
-for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl", )
+# for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl",
+#                  "./Axis.jl")
+for filename in ("./Axis.jl", )
     println("generating markdown: ", filename)
     mod = include(filename)
     push!(documents, mod.create_document())

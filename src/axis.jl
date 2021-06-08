@@ -11,8 +11,14 @@ import Base: show
 
 
 """
-Location (math coordinate) and description for a tick
-(typically placed at axis at a axis-tick).
+```
+struct CV_TickLabel{LocT}
+    location    :: LocT
+    text        :: AbstractString
+end
+```
+A location (math coordinate) and a description for a tick
+(typically placed at axis).
 """
 struct CV_TickLabel{LocT}
     location    :: LocT
@@ -88,6 +94,13 @@ end
 # }}}
 
 """
+```
+cv_format_ticks(printf_format, locations)
+
+printf_format   AbstractString     used for @sprintf
+locations       Vararg{Real, N}
+```
+
 create for every location a `CV_TickLabel` by formatting the locations
 with the given printf-format.
 """
@@ -102,6 +115,12 @@ function cv_format_ticks(printf_format::AbstractString,
 end
 
 """
+```
+cv_format_ticks(locations)
+
+locations   Vararg{Real, N}
+```
+
 create for every location a `CV_TickLabel` by formatting the locations
 with the `"%.1f"` printf-format.
 """
