@@ -6,8 +6,8 @@ using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
-import Main.DocGenerator: Document, SubstMDcontext,
-        substitute_marker_in_markdown, create_doc_icon
+import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
+        Document, substitute_marker_in_markdown, create_doc_icon
 
 """
 # Axes
@@ -171,16 +171,18 @@ function example_inches_cm()
     return can_layout
 end
 
-function create_document()
-    md_context = SubstMDcontext(@__FILE__, @__MODULE__().eval)
+function create_document(doc_env::DocCreationEnvironment)
+    doc_source = DocSource("Axis", @__MODULE__)
+    context = DocContext(doc_env, doc_source)
+
     md = Markdown.MD()
     for part in (axes_intro, help_ticklabel)
         part_md = Base.Docs.doc(part)
-        substitute_marker_in_markdown(md_context, part_md)
+        substitute_marker_in_markdown(context, part_md)
         md = Markdown.MD(md, part_md)
     end
 
-    doc = Document("Axis", md, Dict{Symbol, AbstractString}())
+    doc = Document(doc_source, md)
     return doc
 end
 

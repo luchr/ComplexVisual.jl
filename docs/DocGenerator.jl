@@ -8,31 +8,66 @@ using ComplexVisual
 @ComplexVisual.import_huge()
 
 """
-A (Markdown) document together with all the symbols (types, functions, 
-structs, etc.) that are explained inside the document.
+all "registerted" Modules producing documentation.
+
+registration at the bottom of this file.
 """
-struct Document
-    basename            :: AbstractString
-    markdown            :: Markdown.MD
-    anchors_for_symbols :: Dict{Symbol, AbstractString}
+const doc_modules = Vector{Module}()
+
+"""
+Source of Documentation.
+"""
+struct DocSource
+    filename   :: AbstractString  # without path and without suffix
+    doc_module :: Module          # Module which created the documentation
+end
+
+
+"""
+Reference to point in documentation.
+"""
+struct DocRef
+    source   :: DocSource
+    anchor   :: AbstractString
 end
 
 """
-Context for Markdown substitutions.
+saves data for generating documents, e.g.
+
+* Symbols (for Methods, Structs, etc.) and all the `DocRef`s.
 """
-struct SubstMDcontext
-    filename :: AbstractString
-    eval     :: Function
+struct DocCreationEnvironment
+    refs :: Dict{Symbol, Vector{DocRef}}
+
+    DocCreationEnvironment() = new(Dict{Symbol, Vector{DocRef}}())
+end
+
+"""
+context while generating the documentation.
+"""
+struct DocContext
+    env      :: DocCreationEnvironment
+    source   :: DocSource               # current source
+end
+
+"""
+A produced (Markdown) document.
+"""
+struct Document
+    source     :: DocSource
+    markdown   :: Markdown.MD
 end
 
 
 # Helper functions {{{
 
+eval_in_context(context::DocContext) = context.source.doc_module.eval
 
 """
 ```
 extract_lines(filename, start_re, stop_re; include_start_stop=true)
 
+filename             AbstractString
 start_re             Regexp
 stop_re              Regexp
 include_start_stop   Bool
@@ -40,7 +75,7 @@ include_start_stop   Bool
 
 extract some lines of a file.
 """
-function extract_lines(filename, start_re::Regex, stop_re::Regex;
+function extract_lines(filename::AbstractString, start_re::Regex, stop_re::Regex;
         include_start_stop=true) # {{{
     inside_flag = false
     found_lines = Vector{AbstractString}()
@@ -66,6 +101,59 @@ function extract_lines(filename, start_re::Regex, stop_re::Regex;
     return found_lines
 end # }}}
 
+
+"""
+```
+extract_lines(doc_context, start_re, stop_re; include_start_stop=true)
+
+doc_context          DocContext
+start_re             Regexp
+stop_re              Regexp
+include_start_stop   Bool
+```
+
+extract some lines of a file.
+"""
+
+function extract_lines(doc_context::DocContext, start_re::Regex, stop_re::Regex;
+        include_start_stop=true)
+    filename = doc_context.source.filename * ".jl"
+    return extract_lines(filename, start_re, stop_re; include_start_stop)
+end
+
+# }}}
+
+# Anchors {{{
+"""
+try to guess the anchor name which github's flavored markdown will use.
+"""
+function get_anchor_name(obj_name::AbstractString, prefix="user-content-")
+    name = lowercase(obj_name)
+    name = replace(name, r"[^\w\- ]" => "")
+    name = replace(name, " " => "-")
+    return prefix * name
+end
+
+get_anchor_name(obj_sym::Symbol, prefix="user-content-") =
+    get_anchor_name(String(obj_sym), prefix)
+
+function push_docref(context::DocContext, obj_name::AbstractString,
+        anchor_name=get_anchor_name(obj_name))
+    refs = context.env.refs
+    symb = Symbol(obj_name)
+    if !haskey(refs, symb)
+        refs[symb] = Vector{DocRef}()
+    end
+    doc_ref = DocRef(context.source, anchor_name)
+    push!(refs[symb], doc_ref)
+    return doc_ref
+end
+
+doc_ref_to_linktarget(ref::DocRef) = @sprintf(
+    "./%s.md#%s", ref.source.filename, ref.anchor)
+
+doc_ref_to_markdownlink(ref::DocRef, name) =
+    Markdown.Link(Markdown.Code(String(name)), doc_ref_to_linktarget(ref))
 # }}}
 
 # Functions to extract Markdown subparts {{{
@@ -87,21 +175,21 @@ const re_substitute_code_func = r"^\s*\{func:\s*([^\s}]+)\s*\}"
 look for `Markdown.Code` with content "{func: name_of_function}"
 and replace the content with the acutal code of the function.
 """
-substitute_code_func(context::SubstMDcontext, md) = nothing
-function substitute_code_func(context::SubstMDcontext, v::Vector)
+substitute_code_func(context::DocContext, md) = nothing
+function substitute_code_func(context::DocContext, v::Vector)
     for part in v
         substitute_code_func(context, part)
     end
     return nothing
 end
-substitute_code_func(context::SubstMDcontext, md::MD_has_subparts) = 
+substitute_code_func(context::DocContext, md::MD_has_subparts) = 
     substitute_code_func(context, get_subparts(md))
-function substitute_code_func(context::SubstMDcontext, md::Markdown.Code)
+function substitute_code_func(context::DocContext, md::Markdown.Code)
     match_obj = match(re_substitute_code_func, md.code)
     if match_obj !== nothing
         start = Regex("^function "*match_obj.captures[1])
         stop = r"^end"
-        func_lines = extract_lines(context.filename, start, stop)
+        func_lines = extract_lines(context, start, stop)
         md.code = join(func_lines, "\n")
     end
     return nothing
@@ -125,22 +213,25 @@ Then
   alt-tag-name
 * replace the url with the name of the created png.
 """
-substitute_canvas_image(context::SubstMDcontext, md) = nothing
-function substitute_canvas_image(context::SubstMDcontext, v::Vector)
+substitute_canvas_image(context::DocContext, md) = nothing
+function substitute_canvas_image(context::DocContext, v::Vector)
     for part in v
         substitute_canvas_image(context, part)
     end
     return nothing
 end
-substitute_canvas_image(context::SubstMDcontext, md::MD_has_subparts) = 
+substitute_canvas_image(context::DocContext, md::MD_has_subparts) = 
     substitute_canvas_image(context, get_subparts(md))
 
-function substitute_canvas_image(context::SubstMDcontext, md::Markdown.Image)
+function substitute_canvas_image(context::DocContext, md::Markdown.Image)
     match_obj = match(re_substitute_canvas_image, md.url)
     if match_obj !== nothing
-        canvas = context.eval(Meta.parse(match_obj.captures[1])) :: CV_2DCanvas
-        write_to_png(canvas.surface, md.alt)
-        md.url = md.alt
+        to_eval = Meta.parse(match_obj.captures[1])
+        img_file = md.alt
+        println("  producing image ", img_file, " for ", to_eval)
+        canvas = eval_in_context(context)(to_eval) :: CV_2DCanvas
+        write_to_png(canvas.surface, img_file)
+        md.url = img_file
     end
     return nothing
 end
@@ -152,8 +243,8 @@ look für Paragraphs which have exactly one link of the form `[inline](<name>)`.
 
 Then replace the whole paragraph with the Markdown documentation of `<name>`.
 """
-get_inline_replacement_for(context::SubstMDcontext, md) = nothing
-function get_inline_replacement_for(context::SubstMDcontext,
+get_inline_replacement_for(context::DocContext, md) = nothing
+function get_inline_replacement_for(context::DocContext,
         md::Markdown.Paragraph)
     if length(md.content) == 1 && md.content[1] isa Markdown.Link
         link = md.content[1]
@@ -165,8 +256,8 @@ function get_inline_replacement_for(context::SubstMDcontext,
     end
     return nothing
 end
-substitute_inline_markdown(context::SubstMDcontext, md) = nothing
-function substitute_inline_markdown(context::SubstMDcontext, v::Vector)
+substitute_inline_markdown(context::DocContext, md) = nothing
+function substitute_inline_markdown(context::DocContext, v::Vector)
     index = 1
     while index <= length(v)
         part = v[index]
@@ -183,14 +274,14 @@ function substitute_inline_markdown(context::SubstMDcontext, v::Vector)
     end
     return nothing
 end
-substitute_inline_markdown(context::SubstMDcontext, md::MD_has_subparts) =
+substitute_inline_markdown(context::DocContext, md::MD_has_subparts) =
     substitute_inline_markdown(context, get_subparts(md))
 # }}}
 
 # Extend Headers of the form `doc: <name>` with object documentation {{{
 const re_substitute_doc = r"^\s*doc:\s*([^\s]+)\s*$"
-substitute_obj_header(context::SubstMDcontext, md) = nothing
-function substitute_obj_header(context::SubstMDcontext, v::Vector)
+substitute_obj_header(context::DocContext, md) = nothing
+function substitute_obj_header(context::DocContext, v::Vector)
     index = 1
     while index <= length(v)
         part = v[index]
@@ -201,6 +292,8 @@ function substitute_obj_header(context::SubstMDcontext, v::Vector)
             if match_obj !== nothing
                 func_name = match_obj.captures[1]
                 code_md.code = func_name
+
+                push_docref(context, func_name)
 
                 sub_md = Markdown.parse("[inline](" * func_name * ")")
                 substitute_marker_in_markdown(context, sub_md)
@@ -215,7 +308,7 @@ function substitute_obj_header(context::SubstMDcontext, v::Vector)
     end
     return nothing
 end
-substitute_obj_header(context::SubstMDcontext, md::MD_has_subparts) =
+substitute_obj_header(context::DocContext, md::MD_has_subparts) =
     substitute_obj_header(context, get_subparts(md))
 # }}}
 
@@ -224,7 +317,7 @@ replace some "markers" inside markdown with actual code from
 the file here. This is done to make sure the code in the documentation
 is exactly the same code as the one used in the example functions.
 """
-function substitute_marker_in_markdown(context::SubstMDcontext, md)
+function substitute_marker_in_markdown(context::DocContext, md)
     substitute_code_func(context, md)
     substitute_canvas_image(context, md)
     substitute_inline_markdown(context, md)
@@ -456,7 +549,8 @@ write Markdown-files for all Documents.
 """
 function write_markdown_documentations(documents::Vector{Document})
     for document in documents
-        open(@sprintf("./%s.md", document.basename), "w") do fio
+        filename = document.source.filename * ".md"
+        open(filename, "w") do fio
             write(fio, string(document.markdown))
             write(fio, "\n\n")
         end
@@ -464,19 +558,94 @@ function write_markdown_documentations(documents::Vector{Document})
 end
 # }}}
 
+const re_find_cv_start = r"^(cv|CV)_"
 
-documents = Vector{Document}()
-
-# for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl",
-#                  "./Axis.jl")
-for filename in ("./Axis.jl", )
-    println("generating markdown: ", filename)
-    mod = include(filename)
-    push!(documents, mod.create_document())
+function isless_ignore_cv(sym1::Symbol, sym2::Symbol)
+    name1 = replace(lowercase(String(sym1)), re_find_cv_start => "")
+    name2 = replace(lowercase(String(sym2)), re_find_cv_start => "")
+    return isless(name1, name2)
 end
 
-write_markdown_documentations(documents)
+function render_ref(doc_env::DocCreationEnvironment, ref::Symbol)
+    ref_vec = doc_env.refs[ref]
+    parts = []
+    if length(ref_vec) == 1
+        push!(parts, doc_ref_to_markdownlink(ref_vec[1], ref))
+    else
+        push!(parts, Markdown.Code(String(ref)))
+        push!(parts, " (")
+        first = true
+        for ref in ref_vec
+            if first
+                first = false
+            else
+                push!(parts, ", ")
+            end
+            push!(parts, doc_ref_to_markdownlink(ref, ref.source.filename))
+        end
+        push!(parts, ")")
+    end
+    return Markdown.Paragraph(parts)
+end
 
+function create_letter_list(doc_env::DocCreationEnvironment)
+    letter_list = Dict{AbstractChar, Markdown.List}()
+    for entry in sort(collect(keys(doc_env.refs)), lt=isless_ignore_cv)
+        entry_name = String(entry)
+        fchar = first(replace(uppercase(entry_name), re_find_cv_start => ""))
+        if !isletter(fchar)
+            fchar = '…'
+        end
+        if !haskey(letter_list, fchar)
+            letter_list[fchar] = Markdown.List()
+        end
+
+        para = render_ref(doc_env, entry)
+        push!(letter_list[fchar].items, para)
+    end
+    return letter_list
+end
+
+function create_index(doc_env::DocCreationEnvironment)
+    doc_source = DocSource("Index", @__MODULE__)
+    context = DocContext(doc_env, doc_source)
+
+    header = Markdown.Header{1}("Index")
+
+    letter_list = create_letter_list(doc_env)
+
+    md = Markdown.MD(header)
+    for fchar in sort(collect(keys(letter_list)))
+        hdl = "" * fchar
+        md = Markdown.MD(md, Markdown.Header{2}(hdl), letter_list[fchar])
+    end
+    
+    doc = Document(doc_source, md)
+    return doc
+end
+
+function create_documents()
+    doc_env = DocCreationEnvironment()
+
+    documents = Vector{Document}()
+    for mod in doc_modules
+        println("generating markdown for ", mod)
+        push!(documents, mod.create_document(doc_env))
+    end
+
+    push!(documents, create_index(doc_env))
+
+    write_markdown_documentations(documents)
+    return nothing
+end
+
+
+for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl",
+                 "./Axis.jl")
+    push!(doc_modules, include(filename))
+end
+
+create_documents()
 
 end
 
