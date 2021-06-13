@@ -173,7 +173,7 @@ Here a `CV_Math2DCanvas` is used to have an canvas with a mathematical coordinat
 
 The background of the axis at the south is filled (on purpose) with gray to see that the north-west corner of this axis is not the place where the first axis tick is located (that's because the tick label "left" below the first tick needs to be rendered and needs some horizontal space to the left). Every axis has an anchor with `:default` which is the location/position of the first tick. That's why put the position `:default` of the axis at the south-west corner of the math canvas.
 
-Typically this can be done more conveniently with the function `cv_ticks_labels`. The axis at the north was constructed with this function in one line.
+Typically this can be done more conveniently with the function [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels). The axis at the north was constructed with this function in one line.
 
 ## Other anchors (e.g. with text)
 

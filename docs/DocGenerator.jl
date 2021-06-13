@@ -239,7 +239,7 @@ end
 
 # Subst Paragraphs of the form `[inline](<name>)` {{{
 """
-look für Paragraphs which have exactly one link of the form `[inline](<name>)`.
+look for Paragraphs which have exactly one link of the form `[inline](<name>)`.
 
 Then replace the whole paragraph with the Markdown documentation of `<name>`.
 """
@@ -543,8 +543,10 @@ function get_arg_description(m::Method; indent="")
     pop_indent(result)
     append_newline(append_newline(append(result, ")")))
 
-    max_arg_width = maximum(map(arg -> textwidth(arg[1]), args[2:end]))
-    max_type_width = maximum(map(arg -> textwidth(arg[2]), args[2:end]))
+    max_arg_width = length(args) > 1 ? 
+        maximum(map(arg -> textwidth(arg[1]), args[2:end])) : 4
+    max_type_width = length(args) > 1 ?
+        maximum(map(arg -> textwidth(arg[2]), args[2:end])) : 4
 
     arg_fmt = @sprintf("%%-%is", max_arg_width)
     pad_arg = @eval str -> @sprintf($arg_fmt, str)
@@ -563,10 +565,17 @@ function get_arg_description(m::Method; indent="")
     return result.buffer
 end
 
-get_arg_description(f::Function) = get_arg_description(first(methods(f)))
+function get_arg_description(something)
+    result = ""
+    for method in methods(something)
+        result *= get_arg_description(method)
+        result *= "\n\n"
+    end
+    return result
+end
 
-function list_all_sigs(f::Function)
-    for m in methods(f)
+function list_all_sigs(something)
+    for m in methods(something)
         println(tuple(m.sig.types[2:end]...))
     end
 end
@@ -681,7 +690,7 @@ for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl",
     push!(doc_modules, include(filename))
 end
 
-create_documents()
+# create_documents()
 
 end
 
