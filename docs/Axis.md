@@ -1,7 +1,4 @@
-
-![./Axis_docicon.png](./Axis_docicon.png)
-
-# Axes
+# [![./Axis_docicon.png](./Axis_docicon.png) Axes](./Axis.md)
 
 ## Quicklinks
 

@@ -121,6 +121,22 @@ function extract_lines(doc_context::DocContext, start_re::Regex, stop_re::Regex;
     return extract_lines(filename, start_re, stop_re; include_start_stop)
 end
 
+"""
+append to Markdown other Markdown-elements (and strip off `MD`s).
+"""
+function append_md(where_to_append, what_to_append)
+    while what_to_append isa Markdown.MD  &&
+            length(what_to_append.content) == 1
+        what_to_append = what_to_append.content[1]
+    end
+    if what_to_append isa Markdown.MD
+        push!(where_to_append.content, what_to_append.content...)
+    else
+        push!(where_to_append.content, what_to_append)
+    end
+    return nothing
+end
+
 # }}}
 
 # Anchors {{{
@@ -222,6 +238,9 @@ function substitute_canvas_image(context::DocContext, v::Vector)
 end
 substitute_canvas_image(context::DocContext, md::MD_has_subparts) = 
     substitute_canvas_image(context, get_subparts(md))
+substitute_canvas_image(context::DocContext, md::Union{
+    Markdown.Header, Markdown.Link}) =
+    substitute_canvas_image(context, md.text)
 
 function substitute_canvas_image(context::DocContext, md::Markdown.Image)
     match_obj = match(re_substitute_canvas_image, md.url)
@@ -657,9 +676,34 @@ function create_index(doc_env::DocCreationEnvironment)
         hdl = "" * fchar
         md = Markdown.MD(md, Markdown.Header{2}(hdl), letter_list[fchar])
     end
-    
-    doc = Document(doc_source, md)
-    return doc
+
+    return md
+end
+
+function create_overview(doc_env::DocCreationEnvironment,
+        docs::Vector{Document})
+
+    header = Markdown.Header{1}("Overview")
+
+    list = Markdown.List()
+    for doc in docs
+        content = doc.markdown.content
+        if length(content) > 0 && content[1] isa Markdown.Header
+            para = Markdown.Paragraph(content[1].text)
+            push!(list.items, para)
+        end
+    end
+
+    return Markdown.MD(header, list)
+end
+
+function create_readme(doc_env::DocCreationEnvironment,
+        docs::Vector{Document})
+
+    doc_source = DocSource("README", @__MODULE__)
+
+    md = Markdown.MD([create_overview(doc_env, docs), create_index(doc_env)])
+    return Document(doc_source, md)
 end
 
 function create_documents()
@@ -670,8 +714,8 @@ function create_documents()
         println("generating markdown for ", mod)
         push!(documents, mod.create_document(doc_env))
     end
-    println("generating markdown for Index")
-    push!(documents, create_index(doc_env))
+    println("generating markdown for Readme")
+    push!(documents, create_readme(doc_env, documents))
 
     # Cross-Ref
     println("inserting cross references")

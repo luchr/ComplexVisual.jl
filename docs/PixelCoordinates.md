@@ -1,7 +1,4 @@
-
-![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png)
-
-# Pixel Coordinates
+# [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
 
 ## Axes directions and integer coordinates
 

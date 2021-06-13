@@ -512,8 +512,10 @@ cv_ticks_labels(layout, for_canvas_l, attach, ticklabels; app)
 
 layout         CV_Abstract2DLayout
 for_canvas_l   CV_2DLayoutPosition
-attach         Union{cv_north, cv_south, cv_east, cv_west}
+attach         Union{cv_north, cv_south,
+                     cv_east, cv_west}
 ticklabels     Vararg{CV_TickLabel{Float64}, N}
+app            CV_TickLabelAppearance              CV_TickLabelAppearance()
 ```
 """
 function cv_ticks_labels(layout::CV_Abstract2DLayout,

@@ -7,11 +7,10 @@ using ComplexVisual
 @ComplexVisual.import_huge
 
 import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
-        Document, substitute_marker_in_markdown, create_doc_icon
+        Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
-![./Axis_docicon.png]({image_from_canvas: get_doc_icon()})
-# Axes
+# [![./Axis_docicon.png]({image_from_canvas: get_doc_icon()}) Axes](./Axis.md)
 
 ## Quicklinks
 
@@ -209,7 +208,8 @@ function create_document(doc_env::DocCreationEnvironment)
     for part in (axes_intro, help_ticklabel, help_rulers, example_inches_cm)
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
-        md = Markdown.MD(md, part_md)
+
+        append_md(md, part_md)
     end
 
     doc = Document(doc_source, md)

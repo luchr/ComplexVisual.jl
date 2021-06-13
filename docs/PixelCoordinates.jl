@@ -6,7 +6,7 @@ using ComplexVisual
 @ComplexVisual.import_huge
 
 import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
-        Document, substitute_marker_in_markdown, create_doc_icon
+        Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
 Use a `CV_Math2DCanvas`, an axis grid painter and  ad-hoc painting with
@@ -57,8 +57,7 @@ function create_axis(layout, can_l)
 end
 
 """
-![./PixelCoordinates_docicon.png]({image_from_canvas: get_doc_icon()})
-# Pixel Coordinates
+# [![./PixelCoordinates_docicon.png]({image_from_canvas: get_doc_icon()}) Pixel Coordinates](./PixelCoordinates.md)
 
 ## Axes directions and integer coordinates
 
@@ -144,7 +143,8 @@ function create_document(doc_env::DocCreationEnvironment)
     for part in (explain_pixel_coordinates, )
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
-        md = Markdown.MD(md, part_md)
+
+        append_md(md, part_md)
     end
 
     doc = Document(doc_source, md)

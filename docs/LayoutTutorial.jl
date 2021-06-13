@@ -6,12 +6,10 @@ using ComplexVisual
 @ComplexVisual.import_huge
 
 import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
-        Document, substitute_marker_in_markdown, create_doc_icon
+        Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
-![./LayoutTutorial_docicon.png]({image_from_canvas: get_doc_icon()})
-
-# Layout (Positioning of graphic objects)
+# [![./LayoutTutorial_docicon.png]({image_from_canvas: get_doc_icon()}) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
 
 In order to visualize functions, phase portraits, etc. we have to place
 graphical objects for the visualization. We call this: "to layout".
@@ -402,7 +400,8 @@ function create_document(doc_env::DocCreationEnvironment)
                  other_anchors_axis, other_anchors_text, graphic_callbacks)
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
-        md = Markdown.MD(md, part_md)
+
+        append_md(md, part_md)
     end
 
     doc = Document(doc_source, md)
