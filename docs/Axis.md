@@ -32,7 +32,7 @@ printf_format   AbstractString     used for @sprintf
 locations       Vararg{Real, N}
 ```
 
-create for every location a `CV_TickLabel` by formatting the locations with the given printf-format.
+create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the given printf-format.
 
 ```
 cv_format_ticks(locations)
@@ -40,6 +40,6 @@ cv_format_ticks(locations)
 locations   Vararg{Real, N}
 ```
 
-create for every location a `CV_TickLabel` by formatting the locations with the `"%.1f"` printf-format.
+create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the `"%.1f"` printf-format.
 
 

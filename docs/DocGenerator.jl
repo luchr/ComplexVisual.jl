@@ -312,6 +312,35 @@ substitute_obj_header(context::DocContext, md::MD_has_subparts) =
     substitute_obj_header(context, get_subparts(md))
 # }}}
 
+# Subst Code-Cross-References {{{
+const re_substitute_code_ref = r"^\s*([^\s]+)\s*$"
+substitute_code_ref(context::DocContext, md) = nothing
+function substitute_code_ref(context::DocContext, v::Vector)
+    index = 1
+    while index <= length(v)
+        part = v[index]
+        if part isa Markdown.Code
+            match_obj = match(re_substitute_code_ref, part.code)
+            if match_obj !== nothing
+                code_name = match_obj.captures[1]
+                code_sym = Symbol(code_name)
+                if haskey(context.env.refs, code_sym)
+                    rendered = render_ref(context.env, code_sym)
+                    deleteat!(v, index)
+                    for elem in reverse(rendered.content)
+                        insert!(v, index, elem)
+                    end
+                end
+            end
+        end
+        substitute_code_ref(context, part)
+        index += 1
+    end
+end
+substitute_code_ref(context::DocContext, md::MD_has_subparts) =
+    substitute_code_ref(context, get_subparts(md))
+# }}}
+
 """
 replace some "markers" inside markdown with actual code from
 the file here. This is done to make sure the code in the documentation
@@ -600,7 +629,7 @@ function create_letter_list(doc_env::DocCreationEnvironment)
             letter_list[fchar] = Markdown.List()
         end
 
-        para = render_ref(doc_env, entry)
+        para = Markdown.Paragraph(Vector{Any}([Markdown.Code(entry_name)]))
         push!(letter_list[fchar].items, para)
     end
     return letter_list
@@ -632,8 +661,15 @@ function create_documents()
         println("generating markdown for ", mod)
         push!(documents, mod.create_document(doc_env))
     end
-
+    println("generating markdown for Index")
     push!(documents, create_index(doc_env))
+
+    # Cross-Ref
+    println("inserting cross references")
+    context = DocContext(doc_env, DocSource("cross-refs", @__MODULE__))
+    for doc in documents
+        substitute_code_ref(context, doc.markdown)
+    end
 
     write_markdown_documentations(documents)
     return nothing
