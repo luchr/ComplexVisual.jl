@@ -57,6 +57,16 @@ function cv_combine(old::CV_LRSetupChain;
     !ismissing(redraw_func) && push!(new.redraw_func, redraw_func)
     return new
 end
+
+function cv_setup_cycle_state(setup::CV_LRSetupChain)
+    state_counter = cv_get_state_counter(setup.layout)
+
+    update_state_func = z -> begin
+        state_counter()
+        return nothing
+    end
+    return cv_combine(setup; update_state_func)
+end
 # }}}
 
 

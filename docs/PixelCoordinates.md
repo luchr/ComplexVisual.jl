@@ -1,10 +1,10 @@
-# Pixel Coordinates
+# [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
 
 ## Axes directions and integer coordinates
 
 For the layout process and for low level painting operations (typically using Cairo) pixel coordinates are used. Let's have a look at the pixel coordinate system.
 
-![coordinate system for pixel](./PixelCoordinate01.png)
+![./PixelCoordinates01.png](./PixelCoordinates01.png)
 
 The horizontal axis points from west to east and the vertical axis points from north to south. Integer coordinates, e.g. `(2,0)`, are located at the zero-width "gap" between pixels.
 
@@ -38,3 +38,5 @@ rect_red2 = cv_rect_blwh(Int, 0, 2, 1, 1)
 rect_green1 = CV_Rectangle(5, 1, 3, 5)
 rect_green2 = cv_rect_blwh(Int, 3, 1, 4, 2)
 ```
+
+

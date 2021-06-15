@@ -1,14 +1,15 @@
+module LayoutTutorial
+
+using Markdown
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
 
-include("./TutorialHelpers.jl")
-
-
-const md_context = SubstMDcontext(@__FILE__)
+import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
+        Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
-# Layout (Positioning of graphic objects)
+# [![./LayoutTutorial_docicon.png]({image_from_canvas: get_doc_icon()}) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
 
 In order to visualize functions, phase portraits, etc. we have to place
 graphical objects for the visualization. We call this: "to layout".
@@ -384,21 +385,31 @@ function graphic_callbacks()
     return can_layout
 end
 
-
-# cvg_create_win_for_canvas(graphic_callbacks(), "gra callbacks")
-
-
-open("./LayoutTutorial.md", "w") do fio
-    for part in (layout_intro, hello_world_example, more_advanced_example,
-                 other_anchors_axis, other_anchors_text, graphic_callbacks)
-        md = Base.Docs.doc(part)
-        substitute_marker_in_markdown(md_context, md)
-        write(fio, string(md))
-        write(fio, "\n\n")
-    end
+function get_doc_icon()
+    src_canvas = more_advanced_example()
+    icon = create_doc_icon(src_canvas, cv_pad(src_canvas.bounding_box, 50))
+    return icon
 end
 
-nothing
+function create_document(doc_env::DocCreationEnvironment)
+    doc_source = DocSource("LayoutTutorial", @__MODULE__)
+    context = DocContext(doc_env, doc_source)
+
+    md = Markdown.MD()
+    for part in (layout_intro, hello_world_example, more_advanced_example,
+                 other_anchors_axis, other_anchors_text, graphic_callbacks)
+        part_md = Base.Docs.doc(part)
+        substitute_marker_in_markdown(context, part_md)
+
+        append_md(md, part_md)
+    end
+
+    doc = Document(doc_source, md)
+    return doc
+end
+
+
+end
 
 
 

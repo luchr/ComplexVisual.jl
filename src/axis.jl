@@ -3,7 +3,7 @@ macro import_axis_huge()
         using ComplexVisual:
             CV_TickLabel, cv_format_ticks,
             CV_TickLabelAppearance, CV_Ruler,
-            cv_create_2daxis_canvas, cv_ticks_labels, cv_anchor
+            cv_create_2daxis_canvas, cv_ticks_labels
     )
 end
 
@@ -11,8 +11,14 @@ import Base: show
 
 
 """
-Location (math coordinate) and description for a tick
-(typically placed at axis at a axis-tick).
+```
+struct CV_TickLabel{LocT}
+    location    :: LocT
+    text        :: AbstractString
+end
+```
+A location (math coordinate) and a description for a tick
+(typically placed at axis).
 """
 struct CV_TickLabel{LocT}
     location    :: LocT
@@ -45,6 +51,16 @@ show(io::IO, m::MIME{Symbol("text/plain")}, app::CV_TickLabelAppearance) =
     cv_show_impl(io, m, app)
 # }}}
 
+"""
+```
+CV_TickLabelAppearance(; tick_length, gap, tick_style, label_style)
+
+tick_length   Integer          Int32(10)
+gap           Integer          cv_half(tick_length)
+tick_style    CV_ContextStyle  cv_linewidth(2) → cv_black
+label_style   CV_ContextStyle  cv_black → cv_fontface("serif") → cv_fontsize(15)
+```
+"""
 function CV_TickLabelAppearance(;
         tick_length::Integer=Int32(10),
         gap::Integer=cv_half(tick_length),
@@ -54,20 +70,33 @@ function CV_TickLabelAppearance(;
     return CV_TickLabelAppearance(tick_length, gap, tick_style, label_style)
 end
 
+"""
+```
+CV_TickLabelAppearance(old; tick_length, gap, tick_style, label_style)
+
+old           CV_TickLabelAppearance
+tick_length   Integer                 old.tick_length
+gap           Integer                 old.gap
+tick_style    CV_ContextStyle         old.tick_style
+label_style   CV_ContextStyle         old.label_style
+```
+"""
 function CV_TickLabelAppearance(old::CV_TickLabelAppearance;
-        tick_length::Union{Missing, Integer}=missing,
-        gap::Union{Missing, Integer}=missing,
-        tick_style::Union{Missing, CV_ContextStyle}=missing,
-        label_style::Union{Missing, CV_ContextStyle}=missing)
-    return CV_TickLabelAppearance(;
-        tick_length = ismissing(tick_length) ? old.tick_length : tick_length,
-        gap = ismissing(gap) ? old.gap : gap,
-        tick_style = ismissing(tick_style) ? old.tick_style : tick_style,
-        label_style = ismissing(label_style) ? old.label_style : label_style)
+        tick_length::Integer=old.tick_length, gap::Integer=old.gap,
+        tick_style::CV_ContextStyle=old.tick_style,
+        label_style::CV_ContextStyle=old.label_style)
+    return CV_TickLabelAppearance(; tick_length, gap, tick_style, label_style)
 end
 
 """
 Ticks with their labels and appearance.
+
+```
+CV_Ruler(ticklabels[, app])
+
+ticklabels  NTuple{N, CV_TickLabel{LocT}}
+app         CV_TickLabelAppearance{tsT, lsT}
+```
 """
 struct CV_Ruler{N, LocT, tsT, lsT}    # {{{
     ticklabels :: NTuple{N, CV_TickLabel{LocT}}
@@ -81,6 +110,14 @@ show(io::IO, m::MIME{Symbol("text/plain")}, ruler::CV_Ruler) =
 function CV_Ruler(ticklabels::NTuple{N, CV_TickLabel{LocT}}) where {N, LocT}
     return CV_Ruler(ticklabels, CV_TickLabelAppearance())
 end
+
+"""
+```
+CV_Ruler(ticklabels)
+
+ticklabels   Vararg{CV_TickLabel{LocT}, N}
+```
+"""
 function CV_Ruler(ticklabels::Vararg{CV_TickLabel{LocT}, N}) where {N, LocT}
     return CV_Ruler(NTuple{N, CV_TickLabel{LocT}}(ticklabels))
 end
@@ -88,6 +125,13 @@ end
 # }}}
 
 """
+```
+cv_format_ticks(printf_format, locations)
+
+printf_format   AbstractString     used for @sprintf
+locations       Vararg{Real, N}
+```
+
 create for every location a `CV_TickLabel` by formatting the locations
 with the given printf-format.
 """
@@ -102,6 +146,12 @@ function cv_format_ticks(printf_format::AbstractString,
 end
 
 """
+```
+cv_format_ticks(locations)
+
+locations   Vararg{Real, N}
+```
+
 create for every location a `CV_TickLabel` by formatting the locations
 with the `"%.1f"` printf-format.
 """
@@ -374,15 +424,19 @@ function cv_layout_ruler(for_canvas::CV_Math2DCanvas, attach::CV_AttachType,
     return ticklabelsdata
 end # }}}
 
+"""
+```
+cv_create_2daxis_canvas(for_canvas, attach, rulers)
 
-function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
-        attach::CV_AttachType,
-        ticklabels::Vararg{CV_TickLabel{Float64}, N};
-        app::CV_TickLabelAppearance=CV_TickLabelAppearance()) where {N}
-    return cv_create_2daxis_canvas(for_canvas,
-        attach, (CV_Ruler(ticklabels, app),))
-end
+for_canvas   CV_Math2DCanvas
+attach       Union{cv_north, cv_south, cv_east, cv_west}
+rulers       Tuple{Vararg{CV_Ruler, N}}
+```
 
+create a `CV_2DLayoutCanvas` to render the given rulers. Position the
+ticks and labels such that the axis-canvas can be attached to `for_canvas`
+at the given `attach` position.
+"""
 function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
         attach::CV_AttachType,
         rulers::NTuple{N, CV_Ruler}) where {N} # {{{
@@ -409,7 +463,36 @@ function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
     return canvas
 end # }}}
 
+"""
+```
+cv_create_2daxis_canvas(for_canvas, attach, ticklabels; app)
 
+for_canvas   CV_Math2DCanvas
+attach       Union{cv_north, cv_south, cv_east, cv_west}
+ticklabels   Vararg{CV_TickLabel{Float64}, N}
+app          CV_TickLabelAppearance
+```
+"""
+function cv_create_2daxis_canvas(for_canvas::CV_Math2DCanvas,
+        attach::CV_AttachType,
+        ticklabels::Vararg{CV_TickLabel{Float64}, N};
+        app::CV_TickLabelAppearance=CV_TickLabelAppearance()) where {N}
+    return cv_create_2daxis_canvas(for_canvas,
+        attach, (CV_Ruler(ticklabels, app),))
+end
+
+"""
+```
+cv_ticks_labels(layout, for_canvas_l, attach, rulers)
+
+layout         CV_Abstract2DLayout
+for_canvas_l   CV_2DLayoutPosition
+attach         Union{cv_north, cv_south, cv_east, cv_west}
+rulers         Tuple{Vararg{ComplexVisual.CV_Ruler, N}}
+```
+
+short version for `cv_create_2daxis_canvas` and `cv_add_canvas!`.
+"""
 function cv_ticks_labels(layout::CV_Abstract2DLayout,
         for_canvas_l::CV_2DLayoutPosition{CV_Math2DCanvas, dcbT, styleT},
         attach::CV_AttachType,
@@ -423,6 +506,18 @@ function cv_ticks_labels(layout::CV_Abstract2DLayout,
             attach isa CV_eastT  ? :northeast   : :northwest)))
 end
 
+"""
+```
+cv_ticks_labels(layout, for_canvas_l, attach, ticklabels; app)
+
+layout         CV_Abstract2DLayout
+for_canvas_l   CV_2DLayoutPosition
+attach         Union{cv_north, cv_south,
+                     cv_east, cv_west}
+ticklabels     Vararg{CV_TickLabel{Float64}, N}
+app            CV_TickLabelAppearance              CV_TickLabelAppearance()
+```
+"""
 function cv_ticks_labels(layout::CV_Abstract2DLayout,
         for_canvas_l::CV_2DLayoutPosition, attach::CV_AttachType,
         ticklabels::Vararg{CV_TickLabel{Float64}, N};

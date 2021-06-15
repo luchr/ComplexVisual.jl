@@ -2,8 +2,9 @@ macro import_rectangle_huge()
     :(
         using ComplexVisual:
             CV_Rectangle, cv_rect_blwh, cv_width, cv_height, cv_is_inside,
-            cv_anchor, cv_intersect, CV_RectangleStore, cv_add_rectangle!,
-            cv_find_first_nonempty_intersection, cv_compute_bounding_box
+            cv_anchor, cv_pad, cv_intersect, CV_RectangleStore,
+            cv_add_rectangle!, cv_find_first_nonempty_intersection,
+            cv_compute_bounding_box
     )
 end
 
@@ -34,13 +35,20 @@ struct CV_Rectangle{N<:Number}
 end
 
 """
-creates rectangle (with given number type) with the data:
-bottom, left, width, height.
+    cv_rect_blwh(::Type{T}, bottom, left, width, height) where {T<:Real}
+
+    bottom   T
+    left     T      (T <: Real)
+    width    T
+    height   T
+
+creates rectangle (with given number type).
 """
 function cv_rect_blwh(::Type{T},
         bottom::Real, left::Real, width::Real, height::Real) where {T<:Real}
     return CV_Rectangle(T(bottom + height), T(left), T(bottom), T(left + width))
 end
+
 function CV_Rectangle(type::Type{T}) where {T<:Number}
     null = zero(T)
     return CV_Rectangle(null, null, null, null)
@@ -76,6 +84,22 @@ end # }}}
 
 cv_width(rect::CV_Rectangle) = rect.right - rect.left
 cv_height(rect::CV_Rectangle) = rect.top - rect.bottom
+
+"""
+    cv_pad(rect::CV_Rectangle{N}, top, left=top, bottom=top, right=left)
+
+create a padded version of `rect`. `top`, `left`, `bottom`, `right` are
+padding values.
+"""
+function cv_pad(rect::CV_Rectangle{N},
+        top::Number, left::Number=top,
+        bottom::Number=top, right::Number=left) where {N<:Number}
+    return CV_Rectangle(
+        rect.top + N(top),
+        rect.left - N(left),
+        rect.bottom - N(bottom),
+        rect.right + N(right))
+end
 
 function cv_is_inside(rect::CV_Rectangle{N}, x::N, y::N) where {N}
     return (rect.left ≤ x ≤ rect.right) && (rect.bottom ≤ y ≤ rect.top)
