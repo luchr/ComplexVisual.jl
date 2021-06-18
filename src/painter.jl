@@ -113,14 +113,15 @@ end
 `CV_2DAxisGridPainter(reals, imags)`
 
 ```
-reals    NTuple{N, Real}
-imags    NTuple{M, Real}
+reals    Union{NTuple{N, Real}, AbstractVector{Float64}}
+imags    Union{NTuple{M, Real}, AbstractVector{Float64}}
 ```
 
 construct grid for given real- and imag-values.
 """
-function CV_2DAxisGridPainter(reals::NTuple{N, Real},
-                              imags::NTuple{M, Real}) where {M, N}
+function CV_2DAxisGridPainter(
+        reals::Union{NTuple{N, Real}, AbstractVector{Float64}},
+        imags::Union{NTuple{M, Real}, AbstractVector{Float64}}) where {M, N}
     return CV_2DAxisGridPainter(
         [Float64(x) for x in reals],
         [Float64(y) for y in imags])
