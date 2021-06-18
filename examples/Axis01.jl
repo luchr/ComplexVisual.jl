@@ -47,10 +47,9 @@ function main()
 
     can_layout = cv_canvas_for_layout(layout)
     cc_can_layout = cv_create_context(can_layout)
-    ec = CV_EmptyPaintingContext()
 
     update_math_domains = z -> begin
-        cv_paint(cc_can_math, fill_red, ec)
+        cv_paint(cc_can_math, fill_red)
         can_math_l(cc_can_layout)
         a1_l(cc_can_layout)
         a2_l(cc_can_layout)
