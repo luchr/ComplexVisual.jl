@@ -427,10 +427,8 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
                     cut_test === nothing ? nothing : translate, cut_test))) 
     end
 
-    domain_base_painter = (portrait_painter_domain === nothing) ?
-        cv_white ↦ CV_2DCanvasFillPainter() : portrait_painter_domain
-    domain_state1_painter = domain_base_painter
-    domain_state2_painter = domain_base_painter
+    domain_state1_painter = portrait_painter_domain
+    domain_state2_painter = portrait_painter_domain
     if img_painter_domain !== nothing
         domain_state1_painter = domain_state1_painter → img_painter_domain
     end
@@ -438,10 +436,8 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
         domain_state2_painter = domain_state2_painter → parallel_lines_painter_domain
     end
     
-    codomain_base_painter = (portrait_painter_codomain === nothing) ?
-        cv_white ↦ CV_2DCanvasFillPainter() : portrait_painter_codomain
-    codomain_state1_painter = codomain_base_painter
-    codomain_state2_painter = codomain_base_painter
+    codomain_state1_painter = portrait_painter_codomain
+    codomain_state2_painter = portrait_painter_codomain
     if img_painter_codomain !== nothing
         codomain_state1_painter = codomain_state1_painter → img_painter_codomain
     end

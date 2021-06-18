@@ -184,6 +184,8 @@ CV_2DCanvasLinePainter(dst_trafo, segments::CV_LineSegments) =
     CV_2DCanvasLinePainter(dst_trafo, segments, false)
 CV_2DCanvasLinePainter(segments::CV_LineSegments) = 
     CV_2DCanvasLinePainter(identity, segments)
+CV_2DCanvasLinePainter(segments::CV_LineSegments, auto_close_path::Bool) = 
+    CV_2DCanvasLinePainter(identity, segments, auto_close_path)
 
 """
 Implementation without cut-test
@@ -278,7 +280,7 @@ function cv_paint(cc::CV_2DCanvasContext,
         ldirp::CV_2DCanvasLineDirectionPainter) # {{{
     ctx, trafo, arrow = cc.ctx, ldirp.trafo, ldirp.arrow
 
-    needed_len = pc.pre_gap + pc.every_len
+    needed_len = ldirp.pre_gap + ldirp.every_len
     for segment in ldirp.segments
         wold = trafo(segment[1])
         for point in segment[2:end]
@@ -286,7 +288,7 @@ function cv_paint(cc::CV_2DCanvasContext,
             wdiff = wnew - wold
             needed_len -= abs(wdiff)
             if needed_len ≤ 0
-                needed_len = pc.every_len
+                needed_len = ldirp.every_len
 
                 zcenter = wold + 0.5*wdiff
                 move_to(ctx, real(zcenter), imag(zcenter))
@@ -415,6 +417,17 @@ end
 function →(painter1::T, painter2::S) where {T<:CV_Painter, S<:CV_Painter}
   return CV_CombiPainter(painter1, painter2)
 end
+
+"""
+`→(nothing, painter2)  = painter2`
+"""
+→(painter1::Nothing, painter2::S) where {S<:CV_Painter} = painter2
+
+"""
+`→(painter1, nothing)  = painter1`
+"""
+→(painter1::T, painter2::Nothing) where {T<:CV_Painter} = painter1
+
 
 show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_CombiPainter) =
     cv_show_impl(io, m, p)
