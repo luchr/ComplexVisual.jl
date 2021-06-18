@@ -6,6 +6,7 @@ macro import_contextstyle_huge()
             CV_ContextColorStyle, cv_color, cv_black, cv_white,
             CV_ContextLineWidthStyle, cv_linewidth,
             CV_ContextAntialiasStyle, cv_antialias,
+            cv_antialias_best, cv_antialias_none,
             CV_ContextOperatorStyle, cv_operatormode, cv_opmode,
             cv_op_source, cv_op_over,
             CV_ContextFillStyle, cv_fillstyle, 
@@ -106,6 +107,9 @@ function cv_prepare(cc::CV_CanvasContext, style::CV_ContextAntialiasStyle)
     set_antialias(cc.ctx, style.antialias)
     return nothing
 end
+
+const cv_antialias_best = cv_antialias(Cairo.ANTIALIAS_BEST)
+const cv_antialias_none = cv_antialias(Cairo.ANTIALIAS_NONE)
 # }}}
 
 struct CV_ContextOperatorStyle{T<:Integer} <: CV_CanvasContextStyle # {{{
