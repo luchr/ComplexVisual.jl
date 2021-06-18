@@ -4,7 +4,6 @@ using ComplexVisualGtk
 @ComplexVisualGtk.import_huge
 
 
-
 cut_test1 = cv_create_angle_cross_test(+π/2, 1.0, Inf; δ=1e-2)
 cut_test2 = cv_create_angle_cross_test(-π/2, 1.0, Inf; δ=1e-2)
 

@@ -5,16 +5,14 @@ using ComplexVisualGtk
 @ComplexVisualGtk.import_huge
 
 function get_axis_rulers()
-    label_style = cv_color(0,0,0) → 
-                  cv_fontsize(20)
+    label_style = cv_black → cv_fontface("sans-serif") → cv_fontsize(20)
 
-    ticks1 = cv_format_ticks("%.0f", -4:4...)
-    ticks1h = cv_format_ticks("", -4.5:1.0:4.5...)
+    ticks1, ticks1h = "%.0f" ⇒ -4:4, "" ⇒ -4.5:4.5
 
     app_l = CV_TickLabelAppearance(; label_style, tick_length=10)
     app_s = CV_TickLabelAppearance(; label_style, tick_length=6)
 
-    return (CV_Ruler(ticks1, app_l), CV_Ruler(ticks1h, app_s))
+    return (app_l ↦ ticks1, app_s ↦ ticks1h,)
 end
 
 function create_colorbar(setup, can_codomain_l, winding_painter) # {{{

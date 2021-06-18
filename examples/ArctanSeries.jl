@@ -3,6 +3,8 @@ using ComplexVisual
 using ComplexVisualGtk
 @ComplexVisualGtk.import_huge
 
+const fontface = cv_fontface("sans-serif")
+
 function get_param_n()
     value_min, value_max = 1, 19
     slider_pos = CV_TranslateByOffset(Int)
@@ -11,12 +13,11 @@ function get_param_n()
         slider_pos.value = round(UInt, max(min(z, value_max), value_min))
         return CV_Response(; redraw_flag=true)
     end
-    label_style = cv_color(0,0,0) → cv_fontface("sans-serif") → cv_fontsize(20)
-    rulers=(CV_Ruler(cv_format_ticks("%.0f", value_min:2:value_max...),
-                CV_TickLabelAppearance(; label_style)),
-            CV_Ruler(cv_format_ticks("", value_min+1:2:value_max...)),
-            CV_Ruler((CV_TickLabel(0.5, "n:"),),
-                CV_TickLabelAppearance(; tick_length=0, gap=15, label_style)))
+    label_style = cv_black → fontface → cv_fontsize(20)
+    app = CV_TickLabelAppearance(; label_style)
+    app_notick = CV_TickLabelAppearance(; tick_length=0, gap=15, label_style)
+    rulers=(app ↦ ("%.0f" ⇒ value_min:2:value_max),
+            app ↦ ("" ⇒ value_min+1:2:value_max), app_notick ↦ ("n:" ⇒ 0.5,))
 
     return CV_ParamWithSlider(;
         slider_pos, value_min=value_min-0.1, value_max=value_max+0.1,
@@ -39,7 +40,7 @@ trafo1 = z -> log((1+z*1im)/(1-z*1im))/(2im)
 codomain1 = CV_Math2DCanvas(-2.0 + 2.0im, 2.0 - 2.0im, 100)
 codomain2 = CV_Math2DCanvas(-2.0 + 2.0im, 2.0 - 2.0im, 100)
 
-label_style = cv_color(0,0,0) → cv_fontface("sans-serif") → cv_fontsize(20)
+label_style = cv_color(0,0,0) → fontface → cv_fontsize(20)
 rulers=(CV_Ruler(cv_format_ticks("%.0f", -2.0:1.0:2.0...),
     CV_TickLabelAppearance(; label_style)),)
 

@@ -4,10 +4,11 @@ using ComplexVisual
 using ComplexVisualGtk
 @ComplexVisualGtk.import_huge
 
+const fontface = cv_fontface("sans-serif")
+
 function create_scene(trafo,
         domain, codomain; cut_test=nothing, gap=80,
-        axis_label_style=cv_color(0,0,0) → 
-                  cv_fontface("sans-serif") → cv_fontsize(20), padding=30) # {{{
+        axis_label_style=cv_black → fontface → cv_fontsize(20), padding=30) # {{{
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))
     layout = cv_do_lr_layout(cv_add(layout, trafo, domain, codomain), gap)
 
