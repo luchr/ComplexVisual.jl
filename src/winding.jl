@@ -158,7 +158,7 @@ struct CV_Math2DCanvasWindingPainter{trafoT,
     function CV_Math2DCanvasWindingPainter(trafo::trafoT,
             closed_curves::CV_LineSegments,
             cache_flag::Bool=true) where {trafoT}  # {{{
-        line_painter = CV_2DCanvasLinePainter(closed_curves, true)
+        line_painter = CV_2DCanvasLinePainter(trafo, closed_curves, true)
         helpers = CV_WindingHelpers(
             CV_Math2DCanvas(-1.0+1.0im, 1.0-1.0im, 1),
             Vector{CV_ConnectedComponent}(),
@@ -224,7 +224,7 @@ function cv_compute_conn_masks_for_canvas(
     # draw curves
     ccon = cv_create_context(wp.helpers.comp_canvas)
     cv_prepare(ccon, wp.styled_line_painter.style)
-    cv_paint_line_painter(ccon, wp.styled_line_painter.painter, trafo)
+    cv_paint(ccon, wp.styled_line_painter.painter)
     cv_destroy(ccon)
 
     # find connected components with flood fill
