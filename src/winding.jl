@@ -1,23 +1,12 @@
 macro import_winding_huge()
     :(
         using ComplexVisual:
-            CV_2DWindingPainterContext, CV_Math2DCanvasWindingPainter,
+            CV_Math2DCanvasWindingPainter,
             cv_clear_cache, CV_2DWindingColorbarPainter,
             CV_WindingColorBarCreateData, cv_create_winding_colorbar,
             cv_setup_winding_colorbar
     )
 end
-
-"""
-Painting Context for `CV_Math2DCanvasWindingPainter` describing the
-trafo and what winding numbers to fill/show.
-"""
-struct CV_2DWindingPainterContext{trafoT} <: CV_PaintingContext
-    trafo                   :: trafoT
-    hide_winding_numbers    :: Dict{Int32, Bool}    # default: false
-end
-CV_2DWindingPainterContext(trafo) = CV_2DWindingPainterContext(
-    trafo, Dict{Int32,Bool}())
 
 """
 stores informations about a found connected component.
@@ -143,27 +132,47 @@ end
 const cv_windingpainter_line_painter_style = cv_black → cv_op_source →
         cv_linewidth(1) → cv_antialias(Cairo.ANTIALIAS_NONE)
 
-struct CV_Math2DCanvasWindingPainter{linePainterT <: CV_StyledPainter} <: CV_2DCanvasPainter  # {{{
-    styled_line_painter :: linePainterT
-    helpers             :: CV_WindingHelpers
-    cache_flag          :: Bool
-    cache               :: CV_Math2DCanvasPainterCache
+"""
+```
+CV_Math2DCanvasWindingPainter{trafoT, linePainterT <: CV_StyledPainter}
+    trafo                  trafoT
+    hide_winding_numbers   Dict{Int32, Bool}
+    styled_line_painter    linePainterT
+    helpers                CV_WindingHelpers
+    cache_flag             Bool
+    cache                  CV_Math2DCanvasPainterCache
+```
 
-    function CV_Math2DCanvasWindingPainter(closed_curves::CV_LineSegments,
-            cache_flag::Bool=true)
+Painter which fills connected components by a color depending on the
+winding number of a curve.
+"""
+struct CV_Math2DCanvasWindingPainter{trafoT,
+        linePainterT <: CV_StyledPainter} <: CV_2DCanvasPainter  # {{{
+    trafo                 :: trafoT
+    hide_winding_numbers  :: Dict{Int32, Bool}    # default: false
+    styled_line_painter   :: linePainterT
+    helpers               :: CV_WindingHelpers
+    cache_flag            :: Bool
+    cache                 :: CV_Math2DCanvasPainterCache
+
+    function CV_Math2DCanvasWindingPainter(trafo::trafoT,
+            closed_curves::CV_LineSegments,
+            cache_flag::Bool=true) where {trafoT}  # {{{
         line_painter = CV_2DCanvasLinePainter(closed_curves, true)
         helpers = CV_WindingHelpers(
             CV_Math2DCanvas(-1.0+1.0im, 1.0-1.0im, 1),
             Vector{CV_ConnectedComponent}(),
             Dict{Int32, UInt32}())
         styled_painter = cv_windingpainter_line_painter_style ↦ line_painter
-        return new{typeof(styled_painter)}(
+        return new{trafoT, typeof(styled_painter)}(
+            trafo,
+            Dict{Int32, Bool}(),
             styled_painter,
             helpers,
             cache_flag,
             CV_Math2DCanvasPainterCache())
-    end
-end
+    end  # }}}
+end 
 
 function cv_clear_cache(wp::CV_Math2DCanvasWindingPainter)
     if wp.cache_flag
@@ -179,7 +188,7 @@ size and resolution) as `canvas`.
 make sure all pixels have the value empty_value
 """
 function cv_similar_comp_canvas(wp::CV_Math2DCanvasWindingPainter,
-                                canvas::CV_Math2DCanvas, empty_value::UInt32)
+                                canvas::CV_Math2DCanvas, empty_value::UInt32) # {{{
     comp_canvas = wp.helpers.comp_canvas
     if comp_canvas.corner_ul != canvas.corner_ul         ||
             comp_canvas.corner_lr != canvas.corner_lr    ||
@@ -196,7 +205,7 @@ function cv_similar_comp_canvas(wp::CV_Math2DCanvasWindingPainter,
     cdata[:] .= empty_value
     Cairo.mark_dirty(csurf)
     return nothing
-end
+end # }}}
 
 """
 computes connected components.
@@ -326,20 +335,18 @@ function cv_compute_color_dict(wp::CV_Math2DCanvasWindingPainter,
 end # }}}
 
 function cv_paint(cc::CV_2DCanvasContext{canvasT},
-                  wp::CV_Math2DCanvasWindingPainter,
-                  pc::CV_2DWindingPainterContext) where {canvasT <: CV_Math2DCanvas}
-    canvas = cc.canvas
-    cache = wp.cache
-    trafo = pc.trafo
+                  wp::CV_Math2DCanvasWindingPainter
+                  ) where {canvasT <: CV_Math2DCanvas}
+    canvas, cache, trafo = cc.canvas, wp.cache, wp.trafo
 
-    if wp.cache_flag && cv_is_in_cache(cache, canvas, pc)
+    if wp.cache_flag && cv_is_in_cache(cache, canvas, nothing)
     else
         wnr_min, wnr_max = cv_compute_connected_components_for_canvas(
             wp, canvas, trafo)
         cv_compute_color_dict(wp, wnr_min, wnr_max)
         if wp.cache_flag
             cache.last_canvas = canvas
-            cache.last_pc = pc
+            cache.last_data = nothing
         end
     end
 
@@ -350,7 +357,7 @@ function cv_paint(cc::CV_2DCanvasContext{canvasT},
     color_dict = wp.helpers.color_dict
     for con_comp in wp.helpers.con_comps
         wnr = con_comp.winding_number
-        get(pc.hide_winding_numbers, wnr, false) && continue
+        get(wp.hide_winding_numbers, wnr, false) && continue
         data[con_comp.mask] .= color_dict[wnr]
     end
     Cairo.mark_dirty(surface)
@@ -366,15 +373,13 @@ For each windingnumber `wnr` the rectangle `(wnr-0.5, start, 1.0, len)`
 """
 struct CV_2DWindingColorbarPainter <: CV_2DCanvasPainter # {{{
     winding_painter   :: CV_Math2DCanvasWindingPainter
-    winding_pc        :: CV_2DWindingPainterContext
     start             :: Float64
     len               :: Float64
     vertical          :: Bool
 end
 
 function cv_paint(cc::CV_2DCanvasContext, 
-                  wcb_painter::CV_2DWindingColorbarPainter,
-                  pc::CV_PaintingContext)
+                  wcb_painter::CV_2DWindingColorbarPainter)
     canvas, ctx = cc.canvas, cc.ctx
 
     # fill background (for unknown colors)
@@ -388,7 +393,7 @@ function cv_paint(cc::CV_2DCanvasContext,
 
     # now every winding number
     color_dict = wcb_painter.winding_painter.helpers.color_dict
-    hide_winding_numbers = wcb_painter.winding_pc.hide_winding_numbers
+    hide_winding_numbers = wcb_painter.winding_painter.hide_winding_numbers
     for wnr in keys(color_dict)
         if get(hide_winding_numbers, wnr, false)
             set_source_rgb(ctx, 0, 0, 0)   # black for hide
@@ -412,7 +417,7 @@ end
 
 # }}}
 
-struct CV_WindingColorBarCreateData{ccsT, dcbT, contextT, rfuncT} <: CV_CreateData
+struct CV_WindingColorBarCreateData{ccsT, dcbT, contextT, rfuncT} <: CV_CreateData # {{{
     internal_slider     :: CV_SliderCreateData{ccsT, dcbT, contextT}
     colorbar_container  :: CV_SliderContainer{ccsT, dcbT}
     container_context   :: contextT
@@ -423,7 +428,6 @@ end
 function cv_create_winding_colorbar(
         pixel_width::Integer, pixel_height::Integer,
         winding_painter::CV_Math2DCanvasWindingPainter,
-        winding_pc::CV_2DWindingPainterContext,
         wnr_min::Integer, wnr_max::Integer,
         rulers::Union{NTuple{N, CV_Ruler}, Missing}=missing;
         attach::CV_AttachType=cv_south,
@@ -443,8 +447,8 @@ function cv_create_winding_colorbar(
     react_func = z -> begin
         wnr = round(Int32, real(z))
         if haskey(winding_painter.helpers.color_dict, wnr)
-            winding_pc.hide_winding_numbers[wnr] =
-                !get(winding_pc.hide_winding_numbers, wnr, false)
+            winding_painter.hide_winding_numbers[wnr] =
+                !get(winding_painter.hide_winding_numbers, wnr, false)
             return CV_Response(; redraw_flag=true)
         else
             return nothing
@@ -452,7 +456,7 @@ function cv_create_winding_colorbar(
     end
 
     colorbar_painter = CV_2DWindingColorbarPainter(
-        winding_painter, winding_pc,
+        winding_painter,
         0.0, imag(slider_data.slider_container.can_slider.corner_ul), false)
 
     return CV_WindingColorBarCreateData(
@@ -468,7 +472,7 @@ function cv_setup_winding_colorbar(setup::CV_SceneSetupChain,
         colorbar_data.react_func;
         react_to_actionpixel_update=false,
         react_to_statepixel_update=true)
-end
+end # }}}
 
 # }}}
 
