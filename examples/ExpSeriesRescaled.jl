@@ -97,7 +97,8 @@ function show_comparison(n, save=false)
         codomain1_im_rulers=rulers,
         codomain2_re_rulers=rulers,
         codomain2_im_rulers=nrulers,
-        painter1_notrafo=curve, painter2_notrafo=curve)
+        painter1=CV_Math2DCanvasPortraitPainter(trafo1) → curve,
+        painter2=CV_Math2DCanvasPortraitPainter(trafo2) → curve)
     cv_get_redraw_func(scene)()
 
     if save

@@ -27,35 +27,36 @@ function setup_star_arc_painters(setup::CV_SceneSetupChain, cut_test=nothing)
     layout = setup.layout
     multiply_pos = CV_MultiplyByFactor(ComplexF64)
 
-    common_style = cv_opmode(Cairo.OPERATOR_OVER)  → cv_linewidth(3) →
-        cv_antialias(Cairo.ANTIALIAS_BEST)
-    star_painter, arc_painter = cv_star_arc_lines(
-        tuple(LinRange(0.2, 1.5, 6)...), tuple(LinRange(-π/4, π/4, 6)...))
-    star_painter = (common_style → cv_color(1,1,1,0.8)) ↦ star_painter
-    arc_painter = (common_style → cv_color(0,0,0,0.8)) ↦ arc_painter
-
-    PC = CV_2DDomainCodomainPaintingContext
     trafo = cv_get_trafo(layout)
     trafo_domain = multiply_pos
     trafo_codomain = w -> trafo(multiply_pos(w))
 
+    common_style = cv_op_over  → cv_linewidth(3) → cv_antialias_best
+    star_style = common_style → cv_color(1,1,1,0.8)
+    arc_style = common_style → cv_color(0,0,0,0.8)
+    star_lines, arc_lines = cv_star_arc_lines(
+        tuple(LinRange(0.2, 1.5, 6)...), tuple(LinRange(-π/4, π/4, 6)...))
+    CLP = CV_2DCanvasLinePainter
+    star_painter_domain   = star_style ↦ CLP(trafo_domain,   star_lines)
+    arc_painter_domain    = arc_style  ↦ CLP(trafo_domain,   arc_lines )
+    star_painter_codomain = star_style ↦ CLP(trafo_codomain, star_lines, false,
+        trafo_domain, cut_test)
+    arc_painter_codomain  = arc_style  ↦ CLP(trafo_codomain, arc_lines, false,
+        trafo_domain, cut_test)
+
     state_counter = cv_get_state_counter(layout)
     cc_can_domain = cv_get_cc_can_domain(layout)
     cc_can_codomain = cv_get_cc_can_codomain(layout)
-
-    dc = PC(trafo_domain, nothing, nothing)
-    cc = PC(trafo_codomain, trafo_domain, cut_test)
-
 
     update_painter_func = z -> begin
         multiply_pos.factor = z
         state = state_counter.value
 
         if state == 2
-            cv_paint(cc_can_domain, arc_painter, dc)
-            cv_paint(cc_can_codomain, arc_painter, cc)
-            cv_paint(cc_can_domain, star_painter, dc)
-            cv_paint(cc_can_codomain, star_painter, cc)
+            cv_paint(cc_can_domain, arc_painter_domain)
+            cv_paint(cc_can_codomain, arc_painter_codomain)
+            cv_paint(cc_can_domain, star_painter_domain)
+            cv_paint(cc_can_codomain, star_painter_codomain)
         end
         return nothing
     end
@@ -139,7 +140,8 @@ function create_scene(trafo,
     setup = cv_setup_cycle_state(CV_LRSetupChain(layout))
     setup = create_slider(setup, slider_pos)
     setup = cv_setup_lr_painters(setup; cut_test,
-        parallel_lines_painter=nothing)
+        parallel_lines_painter_domain=nothing,
+        parallel_lines_painter_codomain=nothing)
     setup = setup_star_arc_painters(setup, cut_test)
     setup = setup_axis(setup)
     setup = cv_setup_lr_border(setup)

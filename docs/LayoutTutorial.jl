@@ -206,8 +206,7 @@ function other_anchors_axis()
     math_canvas_l = cv_add_canvas!(layout, math_canvas,
         cv_anchor(math_canvas, :center), (0, 0))
     cv_create_context(math_canvas) do con_math # just to fill it blue
-        cv_paint(con_math, cv_color(0,0,1) ↦ CV_2DCanvasFillPainter(),
-            CV_EmptyPaintingContext())
+        cv_paint(con_math, cv_color(0,0,1) ↦ CV_2DCanvasFillPainter())
     end
 
     rulers = (CV_Ruler(CV_TickLabel(0.0, "left"),

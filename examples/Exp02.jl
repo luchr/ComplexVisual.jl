@@ -11,14 +11,14 @@ function create_scene(trafo,
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))
     layout = cv_do_lr_layout(cv_add(layout, trafo, domain, codomain), gap)
 
-    h_painter = (cv_op_source → cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(0,0,0)) ↦ cv_parallel_lines(2.0+0.0im)
-    v_painter = (cv_op_source → cv_antialias(Cairo.ANTIALIAS_BEST) →
-                cv_linewidth(3) → cv_color(1,1,1)) ↦ cv_parallel_lines(0.0+2.0im)
-
     setup = cv_setup_cycle_state(CV_LRSetupChain(layout))
     setup = cv_setup_lr_painters(setup; cut_test,
-        parallel_lines_painter=h_painter → v_painter)
+        parallel_hlines_style=cv_op_source → cv_antialias_best →
+            cv_linewidth(3) → cv_black,
+        parallel_vlines_style=cv_op_source → cv_antialias_best →
+            cv_linewidth(3) → cv_white,
+        parallel_hlines=cv_parallel_lines(2.0+0.0im),
+        parallel_vlines= cv_parallel_lines(0.0+2.0im))
     setup = cv_setup_lr_axis(setup; label_style=axis_label_style)
     setup = cv_setup_lr_border(setup)
     padding > 0 && cv_add_padding!(setup.layout, padding)

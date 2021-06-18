@@ -100,7 +100,6 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
         react_to_statepixel_update::Bool=false) # {{{
 
     cont, cc_cont = slider_data.slider_container, slider_data.container_context
-    ec = CV_EmptyPaintingContext()
 
     reaction = (px, py, layout) -> begin
         resp = nothing
@@ -111,7 +110,7 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
                 0 ≤ ly ≤ cv_height(cont_l.rectangle)
             x, y = cv_pixel2math(cont, cont.can_slider_l, lx, ly)
             resp = set_slider_value_func(x)
-            cv_paint(cont.cc_can_slider, painter, ec)
+            cv_paint(cont.cc_can_slider, painter)
             cont.can_slider_l(cc_cont)
             cont_l(cc_can_layout)
         end
@@ -120,7 +119,7 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
 
     redraw_func = layout -> begin
         cc_can_layout = cv_get_cc_can_layout(layout)
-        cv_paint(cont.cc_can_slider, painter, ec)
+        cv_paint(cont.cc_can_slider, painter)
         cont.can_slider_l(cc_cont)
         cont_l(cc_can_layout)
         return nothing
@@ -130,7 +129,7 @@ function cv_setup_hslider(setup::CV_SceneSetupChain,
         if cont.decorator_cb !== nothing
             cont.decorator_cb(cc_cont)
         end
-        cv_paint(cont.cc_can_slider, painter, ec)
+        cv_paint(cont.cc_can_slider, painter)
         cont.can_slider_l(cc_cont)
         cc_can_layout = cv_get_cc_can_layout(layout)
         cont_l(cc_can_layout)
