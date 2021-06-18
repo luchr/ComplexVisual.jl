@@ -1,8 +1,8 @@
 macro import_axis_huge()
     :(
         using ComplexVisual:
-            CV_TickLabel, cv_format_ticks,
-            CV_TickLabelAppearance, CV_Ruler,
+            CV_TickLabel, cv_format_ticks, ⇒,
+            CV_TickLabelAppearance, CV_Ruler, ↦,
             cv_create_2daxis_canvas, cv_ticks_labels
     )
 end
@@ -24,6 +24,18 @@ struct CV_TickLabel{LocT}
     location    :: LocT
     text        :: AbstractString
 end
+
+"""
+```
+⇒(label, location)
+    label     AbstractString
+    location  Real
+```
+
+short for `CV_TickLabel(Flaot64(location), label)`.
+"""
+⇒(label::AbstractString, location::Real) =
+    CV_TickLabel(Float64(location), label)
 
 show(io::IO, tl::CV_TickLabel) = cv_show_impl(io, tl)
 show(io::IO, m::MIME{Symbol("text/plain")}, tl::CV_TickLabel) =
@@ -113,6 +125,20 @@ end
 
 """
 ```
+↦(app, ticklabels)
+    app          CV_TickLabelAppearance,
+    ticklabels   NTuple{N, CV_TickLabel{LocT}}  where {N, LocT}
+```
+
+short for `CV_Ruler(ticklabels, app)`.
+"""
+function ↦(app::CV_TickLabelAppearance,
+        ticklabels::NTuple{N, CV_TickLabel{LocT}})  where {N, LocT}
+    return CV_Ruler(ticklabels, app)
+end
+
+"""
+```
 CV_Ruler(ticklabels)
 
 ticklabels   Vararg{CV_TickLabel{LocT}, N}
@@ -144,6 +170,18 @@ function cv_format_ticks(printf_format::AbstractString,
                 Float64(x), Base.invokelatest(fmt_func, Float64(x))),
             locations))
 end
+
+"""
+```
+⇒(format, locations)
+  format     AbstractString
+  locations  AbstractVector
+```
+
+short for `cv_format_ticks(format, locations...)`.
+"""
+⇒(format::AbstractString, locations::AbstractVector) =
+    cv_format_ticks(format, locations...)
 
 """
 ```
