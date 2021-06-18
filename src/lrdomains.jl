@@ -304,57 +304,54 @@ end  # }}}
 
 
 function cv_setup_lr_painters(setup::CV_SceneSetupChain,
-        cut_test, img_painter,
-        portrait_painter_domain, portrait_painter_codomain,
-        parallel_lines_painter) # {{{
+        codomain_painter::Tuple{codos1P, codos2P},
+        domain_painter::Tuple{dos1P, dos2P}, save_action_pos) where {
+            codos1P<:CV_Painter, codos2P<:CV_Painter,
+            dos1P<:CV_Painter, dos2P<:CV_Painter} # {{{
 
     layout = setup.layout
-    translate_pos = CV_TranslateByOffset(ComplexF64)
     state_counter = cv_get_state_counter(layout)
-    trafo = cv_get_trafo(layout)
-    trafo_translate = w -> trafo(translate_pos(w))
 
     cc_can_domain = cv_get_cc_can_domain(layout)
     cc_can_codomain = cv_get_cc_can_codomain(layout)
 
-    ppdc = CV_2DDomainCodomainPaintingContext(trafo, nothing, nothing)
-    ppcc = CV_2DDomainCodomainPaintingContext(identity, nothing, nothing)
-
-    gpdc = CV_2DDomainCodomainPaintingContext(translate_pos, nothing, nothing)
-    gpcc = CV_2DDomainCodomainPaintingContext(trafo_translate, translate_pos, cut_test)
-
     update_painter_func = z -> begin
-        translate_pos.value = z
+        save_action_pos.value = z
 
-        if portrait_painter_domain !== nothing
-            cv_paint(cc_can_domain, portrait_painter_domain, ppdc)
-        end
-        if portrait_painter_codomain !== nothing
-            cv_paint(cc_can_codomain, portrait_painter_codomain, ppcc)
-        end
-
-        if state_counter.value == 1
-            if img_painter !== nothing
-                cv_paint(cc_can_domain, img_painter, gpdc)
-                cv_paint(cc_can_codomain, img_painter, gpcc)
+        state = state_counter.value
+        if state == 1
+            if domain_painter[1] !== nothing
+                cv_paint(cc_can_domain, domain_painter[1])
             end
-        elseif state_counter.value == 2
-            if parallel_lines_painter !== nothing
-                cv_paint(cc_can_domain, parallel_lines_painter, gpdc)
-                cv_paint(cc_can_codomain, parallel_lines_painter, gpcc)
+            if codomain_painter[1] !== nothing
+                cv_paint(cc_can_codomain, codomain_painter[1])
+            end
+        elseif state == 2
+            if domain_painter[2] !== nothing
+                cv_paint(cc_can_domain, domain_painter[2])
+            end
+            if codomain_painter[2] !== nothing
+                cv_paint(cc_can_codomain, codomain_painter[2])
             end
         end
+
         return nothing
     end
 
     redraw_func = layout -> begin
-        if portrait_painter_domain !== nothing
-            cv_clear_cache(portrait_painter_domain)
+        if domain_painter[1] !== nothing
+            cv_clear_cache(domain_painter[1])
         end
-        if portrait_painter_codomain !== nothing
-            cv_clear_cache(portrait_painter_codomain)
+        if domain_painter[2] !== nothing
+            cv_clear_cache(domain_painter[2])
         end
-        update_painter_func(translate_pos.value)
+        if codomain_painter[1] !== nothing
+            cv_clear_cache(codomain_painter[1])
+        end
+        if codomain_painter[2] !== nothing
+            cv_clear_cache(codomain_painter[2])
+        end
+        update_painter_func(save_action_pos.value)
         return nothing
     end
 
@@ -364,43 +361,94 @@ end # }}}
 const cv_setup_lr_painters_default_phs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
                 cv_linewidth(3) → cv_black
-const cv_setup_lr_painters_default_vhs = cv_op_source → 
+const cv_setup_lr_painters_default_pvs = cv_op_source → 
                 cv_antialias(Cairo.ANTIALIAS_BEST) →
                 cv_linewidth(3) → cv_white
-const cv_setup_lr_painters_default_hlines = cv_parallel_lines(1.0+0.0im)
-const cv_setup_lr_painters_default_vlines = cv_parallel_lines(0.0+1.0im)
 const cv_setup_lr_painters_default_imgps = cv_op_over → 
                      cv_antialias(Cairo.ANTIALIAS_NONE)
 
 """
 convenience function for `cv_setup_lr_painters` with all
 arguments as keyword arguments.
-
-Because julia functions do *not* specialize on keyword parameters, we
-need to call `cv_create_scene_with_lr_painters` with positional parameters,
-because we need type inference there!
 """
 function cv_setup_lr_painters(setup::CV_SceneSetupChain;
         cut_test=nothing,
         canvas_test_img=cv_example_image_letter(),
         img_painter_style=cv_setup_lr_painters_default_imgps,
-        img_painter=missing,
-        portrait_painter_domain=CV_Math2DCanvasPortraitPainter(),
-        portrait_painter_codomain=CV_Math2DCanvasPortraitPainter(),
+        img_painter_domain=missing,
+        img_painter_codomain=missing,
+        portrait_painter_domain=missing,
+        portrait_painter_codomain=missing,
         parallel_hlines_style=cv_setup_lr_painters_default_phs,
-        parallel_vlines_style=cv_setup_lr_painters_default_vhs,
-        parallel_hlines=cv_setup_lr_painters_default_hlines,
-        parallel_vlines=cv_setup_lr_painters_default_vlines,
-        parallel_lines_painter=missing) # {{{
-    ip = (canvas_test_img === nothing || ismissing(img_painter)) ? (
-        img_painter_style ↦ CV_Math2DCanvasPainter(canvas_test_img)) : 
-        img_painter
-    plp = ismissing(parallel_lines_painter) ? (
-        (parallel_hlines_style ↦ parallel_hlines) →
-        (parallel_vlines_style ↦ parallel_vlines)) : parallel_lines_painter
-    return cv_setup_lr_painters(
-        setup, cut_test, ip,
-        portrait_painter_domain, portrait_painter_codomain, plp)
+        parallel_vlines_style=cv_setup_lr_painters_default_pvs,
+        parallel_hlines=cv_parallel_lines(1.0+0.0im),
+        parallel_vlines=cv_parallel_lines(0.0+1.0im),
+        parallel_lines_painter_domain=missing,
+        parallel_lines_painter_codomain=missing,
+        action_pos::CV_TranslateByOffset{ComplexF64}=CV_TranslateByOffset(ComplexF64)
+        ) # {{{
+
+    trafo = cv_get_trafo(setup.layout)
+    translate = action_pos
+    trafo_translate = w -> trafo(translate(w))
+
+    if ismissing(img_painter_domain)
+        img_painter_domain = 
+            img_painter_style ↦ CV_Math2DCanvasPainter(translate, canvas_test_img)
+    end
+    if ismissing(img_painter_codomain)
+        img_painter_codomain =
+            img_painter_style ↦ CV_Math2DCanvasPainter(trafo_translate,
+                canvas_test_img,
+                cut_test === nothing ? nothing : translate, cut_test)
+    end
+
+    if ismissing(portrait_painter_domain)
+        portrait_painter_domain = CV_Math2DCanvasPortraitPainter(trafo)
+    end
+    if ismissing(portrait_painter_codomain)
+        portrait_painter_codomain = CV_Math2DCanvasPortraitPainter()
+    end
+
+    if ismissing(parallel_lines_painter_domain)
+        parallel_lines_painter_domain = (
+            (parallel_hlines_style ↦
+                CV_2DCanvasLinePainter(translate, parallel_hlines)) →
+            (parallel_vlines_style ↦
+                CV_2DCanvasLinePainter(translate, parallel_vlines)))
+    end
+    if ismissing(parallel_lines_painter_codomain)
+        parallel_lines_painter_codomain = (
+            (parallel_hlines_style ↦
+                CV_2DCanvasLinePainter(trafo_translate, parallel_hlines, false,
+                    cut_test === nothing ? nothing : translate, cut_test)) →
+            (parallel_vlines_style ↦
+                CV_2DCanvasLinePainter(trafo_translate, parallel_vlines, false,
+                    cut_test === nothing ? nothing : translate, cut_test))) 
+    end
+
+    domain_state1_painter = portrait_painter_domain
+    domain_state2_painter = portrait_painter_domain
+    if img_painter_domain !== nothing
+        domain_state1_painter = domain_state1_painter → img_painter_domain
+    end
+    if parallel_lines_painter_domain !== nothing
+        domain_state2_painter = domain_state2_painter → parallel_lines_painter_domain
+    end
+    
+    codomain_state1_painter = portrait_painter_codomain
+    codomain_state2_painter = portrait_painter_codomain
+    if img_painter_codomain !== nothing
+        codomain_state1_painter = codomain_state1_painter → img_painter_codomain
+    end
+    if parallel_lines_painter_codomain !== nothing
+        codomain_state2_painter = codomain_state2_painter → parallel_lines_painter_codomain
+    end
+
+    return cv_setup_lr_painters(setup,
+        (codomain_state1_painter, codomain_state2_painter),
+        (domain_state1_painter, domain_state2_painter),
+        action_pos)
 
 end # }}}
 

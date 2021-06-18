@@ -17,7 +17,7 @@ function get_axis_rulers()
     return (CV_Ruler(ticks1, app_l), CV_Ruler(ticks1h, app_s))
 end
 
-function create_colorbar(setup, can_codomain_l, winding_painter, winding_pc) # {{{
+function create_colorbar(setup, can_codomain_l, winding_painter) # {{{
     layout = setup.layout
     width = cv_width(can_codomain_l.rectangle)
     mid = cv_half(can_codomain_l.rectangle.right + can_codomain_l.rectangle.left)
@@ -25,7 +25,7 @@ function create_colorbar(setup, can_codomain_l, winding_painter, winding_pc) # {
     height = 30
 
     colorbar_data = cv_create_winding_colorbar(width, height,
-        winding_painter, winding_pc, -2, 5)
+        winding_painter, -2, 5)
     cont_colorbar = colorbar_data.colorbar_container
     cont_colorbar_l = cv_add_canvas!(layout,
         cont_colorbar,
@@ -49,17 +49,14 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
 
     fill_painter = CV_2DCanvasFillPainter()
     styled_fill_painter = cv_color(1,1,1) ↦ fill_painter
-    ec = CV_EmptyPaintingContext()
 
-    wind_painter = CV_Math2DCanvasWindingPainter(curve_painter.segments)
-    wind_pc = CV_2DWindingPainterContext(trafo)
+    wind_painter = CV_Math2DCanvasWindingPainter(trafo, curve_painter.segments)
 
-    curve_pc = CV_2DDomainCodomainPaintingContext(trafo, nothing, nothing)
     style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias(Cairo.ANTIALIAS_BEST)
     styled_curve_painter = style ↦ curve_painter
 
-    dir_pc = cv_line_direction_context(trafo; every_len=3)
-    dir_painter = CV_2DCanvasLineDirectionPainter(curve_painter.segments, true)
+    dir_painter = CV_2DCanvasLineDirectionPainter(trafo,
+        curve_painter.segments, true; every_len=3)
     dir_style = cv_color(0,0,1) → cv_op_source
     styled_dir_painter = dir_style ↦ dir_painter
 
@@ -67,10 +64,10 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
 
     actionpixel_update = (px, py, future_layout) -> begin
         cc_can_layout = cv_get_cc_can_layout(future_layout)
-        cv_paint(cc_can_codomain, styled_fill_painter, ec)
-        cv_paint(cc_can_codomain, wind_painter, wind_pc)
-        cv_paint(cc_can_codomain, styled_curve_painter, curve_pc)
-        cv_paint(cc_can_codomain, styled_dir_painter, dir_pc)
+        cv_paint(cc_can_codomain, styled_fill_painter)
+        cv_paint(cc_can_codomain, wind_painter)
+        cv_paint(cc_can_codomain, styled_curve_painter)
+        cv_paint(cc_can_codomain, styled_dir_painter)
         can_codomain_l(cc_can_layout)
         return nothing
     end
@@ -84,7 +81,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
     end
     setup = cv_combine(setup; draw_once_func, actionpixel_update)
 
-    setup = create_colorbar(setup, can_codomain_l, wind_painter, wind_pc)
+    setup = create_colorbar(setup, can_codomain_l, wind_painter)
     padding > 0 && cv_add_padding!(setup.layout, padding)
     setup = cv_setup_2dminimal_scene(setup)
     setup.layout.actionpixel_update(Int32(0), Int32(0))
@@ -101,7 +98,7 @@ end
 
 trafo = z -> sin(z^2)/10 - 5/z
 codomain = CV_Math2DCanvas(-5.0 + 5.0im, 5.0 - 5.0im, 80)
-curve_painter = CV_2DCanvasLinePainter(create_curve(), true)
+curve_painter = CV_2DCanvasLinePainter(trafo, create_curve(), true)
 
 scene = create_scene(trafo, codomain, curve_painter)
 

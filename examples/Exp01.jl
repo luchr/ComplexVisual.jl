@@ -108,7 +108,8 @@ slider_pos.value = 1.0
 
 cut_func = cv_create_angle_cross_test(π, 0.0, Inf; δ=1e-2)
 
-cut_test = (z, w) -> (slider_pos.value == round(slider_pos.value)) ? false : cut_func(z, w)
+cut_test = (z, w) -> (slider_pos.value == round(slider_pos.value)) ?
+    false : cut_func(z + slider_pos.value, w + slider_pos.value)
 
 trafo = z -> (slider_pos.value == 55.0) ? exp(z) : 
     exp(slider_pos.value * log(1+z/slider_pos.value))

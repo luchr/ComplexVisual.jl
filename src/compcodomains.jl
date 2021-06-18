@@ -157,36 +157,21 @@ end # }}}
 
 
 function cv_setup_comp_codomains_painters(setup::CV_SceneSetupChain,
-        painter1_trafo, painter1_notrafo,
-        painter2_trafo, painter2_notrafo) # {{{
+        painter1, painter2) # {{{
 
     layout = setup.layout
-    trafo1, trafo2 = cv_get_trafo1(layout), cv_get_trafo2(layout)
 
     cc_can_codomain1 = cv_get_cc_can_codomain1(layout)
     cc_can_codomain2 = cv_get_cc_can_codomain2(layout)
 
-    p1pc = CV_2DDomainCodomainPaintingContext(trafo1, nothing, nothing)
-    p2pc = CV_2DDomainCodomainPaintingContext(trafo2, nothing, nothing)
-
-    ec = CV_2DDomainCodomainPaintingContext(identity, nothing, nothing)
-
     redraw_func = layout -> begin
-        if painter1_trafo !== nothing
-            cv_clear_cache(painter1_trafo)
-            cv_paint(cc_can_codomain1, painter1_trafo, p1pc)
+        if painter1 !== nothing
+            cv_clear_cache(painter1)
+            cv_paint(cc_can_codomain1, painter1)
         end
-        if painter1_notrafo !== nothing
-            cv_clear_cache(painter1_notrafo)
-            cv_paint(cc_can_codomain1, painter1_notrafo, ec)
-        end
-        if painter2_trafo !== nothing
-            cv_clear_cache(painter2_trafo)
-            cv_paint(cc_can_codomain2, painter2_trafo, p2pc)
-        end
-        if painter2_notrafo !== nothing
-            cv_clear_cache(painter2_notrafo)
-            cv_paint(cc_can_codomain2, painter2_notrafo, ec)
+        if painter2 !== nothing
+            cv_clear_cache(painter2)
+            cv_paint(cc_can_codomain2, painter2)
         end
         return nothing
     end
@@ -306,18 +291,16 @@ function cv_scene_comp_codomains_std(
         codomain1_im_rulers::NTuple{B, CV_Ruler}=codomain1_re_rulers,
         codomain2_re_rulers::NTuple{C, CV_Ruler}=codomain1_re_rulers,
         codomain2_im_rulers::NTuple{D, CV_Ruler}=codomain1_im_rulers,
-        painter1_trafo = CV_Math2DCanvasPortraitPainter(),
-        painter2_trafo = CV_Math2DCanvasPortraitPainter(),
-        painter1_notrafo = nothing,
-        painter2_notrafo = nothing) where {A, B, C, D, N} # {{{
+        painter1 = CV_Math2DCanvasPortraitPainter(trafo1),
+        painter2 = CV_Math2DCanvasPortraitPainter(trafo2)
+        ) where {A, B, C, D, N} # {{{
 
     layout = CV_2DLayout()
     layout = cv_add(layout, trafo1, trafo2, codomain1, codomain2)
     layout = cv_do_comp_codomains_layout(layout, gap_domains)
 
     setup = CV_MinimalSetupChain(layout)
-    setup = cv_setup_comp_codomains_painters(setup,
-        painter1_trafo, painter1_notrafo, painter2_trafo, painter2_notrafo)
+    setup = cv_setup_comp_codomains_painters(setup, painter1, painter2)
     setup = cv_setup_comp_codomains_axis(setup,
         codomain1_re_rulers, codomain1_im_rulers,
         codomain2_re_rulers, codomain2_im_rulers)
