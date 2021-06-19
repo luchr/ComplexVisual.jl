@@ -38,11 +38,28 @@ abstract type CV_2DCanvasPainter <: CV_CanvasPainter end
 cv_clear_cache(canvas_painter::CV_2DCanvasPainter) = nothing
 
 """
-`CV_2DCanvasFillPainter`: A painter filling the complete canvas.
+```
+CV_2DCanvasFillPainter <: CV_2DCanvasPainter
+    no fields
+```
+
+A painter filling the complete canvas.
+
+A `CV_ContextStyle` is typically used to govern the appearance of
+the filling operation.
 """
 struct CV_2DCanvasFillPainter <: CV_2DCanvasPainter # {{{
 end
 
+"""
+```
+cv_paint(cc, fill_painter)
+    cc            CV_2DCanvasContext
+    fill_painter  CV_2DCanvasFillPainter
+```
+
+fill the complete (math) canvas.
+"""
 function cv_paint(cc::CV_2DCanvasContext, fill_painter::CV_2DCanvasFillPainter)
     canvas = cc.canvas
     rectangle(cc.ctx,
@@ -55,14 +72,6 @@ end
 # }}}
 
 """
-`CV_2DValueMarkPainter`: A painter drawing a vertical line-segment
-`(where, start)` to `(where, start + len)` (in the math coordinate system).
-Here the `where` is the where-value of a `CV_TranslateByOffset`.
-If `vertical` is `true` then the real- and imag-coordinates are
-swapped for drawing.
-
-Fields:
-
 ```
 CV_2DValueMarkPainter{N<:Number}
     where     CV_TranslateByOffset{N}
@@ -70,14 +79,37 @@ CV_2DValueMarkPainter{N<:Number}
     len       Float64
     vertical  Bool
 ```
+
+A painter drawing a vertical line-segment
+`(where, start)` to `(where, start + len)` (in the math coordinate system).
+Here the `where` is the where-value of a `CV_TranslateByOffset`.
+If `vertical` is `true` then the real- and imag-coordinates are
+swapped for drawing.
+
+This painter is typically used for Sliders to mark the current
+slider position.
 """
 struct CV_2DValueMarkPainter{N<:Number} <: CV_2DCanvasPainter # {{{
     where     :: CV_TranslateByOffset{N}
     start     :: Float64
     len       :: Float64
     vertical  :: Bool
+
+    function CV_2DValueMarkPainter(where::CV_TranslateByOffset{N},
+            start::Real, len::Real, vertical::Bool=true) where {N<:Number}
+        return new{N}(where, Float64(start), Float64(len), vertical)
+    end
 end
 
+"""
+```
+cv_paint(cc, mark_painter)
+    cc              CV_2DCanvasContext
+    mark_painter    CV_2DValueMarkPainter
+```
+
+draw a horitzonal or vertical mark to the painter's `where` position.
+"""
 function cv_paint(cc::CV_2DCanvasContext, mark_painter::CV_2DValueMarkPainter)
     canvas, ctx = cc.canvas, cc.ctx
     if mark_painter.vertical
@@ -93,20 +125,17 @@ end
 # }}}
 
 """
-`CV_2DAxisGridPainter`: A painter drawing axis grid lines.
-
-Fields:
-
 ```
-CV_2DAxisGridPainter 
+CV_2DAxisGridPainter <: CV_2DCanvasPainter
     reals   Vector{Float64}
     imags   Vector{Float64}
 ```
+
+A painter for drawing horizontal and vertical grid lines.
 """
 struct CV_2DAxisGridPainter <: CV_2DCanvasPainter  # {{{
     reals   :: Vector{Float64}
     imags   :: Vector{Float64}
-
 end
 
 """
@@ -130,7 +159,17 @@ end
 show(io::IO, m::MIME{Symbol("text/plain")}, gp::CV_2DAxisGridPainter) =
     cv_show_impl(io, m, gp)
 
-function cv_paint(cc::CV_2DCanvasContext, grid_painter::CV_2DAxisGridPainter)
+
+"""
+```
+cv_paint(cc, grid_painter)
+    cc              CV_2DCanvasContext
+    grid_painter    CV_2DAxisGridPainter
+```
+
+draw horizontal and vertical grid lines.
+"""
+function cv_paint(cc::CV_2DCanvasContext, grid_painter::CV_2DAxisGridPainter) # {{{
     canvas, ctx = cc.canvas, cc.ctx
     left, right = real(canvas.corner_ul), real(canvas.corner_lr)
     top, bottom = imag(canvas.corner_ul), imag(canvas.corner_lr)
@@ -145,7 +184,7 @@ function cv_paint(cc::CV_2DCanvasContext, grid_painter::CV_2DAxisGridPainter)
         stroke(ctx)
     end
     return nothing
-end
+end # }}}
 # }}}
 
 """
@@ -159,7 +198,16 @@ const CV_LineSegment = Vector{Complex{Float64}}
 const CV_LineSegments = Vector{CV_LineSegment}
 
 """
-`CV_2DCanvasLinePainter`: Painting `CV_LineSegments` as curves.
+```
+CV_2DCanvasLinePainter{dtrafoT, strafoT, scutT} <: CV_2DCanvasPainter
+    dst_trafo           dtrafoT
+    segments            CV_LineSegments
+    auto_close_path     Bool
+    src_trafo           strafoT
+    src_cut_test        scutT
+```
+
+Painting `CV_LineSegments` as curves.
 
 All the points of the line segments are transformed according to `dst_trafo`.
 
@@ -175,21 +223,43 @@ struct CV_2DCanvasLinePainter{dtrafoT, strafoT, scutT} <: CV_2DCanvasPainter # {
     src_trafo       :: strafoT
     src_cut_test    :: scutT
 end
+
+"""
+```
+CV_2DCanvasLinePainter(dst_trafo, segments, auto_close_path=false)
+    dst_trafo
+    segments           CV_LineSegments
+    auto_close_path    Bool
+```
+
+with `src_trafo` and `src_cut_test` both `nothing`.
+"""
 function CV_2DCanvasLinePainter(dst_trafo, segments::CV_LineSegments,
-        auto_close_path::Bool)
+        auto_close_path::Bool=false)
     return CV_2DCanvasLinePainter(dst_trafo, segments, auto_close_path,
         nothing, nothing)
 end
 
-CV_2DCanvasLinePainter(dst_trafo, segments::CV_LineSegments) =
-    CV_2DCanvasLinePainter(dst_trafo, segments, false)
-CV_2DCanvasLinePainter(segments::CV_LineSegments) = 
-    CV_2DCanvasLinePainter(identity, segments)
-CV_2DCanvasLinePainter(segments::CV_LineSegments, auto_close_path::Bool) = 
+"""
+```
+CV_2DCanvasLinePainter(segments, auto_close_path=false)
+    segments           CV_LineSegments
+    auto_close_path    Bool
+```
+
+`dst_trafo = identity` and with `src_trafo` and `src_cut_test` both `nothing`.
+"""
+CV_2DCanvasLinePainter(segments::CV_LineSegments, auto_close_path::Bool=false) = 
     CV_2DCanvasLinePainter(identity, segments, auto_close_path)
 
 """
-Implementation without cut-test
+```
+cv_paint(cc, line_painter)
+    cc            CV_2DCanvasContext,
+    line_painter  CV_2DCanvasLinePainter{dtrafoT, Nothing, Nothing}
+```
+
+paint line segments without cut-test.
 """
 function cv_paint(cc::CV_2DCanvasContext,
         line_painter::CV_2DCanvasLinePainter{dtrafoT,
@@ -212,7 +282,13 @@ function cv_paint(cc::CV_2DCanvasContext,
 end # }}}
 
 """
-Implementation with cut-test
+```
+cv_paint(cc, line_painter)
+    cc            CV_2DCanvasContext,
+    line_painter  CV_2DCanvasLinePainter{dtrafoT, strafoT, scutT})
+```
+
+paint line segments with cut-test.
 """
 function cv_paint(cc::CV_2DCanvasContext,
         line_painter::CV_2DCanvasLinePainter{dtrafoT,
@@ -249,10 +325,8 @@ end # }}}
 
 
 """
-`CV_2DCanvasLineDirectionPainter`: Paint curve indicating the curve direction.
-
 ```
-CV_2DCanvasLineDirectionPainter:
+CV_2DCanvasLineDirectionPainter{trafoT} <: CV_2DCanvasPainter
     trafo              trafoT
     segments           CV_LineSegments
     auto_close_path    Bool
@@ -260,6 +334,8 @@ CV_2DCanvasLineDirectionPainter:
     pre_gap            Float64
     arrow              ComplexF64
 ```
+
+Paint triangles (along a curve) to indicate the direction of a curve.
 """
 struct CV_2DCanvasLineDirectionPainter{trafoT} <: CV_2DCanvasPainter # {{{
     trafo           :: trafoT
@@ -270,6 +346,38 @@ struct CV_2DCanvasLineDirectionPainter{trafoT} <: CV_2DCanvasPainter # {{{
     arrow           :: ComplexF64
 end
 
+"""
+```
+CV_2DCanvasLineDirectionPainter(trafo, segments, auto_close_path=false; 
+        every_len=2.0, pre_gap=0.0, arrow=0.3*exp(1im*π*8/9)) 
+    trafo   
+    segments          CV_LineSegments
+    auto_close_path   Bool
+    every_len         Real
+    pre_gap           Real
+    arrow             ComplexF64
+```
+
+The `arrow` parameter describes the shape of the triangle:
+
+```
+      arrow
+        *   ^
+        |\\  │
+        |░\\ │
+        |░░\\│
+    ────|░░░┼────>
+        |░░/│
+        |░/ │
+        |/  │
+        *   │
+     conj(arrow)
+```
+
+Moves along the curve. Places after `every_len` a arrow/triangle showing in
+the direction of the curve. `pre_gap` can be used to prohibit a
+triangle at the beginning (with length `pre_gap`).
+"""
 CV_2DCanvasLineDirectionPainter(trafo, segments::CV_LineSegments,
         auto_close_path::Bool=false; 
         every_len::Real=2.0, pre_gap::Real=0.0,
@@ -277,6 +385,15 @@ CV_2DCanvasLineDirectionPainter(trafo, segments::CV_LineSegments,
     CV_2DCanvasLineDirectionPainter(trafo, segments, auto_close_path,
         Float64(every_len), Float64(pre_gap), ComplexF64(arrow))
 
+"""
+```
+cv_paint(cc, ldirp)
+    cc       CV_2DCanvasContext,
+    ldirp    CV_2DCanvasLineDirectionPainter
+```
+
+paint traingle/arrows along the curve.
+"""
 function cv_paint(cc::CV_2DCanvasContext,
         ldirp::CV_2DCanvasLineDirectionPainter) # {{{
     ctx, trafo, arrow = cc.ctx, ldirp.trafo, ldirp.arrow
@@ -312,21 +429,49 @@ function cv_paint(cc::CV_2DCanvasContext,
 end # }}}
 # }}}
 
+
+"""
+```
+CV_Math2DCanvasPainterCache 
+    last_canvas
+    last_data
+    last_color_matrix    Matrix{UInt32}
+```
+
+A cache for caching the color of every pixel in a (math) canvas.
+`last_canvas` and `last_data` is used to save the dependencies for
+the pixel colors in order to make recomputations possible if something
+changes.
+"""
 mutable struct CV_Math2DCanvasPainterCache # {{{
     last_canvas
     last_data
     last_color_matrix :: Matrix{UInt32}
 end
+
+"""
+`CV_Math2DCanvasPainterCache()`
+
+init cache.
+"""
 CV_Math2DCanvasPainterCache() = CV_Math2DCanvasPainterCache(
     nothing, nothing, zeros(UInt32, 1, 1))
+
+"""
+```
+cv_is_in_cache(cache, canvas, data)
+    cache    CV_Math2DCanvasPainterCache
+    canvas
+    data
+```
+
+checks if the cache contains color values "matching" to `canvas` and `data`.
+"""
 cv_is_in_cache(cache::CV_Math2DCanvasPainterCache, canvas, data) = (
     cache.last_canvas === canvas && cache.last_data === data)
 # }}}
 
 """
-`CV_Math2DCanvasPortraitPainter`: Fill math coordinate system with phase
-portrait.
-
 ```
 CV_Math2DCanvasPortraitPainter{CS}
     trafo           trafoT
@@ -334,6 +479,11 @@ CV_Math2DCanvasPortraitPainter{CS}
     cache_flag      Bool
     cache           CV_Math2DCanvasPainterCache    
 ```
+
+Fill math coordinate system with phase portrait.
+
+For `colorscheme`, please see the package `ComplexPortraits`.
+
 """
 struct CV_Math2DCanvasPortraitPainter{trafoT, CS} <: CV_2DCanvasPainter  # {{{
     trafo       :: trafoT
@@ -351,6 +501,14 @@ CV_Math2DCanvasPortraitPainter(trafo) = CV_Math2DCanvasPortraitPainter(
 
 CV_Math2DCanvasPortraitPainter() = CV_Math2DCanvasPortraitPainter(identity)
 
+"""
+```
+cv_clear_cache(pp)
+    pp    CV_Math2DCanvasPortraitPainter
+```
+
+invalidates the cache (by setting `last_canvas=noting`.
+"""
 function cv_clear_cache(pp::CV_Math2DCanvasPortraitPainter)
     if pp.cache_flag
         pp.cache.last_canvas = nothing
@@ -358,6 +516,15 @@ function cv_clear_cache(pp::CV_Math2DCanvasPortraitPainter)
     return nothing
 end
 
+"""
+```
+cv_paint(cc, portrait_painter)
+    cc                   CV_2DCanvasContext
+    portrait_painter     CV_Math2DCanvasPortraitPainter
+```
+
+fill the whole (math) canvas with the phase portrait.
+"""
 function cv_paint(cc::CV_2DCanvasContext{canvasT},
                   portrait_painter::CV_Math2DCanvasPortraitPainter{CS}
                   )  where {canvasT <: CV_Math2DCanvas, CS}   # {{{

@@ -177,11 +177,13 @@ doc_ref_to_markdownlink(ref::DocRef, name) =
 const MD_has_content = Union{Markdown.Paragraph, Markdown.BlockQuote,
         Markdown.Admonition, Markdown.MD}
 const MD_has_items = Union{Markdown.List}
-const MD_has_subparts = Union{MD_has_content, MD_has_items}
+const MD_has_rows = Union{Markdown.Table}
+const MD_has_subparts = Union{MD_has_content, MD_has_items, MD_has_rows}
 
 get_subparts(md) = []
 get_subparts(md::MD_has_content) = md.content
 get_subparts(md::MD_has_items) = md.items
+get_subparts(md::MD_has_rows) = md.rows
 # }}}
 
 # Subst `{func: name_of_function}`  {{{
@@ -729,8 +731,9 @@ function create_documents()
 end
 
 
-for filename in ("./PixelCoordinates.jl", "./LayoutTutorial.jl",
-                 "./Axis.jl")
+for filename in (
+    "./Painter.jl",
+    "./PixelCoordinates.jl", "./LayoutTutorial.jl", "./Axis.jl")
     push!(doc_modules, include(filename))
 end
 
