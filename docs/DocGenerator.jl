@@ -271,7 +271,9 @@ function get_inline_replacement_for(context::DocContext,
         link = md.content[1]
         if link.text isa Vector && length(link.text) == 1 &&
                 link.text[1] == "inline"
-            doc_md = doc(getproperty(ComplexVisual, Symbol(link.url)))
+            # search_symbol = rstrip(match(r"^([^(]*)", link.url)[1])
+            search_symbol = link.url
+            doc_md = doc(getproperty(ComplexVisual, Symbol(search_symbol)))
             return doc_md.content
         end
     end
@@ -300,6 +302,25 @@ substitute_inline_markdown(context::DocContext, md::MD_has_subparts) =
 # }}}
 
 # Extend Headers of the form `doc: <name>` with object documentation {{{
+function rewrite_header(func_name)
+    result = func_name
+    aname = get_anchor_name(result, "")
+    if aname == ""
+        # Need to rewrite it (a litte bit)
+        result *= " ("
+        for (index, character) in enumerate(func_name)
+            if index != 1
+                result *= ' '
+            end
+            result *= "U+" * uppercase(string(
+                codepoint(character), base=16, pad=4))
+        end
+        result *= ')'
+    end
+    return result
+end
+
+
 const re_substitute_doc = r"^\s*doc:\s*([^\s]+)\s*$"
 substitute_obj_header(context::DocContext, md) = nothing
 function substitute_obj_header(context::DocContext, v::Vector)
@@ -314,10 +335,15 @@ function substitute_obj_header(context::DocContext, v::Vector)
                 func_name = match_obj.captures[1]
                 code_md.code = func_name
 
-                push_docref(context, func_name)
+                func_name_in_header = rewrite_header(func_name)
+                push_docref(context, func_name_in_header)
 
                 sub_md = Markdown.parse("[inline](" * func_name * ")")
                 substitute_marker_in_markdown(context, sub_md)
+
+                if func_name_in_header != func_name
+                    code_md.code = func_name_in_header
+                end
 
                 for elem in reverse(sub_md.content)
                     insert!(v, index+1, elem)
@@ -334,7 +360,7 @@ substitute_obj_header(context::DocContext, md::MD_has_subparts) =
 # }}}
 
 # Subst Code-Cross-References {{{
-const re_substitute_code_ref = r"^\s*([^\s]+)\s*$"
+const re_substitute_code_ref = r"^\s*(.+)$"
 substitute_code_ref(context::DocContext, md) = nothing
 function substitute_code_ref(context::DocContext, v::Vector)
     index = 1

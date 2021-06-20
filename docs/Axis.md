@@ -45,7 +45,7 @@ locations   Vararg{Real, N}
 
 create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the `"%.1f"` printf-format.
 
-### `⇒`
+### `⇒ (U+21D2)`
 
 ```
 ⇒(label, location)

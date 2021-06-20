@@ -48,6 +48,6 @@
 
 ## …
 
-  * [`⇒`](./Axis.md#user-content-)
+  * [`⇒ (U+21D2)`](./Axis.md#user-content--u21d2)
 
 
