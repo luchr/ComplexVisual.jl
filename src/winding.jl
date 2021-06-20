@@ -112,7 +112,7 @@ Objects used to compute winding numbers.
 
 This is done with a kind of "hack".
 
-* We use a `CV_2DCanvasLinePainter` to draw (with `ANTIALIAS_NONE`) the 
+* We use a `CV_LinePainter` to draw (with `ANTIALIAS_NONE`) the 
   closed curve(s) in a "computational"/auxiliary `CV_Math2DCanvas`
 * Then we use a flood fill algorithm to find and fill each connected region
   (connected component) with a unique value (we use the values `0x1`, `0x2`,
@@ -158,7 +158,7 @@ struct CV_Math2DCanvasWindingPainter{trafoT,
     function CV_Math2DCanvasWindingPainter(trafo::trafoT,
             closed_curves::CV_LineSegments,
             cache_flag::Bool=true) where {trafoT}  # {{{
-        line_painter = CV_2DCanvasLinePainter(trafo, closed_curves, true)
+        line_painter = CV_LinePainter(trafo, closed_curves, true)
         helpers = CV_WindingHelpers(
             CV_Math2DCanvas(-1.0+1.0im, 1.0-1.0im, 1),
             Vector{CV_ConnectedComponent}(),
@@ -259,7 +259,7 @@ function cv_find_largest_square(data::BitMatrix, use_mem::Matrix{UInt32}) # {{{
     return (Int32(pos[1]), Int32(pos[2]), Int32(len))
 end # }}}
 
-function cv_get_winding_number(lp::CV_2DCanvasLinePainter, trafo, z::ComplexF64) # {{{
+function cv_get_winding_number(lp::CV_LinePainter, trafo, z::ComplexF64) # {{{
     wnr_twice = Int32(0)
     o, t = Int32(1), Int32(2)
 

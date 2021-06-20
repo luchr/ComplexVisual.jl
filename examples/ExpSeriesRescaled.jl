@@ -56,7 +56,7 @@ function get_curve()
     r1, r2 = curve_r_of_phi, curve_r_of_phi[end-1:-1:2]
     line_seg = [collect(r1).*exp.(1im*collect(ϕ1))...,
                 collect(r2).*exp.(1im*collect(ϕ2))...]
-    return CV_2DCanvasLinePainter([line_seg], true)
+    return CV_LinePainter([line_seg], true)
 end
 
 const fontface = cv_fontface("sans-serif")
@@ -96,8 +96,8 @@ function show_comparison(n, save=false)
         codomain1_im_rulers=rulers,
         codomain2_re_rulers=rulers,
         codomain2_im_rulers=nrulers,
-        painter1=CV_Math2DCanvasPortraitPainter(trafo1) → curve,
-        painter2=CV_Math2DCanvasPortraitPainter(trafo2) → curve)
+        painter1=CV_PortraitPainter(trafo1) → curve,
+        painter2=CV_PortraitPainter(trafo2) → curve)
     cv_get_redraw_func(scene)()
 
     if save

@@ -11,13 +11,26 @@
 
   * [`cv_create_2daxis_canvas`](./Axis.md#user-content-cv_create_2daxis_canvas)
 
+## D
+
+  * [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter)
+
 ## F
 
+  * [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)
   * [`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)
 
-## M
+## G
 
-  * [`CV_Math2DCanvasPortraitPainter`](./Painter.md#user-content-cv_math2dcanvasportraitpainter)
+  * [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)
+
+## L
+
+  * [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)
+
+## P
+
+  * [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)
 
 ## R
 
@@ -29,13 +42,12 @@
   * [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)
   * [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels)
 
+## V
+
+  * [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter)
+
 ## …
 
-  * [`CV_2DAxisGridPainter`](./Painter.md#user-content-cv_2daxisgridpainter)
-  * [`CV_2DCanvasFillPainter`](./Painter.md#user-content-cv_2dcanvasfillpainter)
-  * [`CV_2DCanvasLineDirectionPainter`](./Painter.md#user-content-cv_2dcanvaslinedirectionpainter)
-  * [`CV_2DCanvasLinePainter`](./Painter.md#user-content-cv_2dcanvaslinepainter)
-  * [`CV_2DValueMarkPainter`](./Painter.md#user-content-cv_2dvaluemarkpainter)
   * [`⇒`](./Axis.md#user-content-)
 
 

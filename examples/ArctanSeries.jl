@@ -44,13 +44,13 @@ label_style = cv_color(0,0,0) → fontface → cv_fontsize(20)
 rulers=(CV_Ruler(cv_format_ticks("%.0f", -2.0:1.0:2.0...),
     CV_TickLabelAppearance(; label_style)),)
 
-circle = (cv_black → cv_linewidth(3)) ↦ CV_2DCanvasLinePainter(
+circle = (cv_black → cv_linewidth(3)) ↦ CV_LinePainter(
     cv_arc_lines(0.0, 2π, (1.0,)))
 
 scene = cv_scene_comp_codomains_std((param_n, ), trafo1, trafo2,
     codomain1, codomain2; codomain1_re_rulers=rulers,
-    painter1=CV_Math2DCanvasPortraitPainter(trafo1) → circle,
-    painter2=CV_Math2DCanvasPortraitPainter(trafo2) → circle)
+    painter1=CV_PortraitPainter(trafo1) → circle,
+    painter2=CV_PortraitPainter(trafo2) → circle)
 cv_get_redraw_func(scene)()
 
 handler = cvg_visualize(scene)

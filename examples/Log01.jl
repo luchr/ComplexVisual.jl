@@ -33,7 +33,7 @@ function setup_star_arc_painters(setup::CV_SceneSetupChain, cut_test=nothing)
     arc_style = common_style → cv_color(0,0,0,0.8)
     star_lines, arc_lines = cv_star_arc_lines(
         tuple(LinRange(0.2, 1.5, 6)...), tuple(LinRange(-π/4, π/4, 6)...))
-    CLP = CV_2DCanvasLinePainter
+    CLP = CV_LinePainter
     star_painter_domain   = star_style ↦ CLP(trafo_domain,   star_lines)
     arc_painter_domain    = arc_style  ↦ CLP(trafo_domain,   arc_lines )
     star_painter_codomain = star_style ↦ CLP(trafo_codomain, star_lines, false,
@@ -115,9 +115,9 @@ function create_slider(setup, slider_pos)
         return CV_Response(;redraw_flag=true)
     end
 
-    bg_painter = cv_color(.8,.8,.8) ↦ CV_2DCanvasFillPainter()
+    bg_painter = cv_color(.8,.8,.8) ↦ CV_FillPainter()
     mark_painter = (cv_op_source → cv_color(0,0,1) → cv_linewidth(2)) ↦
-        CV_2DValueMarkPainter(slider_pos,
+        CV_ValueMarkPainter(slider_pos,
             0.0, imag(cont_slider.can_slider.corner_ul), false)
 
     setup = cv_setup_hslider(setup, slider_data, cont_slider_l,

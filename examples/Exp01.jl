@@ -62,9 +62,9 @@ function create_slider(setup, slider_pos)
         return CV_Response(;redraw_flag=true)
     end
 
-    bg_painter = cv_color(.8,.8,.8) ↦ CV_2DCanvasFillPainter()
+    bg_painter = cv_color(.8,.8,.8) ↦ CV_FillPainter()
     mark_painter = (cv_op_source → cv_color(0,0,1) → cv_linewidth(2)) ↦
-        CV_2DValueMarkPainter(slider_pos,
+        CV_ValueMarkPainter(slider_pos,
             0.0, imag(cont_slider.can_slider.corner_ul), false)
 
     setup = cv_setup_hslider(setup, slider_data, cont_slider_l,

@@ -45,7 +45,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
     codomain_im_axis = cv_ticks_labels(layout, can_codomain_l, cv_west, rulers)
     codomain_border = cv_border(layout, can_codomain_l, 2)
 
-    fill_painter = CV_2DCanvasFillPainter()
+    fill_painter = CV_FillPainter()
     styled_fill_painter = cv_color(1,1,1) ↦ fill_painter
 
     wind_painter = CV_Math2DCanvasWindingPainter(trafo, curve_painter.segments)
@@ -53,7 +53,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
     style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias(Cairo.ANTIALIAS_BEST)
     styled_curve_painter = style ↦ curve_painter
 
-    dir_painter = CV_2DCanvasLineDirectionPainter(trafo,
+    dir_painter = CV_DirectionPainter(trafo,
         curve_painter.segments, true; every_len=3)
     dir_style = cv_color(0,0,1) → cv_op_source
     styled_dir_painter = dir_style ↦ dir_painter
@@ -96,7 +96,7 @@ end
 
 trafo = z -> sin(z^2)/10 - 5/z
 codomain = CV_Math2DCanvas(-5.0 + 5.0im, 5.0 - 5.0im, 80)
-curve_painter = CV_2DCanvasLinePainter(trafo, create_curve(), true)
+curve_painter = CV_LinePainter(trafo, create_curve(), true)
 
 scene = create_scene(trafo, codomain, curve_painter)
 

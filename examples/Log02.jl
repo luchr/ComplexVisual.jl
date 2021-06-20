@@ -23,7 +23,7 @@ function setup_star_arc_painters(setup::CV_SceneSetupChain, cut_test=nothing)
     star_lines, arc_lines = cv_star_arc_lines(
         tuple(LinRange(0.2, 1.5, 6)...), tuple(LinRange(-π/4, π/4, 6)...))
 
-    CLP = CV_2DCanvasLinePainter
+    CLP = CV_LinePainter
     star_painter_domain   = star_style ↦ CLP(trafo_domain,   star_lines)
     arc_painter_domain    = arc_style  ↦ CLP(trafo_domain,   arc_lines )
     star_painter_codomain = star_style ↦ CLP(trafo_codomain, star_lines, false,
@@ -70,10 +70,10 @@ function setup_axis_grid(setup::CV_SceneSetupChain)
 
     layout = setup.layout
     axis_grid_style = cv_op_over → cv_linewidth(1) → cv_color(0.7, 0.7, 0.7, 0.8)
-    ag_domain_painter = CV_2DAxisGridPainter(
+    ag_domain_painter = CV_GridPainter(
         range(-2.0, stop=2.0, step=0.5), range(-2.0, stop=2.0, step=0.5))
     axis_grid_domain = axis_grid_style ↦ ag_domain_painter
-    axis_grid_codomain = axis_grid_style ↦ CV_2DAxisGridPainter(
+    axis_grid_codomain = axis_grid_style ↦ CV_GridPainter(
         range(-3, stop=3, step=1), range(-π, stop=π, step=π/2))
 
     cc_can_domain = cv_get_cc_can_domain(layout)
@@ -104,8 +104,8 @@ function do_setup(layout, cut_test)
     trafo = cv_get_trafo(layout)
     cc_can_domain = cv_get_cc_can_domain(layout)
     cc_can_codomain = cv_get_cc_can_codomain(layout)
-    portrait_painter_domain = CV_Math2DCanvasPortraitPainter(trafo)
-    portrait_painter_codomain = CV_Math2DCanvasPortraitPainter()
+    portrait_painter_domain = CV_PortraitPainter(trafo)
+    portrait_painter_codomain = CV_PortraitPainter()
     update_painter_func = z -> begin
         cv_paint(cc_can_domain, portrait_painter_domain)
         cv_paint(cc_can_codomain, portrait_painter_codomain)

@@ -39,7 +39,7 @@ function main()
 
     cv_add_padding!(layout, 30)
 
-    fill_red = cv_color(1,0,0) ↦ CV_2DCanvasFillPainter()
+    fill_red = cv_color(1,0,0) ↦ CV_FillPainter()
 
     can_layout = cv_canvas_for_layout(layout)
     cc_can_layout = cv_create_context(can_layout)
