@@ -9,7 +9,7 @@ import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
         Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
-# [![./Painter_docicon.png]({image_from_canvas: get_doc_icon()})](./Painter.md)
+# [![./Painter_docicon.png]({image_from_canvas: get_doc_icon()}) Painter](./Painter.md)
 
 Painters have the ability to "draw"/"paint" something inside objects
 with math coordinate systems (e.g. `CV_Math2DCanvas`).
@@ -222,8 +222,26 @@ end
 create_icon(can) = create_doc_icon(can, cv_rect_blwh(Int32, 50, 70, 70, 70))
 
 function get_doc_icon()
-    src_canvas = example_fill_painter()
-    icon = create_doc_icon(src_canvas, cv_rect_blwh(Int32, 10, 10, 200, 200))
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    trafo = z -> (z - 0.6 - 0.2im)^2 + 0.15*exp(z)
+    ppainter = CV_PortraitPainter(trafo)
+
+    arc_base = cv_arc_lines(-π, π/2, (0.4,))
+    arc = [arc_base[1] .+ 0.4 .+ 0.6im]
+
+    arc_style = cv_white → cv_linewidth(4)
+    arc_painter = arc_style ↦ CV_LinePainter(arc)
+    dir_painter = arc_style ↦ CV_DirectionPainter(identity, arc;
+        every_len=0.5, arrow=0.15*exp(1im*π*8/9))
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, ppainter)
+        cv_paint(canvas_context, arc_painter)
+        cv_paint(canvas_context, dir_painter)
+    end
+
+    icon = create_doc_icon(math_canvas, cv_rect_blwh(Int32, 10, 10, 200, 200))
     return icon
 end
 

@@ -1,6 +1,6 @@
 # Overview
 
-  * [![./Painter_docicon.png](./Painter_docicon.png)](./Painter.md)
+  * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
   * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
   * [![./Axis_docicon.png](./Axis_docicon.png) Axes](./Axis.md)

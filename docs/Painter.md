@@ -1,4 +1,4 @@
-# [![./Painter_docicon.png](./Painter_docicon.png)](./Painter.md)
+# [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
 
 Painters have the ability to "draw"/"paint" something inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
 
