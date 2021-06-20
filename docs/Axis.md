@@ -45,6 +45,24 @@ locations   Vararg{Real, N}
 
 create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the `"%.1f"` printf-format.
 
+### `⇒`
+
+```
+⇒(label, location)
+    label     AbstractString
+    location  Real
+```
+
+short for `CV_TickLabel(Flaot64(location), label)`.
+
+```
+⇒(format, locations)
+  format     AbstractString
+  locations  AbstractVector
+```
+
+short for `cv_format_ticks(format, locations...)`.
+
 ### `CV_TickLabelAppearance`
 
 Styles and data needed to render/draw axis-ticks with labels.

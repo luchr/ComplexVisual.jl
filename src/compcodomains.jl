@@ -248,9 +248,9 @@ function cv_setup_comp_slider_cb(setup, param::CV_ParamWithSlider,
         set_slider_value_func = param.set_slider_value_func
     end
 
-    bg_painter = cv_color(.8, .8, .8) ↦ CV_2DCanvasFillPainter()
+    bg_painter = cv_color(.8, .8, .8) ↦ CV_FillPainter()
     mark_painter = (cv_op_source → cv_color(0, 0, 1) → cv_linewidth(2)) ↦
-        CV_2DValueMarkPainter(param.slider_pos, 0.0, 
+        CV_ValueMarkPainter(param.slider_pos, 0.0, 
             imag(slider_container.can_slider.corner_ul), false)
 
     setup = cv_setup_hslider(setup, slider_data, slider_l,
@@ -291,8 +291,8 @@ function cv_scene_comp_codomains_std(
         codomain1_im_rulers::NTuple{B, CV_Ruler}=codomain1_re_rulers,
         codomain2_re_rulers::NTuple{C, CV_Ruler}=codomain1_re_rulers,
         codomain2_im_rulers::NTuple{D, CV_Ruler}=codomain1_im_rulers,
-        painter1 = CV_Math2DCanvasPortraitPainter(trafo1),
-        painter2 = CV_Math2DCanvasPortraitPainter(trafo2)
+        painter1 = CV_PortraitPainter(trafo1),
+        painter2 = CV_PortraitPainter(trafo2)
         ) where {A, B, C, D, N} # {{{
 
     layout = CV_2DLayout()

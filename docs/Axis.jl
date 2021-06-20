@@ -39,6 +39,8 @@ axes_intro() = nothing
 
 ### `doc: cv_format_ticks`
 
+### `doc: ⇒`
+
 ### `doc: CV_TickLabelAppearance`
 """
 help_ticklabel() = nothing

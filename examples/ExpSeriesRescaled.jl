@@ -56,8 +56,10 @@ function get_curve()
     r1, r2 = curve_r_of_phi, curve_r_of_phi[end-1:-1:2]
     line_seg = [collect(r1).*exp.(1im*collect(ϕ1))...,
                 collect(r2).*exp.(1im*collect(ϕ2))...]
-    return CV_2DCanvasLinePainter([line_seg], true)
+    return CV_LinePainter([line_seg], true)
 end
+
+const fontface = cv_fontface("sans-serif")
 
 function show_comparison(n, save=false)
     param_n = CV_TranslateByOffset(Int)
@@ -78,17 +80,14 @@ function show_comparison(n, save=false)
     codomain1 = CV_Math2DCanvas(-0.5 + 1.0im, 1.5 - 1.0im, 200)
     codomain2 = CV_Math2DCanvas(-0.5 + 1.0im, 1.5 - 1.0im, 200)
 
-    label_style = cv_black → cv_fontface("sans-serif") → cv_fontsize(20)
-    nstyle = cv_black → cv_fontface("sans-serif") → cv_fontsize(40)
+    label_style = cv_black → fontface → cv_fontsize(20)
+    nstyle = cv_black → fontface → cv_fontsize(40)
     nrulers=(
-        CV_Ruler(cv_format_ticks("%.0f", 0.0:1.0:1.0...), 
-            CV_TickLabelAppearance(; label_style)),
-        CV_Ruler((CV_TickLabel(1.2, "n = " * string(n)),), 
-            CV_TickLabelAppearance(; label_style=nstyle, tick_length=0)),
-        )
+        CV_TickLabelAppearance(; label_style) ↦ ("%.0f" ⇒ 0.0:1.0),
+        CV_TickLabelAppearance(; label_style=nstyle, tick_length=0) ↦
+            (("n = " * string(n)) ⇒ 1.2,))
     rulers=(
-        CV_Ruler(cv_format_ticks("%.0f", 0.0:1.0:1.0...), 
-            CV_TickLabelAppearance(; label_style)),)
+        CV_TickLabelAppearance(; label_style) ↦ ("%.0f" ⇒ 0.0:1.0),)
 
     curve = (cv_black → cv_linewidth(3)) ↦ get_curve()
 
@@ -97,8 +96,8 @@ function show_comparison(n, save=false)
         codomain1_im_rulers=rulers,
         codomain2_re_rulers=rulers,
         codomain2_im_rulers=nrulers,
-        painter1=CV_Math2DCanvasPortraitPainter(trafo1) → curve,
-        painter2=CV_Math2DCanvasPortraitPainter(trafo2) → curve)
+        painter1=CV_PortraitPainter(trafo1) → curve,
+        painter2=CV_PortraitPainter(trafo2) → curve)
     cv_get_redraw_func(scene)()
 
     if save

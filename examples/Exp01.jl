@@ -4,48 +4,35 @@ using ComplexVisual
 using ComplexVisualGtk
 @ComplexVisualGtk.import_huge
 
+const fontface = cv_fontface("DejaVu Sans")
+
 function setup_axis(setup::CV_SceneSetupChain)
-    label_style = cv_color(0,0,0) → 
-                  cv_fontface("DejaVu Sans", Cairo.FONT_WEIGHT_BOLD) → 
-                  cv_fontsize(20)
-    ticks1 = cv_format_ticks("%.0f", -6:0...)
-    ticks1h = cv_format_ticks("", -5.5:1.0:0.5...)
-    ticks2 = cv_format_ticks("%.0f", -3:3...)
-    ticks3 = (CV_TickLabel(-pi/1.0, "-π"), CV_TickLabel(-pi/2, "-π/2"),
-              CV_TickLabel(0.0, "0"), CV_TickLabel(pi/2, "π/2"),
-              CV_TickLabel(pi/1.0, "π"))
+    label_style = cv_black → fontface → cv_fontsize(20)
+    ticks1, ticks1h, ticks2 = "%.0f" ⇒ -6:0, "" ⇒ -5.5:0.5, "%.0f" ⇒ -3:3
+    ticks3 = ("-π" ⇒ -pi, "-π/2" ⇒ -pi/2, "0" ⇒ 0.0, "π/2" ⇒ pi/2, "π" ⇒ pi,)
 
     app_l = CV_TickLabelAppearance(; label_style, tick_length=10)
     app_s = CV_TickLabelAppearance(; label_style, tick_length=6)
     return cv_setup_lr_axis(setup,
-        (CV_Ruler(ticks1, app_l), CV_Ruler(ticks1h, app_s)),
-        (CV_Ruler(ticks3, app_l), ),
-        (CV_Ruler(ticks2, app_l), ), (CV_Ruler(ticks3, app_l), ))
+        (app_l ↦ ticks1, app_s ↦ ticks1h), (app_l ↦ ticks3,),
+        (app_l ↦ ticks2,), (app_l ↦ ticks3,))
 end
 
 function get_slider_rulers()  # {{{
-    major_values = Float64.(10:10:50)
-    minor_values = Float64.(15:5:45)
+    major_values, minor_values = Float64.(10:10:50), Float64.(15:5:45)
     mini_values = setdiff(setdiff(Float64.(10:1:50), minor_values), major_values)
-    
     intro_values = Float64.(1:1:9)
 
-    major_ticks = (cv_format_ticks("%.0f", major_values...)..., 
-        CV_TickLabel(55.0, "∞"))
-    minor_ticks = cv_format_ticks("", minor_values...)
-    mini_ticks = cv_format_ticks("", mini_values...)
-    intro_ticks = cv_format_ticks("%.0f", intro_values...)
+    major_ticks = (("%.0f" ⇒  major_values)..., "∞" ⇒ 55.0)
+    minor_ticks, mini_ticks = "" ⇒ minor_values, "" ⇒ mini_values
+    intro_ticks = "%.0f" ⇒ intro_values
 
-    major_ruler = CV_Ruler(major_ticks,
-        CV_TickLabelAppearance(; tick_length=10, 
-            label_style=cv_color(0,0,0) → 
-                cv_fontface("DejaVu Sans") → cv_fontsize(20)))
-    minor_ruler = CV_Ruler(minor_ticks, CV_TickLabelAppearance(; tick_length=7))
-    mini_ruler = CV_Ruler(mini_ticks, CV_TickLabelAppearance(; tick_length=4))
-    intro_ruler = CV_Ruler(intro_ticks,
-        CV_TickLabelAppearance(; tick_length=4, 
-            label_style=cv_color(0,0,0) → 
-                cv_fontface("DejaVu Sans") → cv_fontsize(10)))
+    major_ruler = CV_TickLabelAppearance(; tick_length=10, 
+            label_style=cv_black → fontface → cv_fontsize(20)) ↦ major_ticks
+    minor_ruler = CV_TickLabelAppearance(; tick_length=7) ↦ minor_ticks
+    mini_ruler = CV_TickLabelAppearance(; tick_length=4) ↦ mini_ticks
+    intro_ruler = CV_TickLabelAppearance(; tick_length=4, 
+            label_style=cv_black → fontface → cv_fontsize(10)) ↦ intro_ticks
     return (major_ruler, minor_ruler, mini_ruler, intro_ruler)
 end # }}}
 
@@ -75,9 +62,9 @@ function create_slider(setup, slider_pos)
         return CV_Response(;redraw_flag=true)
     end
 
-    bg_painter = cv_color(.8,.8,.8) ↦ CV_2DCanvasFillPainter()
+    bg_painter = cv_color(.8,.8,.8) ↦ CV_FillPainter()
     mark_painter = (cv_op_source → cv_color(0,0,1) → cv_linewidth(2)) ↦
-        CV_2DValueMarkPainter(slider_pos,
+        CV_ValueMarkPainter(slider_pos,
             0.0, imag(cont_slider.can_slider.corner_ul), false)
 
     setup = cv_setup_hslider(setup, slider_data, cont_slider_l,

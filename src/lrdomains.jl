@@ -404,26 +404,26 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
     end
 
     if ismissing(portrait_painter_domain)
-        portrait_painter_domain = CV_Math2DCanvasPortraitPainter(trafo)
+        portrait_painter_domain = CV_PortraitPainter(trafo)
     end
     if ismissing(portrait_painter_codomain)
-        portrait_painter_codomain = CV_Math2DCanvasPortraitPainter()
+        portrait_painter_codomain = CV_PortraitPainter()
     end
 
     if ismissing(parallel_lines_painter_domain)
         parallel_lines_painter_domain = (
             (parallel_hlines_style ↦
-                CV_2DCanvasLinePainter(translate, parallel_hlines)) →
+                CV_LinePainter(translate, parallel_hlines)) →
             (parallel_vlines_style ↦
-                CV_2DCanvasLinePainter(translate, parallel_vlines)))
+                CV_LinePainter(translate, parallel_vlines)))
     end
     if ismissing(parallel_lines_painter_codomain)
         parallel_lines_painter_codomain = (
             (parallel_hlines_style ↦
-                CV_2DCanvasLinePainter(trafo_translate, parallel_hlines, false,
+                CV_LinePainter(trafo_translate, parallel_hlines, false,
                     cut_test === nothing ? nothing : translate, cut_test)) →
             (parallel_vlines_style ↦
-                CV_2DCanvasLinePainter(trafo_translate, parallel_vlines, false,
+                CV_LinePainter(trafo_translate, parallel_vlines, false,
                     cut_test === nothing ? nothing : translate, cut_test))) 
     end
 

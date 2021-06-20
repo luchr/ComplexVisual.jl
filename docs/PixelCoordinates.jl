@@ -17,7 +17,7 @@ function visualize_pixelcanvas(layout)
     can = CV_Math2DCanvas(0.0 + 0.0im + 1.0*(-1.0 + 1.0im)/res,
                           6.0 - 6.0im + 1.0*( 1.0 - 1.0im)/res, res)
     can_l = cv_add_canvas!(layout, can, (0,0), (0,0))
-    grid_painter = CV_2DAxisGridPainter(0:6, -6:0)
+    grid_painter = CV_GridPainter(0:6, -6:0)
     grid_style = cv_color(0.7, 0.7, 0.7) → cv_op_source → cv_linewidth(1)
     cv_create_context(can) do con
         set_operator(con.ctx, Cairo.OPERATOR_SOURCE)

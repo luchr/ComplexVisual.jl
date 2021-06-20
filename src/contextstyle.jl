@@ -18,7 +18,15 @@ end
 
 import Base:show
 
+"""
+`CV_ContextStyle`: such a style has inpact on the following painting
+operators.
+"""
 abstract type CV_ContextStyle end
+
+"""
+`CV_CanvasContextStyle`: a `CV_ContextStyle` for canvases.
+"""
 abstract type CV_CanvasContextStyle <: CV_ContextStyle end
 
 show(io::IO, s::CV_ContextStyle) = cv_show_impl(io, s)
