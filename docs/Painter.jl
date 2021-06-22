@@ -21,6 +21,8 @@ with math coordinate systems (e.g. `CV_Math2DCanvas`).
 | ![./Painter_fillpainter_icon.png]({image_from_canvas: create_icon(example_fill_painter())}) `CV_FillPainter`             | ![./Painter_linepainter_icon.png]({image_from_canvas: create_icon(example_line_painter())}) `CV_LinePainter`    | ![./Painter_markpainter_icon.png]({image_from_canvas: create_icon(example_mark_painter())}) `CV_ValueMarkPainter` |
 | ![./Painter_portraitpainter_icon.png]({image_from_canvas: create_icon(example_portrait_painter())}) `CV_PortraitPainter` | ![./Painter_dirpainter_icon.png]({image_from_canvas: create_icon(example_dir_painter())}) `CV_DirectionPainter` | ![./Painter_gridpainter_icon.png]({image_from_canvas: create_icon(example_grid_painter())}) `CV_GridPainter`      |
 
+`CV_CombiPainter`    `CV_StyledPainter`
+
 """
 painter_intro() = nothing
 
@@ -219,6 +221,20 @@ function example_portrait_painter()
     return math_canvas
 end
 
+"""
+## `doc: CV_CombiPainter`
+
+## `doc: →:Tuple{T, S} where {T<:CV_Painter, S<:CV_Painter}`
+"""
+help_combi_painter() = nothing
+
+"""
+## `doc: CV_StyledPainter`
+
+## `doc: ↦:Tuple{CV_ContextStyle, CV_Painter}`
+"""
+help_styled_painter() = nothing
+
 create_icon(can) = create_doc_icon(can, cv_rect_blwh(Int32, 50, 70, 70, 70))
 
 function get_doc_icon()
@@ -252,7 +268,7 @@ function create_document(doc_env::DocCreationEnvironment)
     md = Markdown.MD()
     for part in (painter_intro, help_fill_painter, help_mark_painter,
             help_grid_painter, help_line_painter, help_dir_painter,
-            help_portrait_painter)
+            help_portrait_painter, help_combi_painter, help_styled_painter)
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
 

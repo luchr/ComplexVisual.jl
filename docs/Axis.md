@@ -26,6 +26,16 @@ end
 
 A location (math coordinate) and a description for a tick (typically placed at axis).
 
+### `⇒ (U+21D2)`
+
+```
+⇒(label, location)
+    label     AbstractString
+    location  Real
+```
+
+short for `CV_TickLabel(Flaot64(location), label)`.
+
 ### `cv_format_ticks`
 
 ```
@@ -46,14 +56,6 @@ locations   Vararg{Real, N}
 create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the `"%.1f"` printf-format.
 
 ### `⇒ (U+21D2)`
-
-```
-⇒(label, location)
-    label     AbstractString
-    location  Real
-```
-
-short for `CV_TickLabel(Flaot64(location), label)`.
 
 ```
 ⇒(format, locations)

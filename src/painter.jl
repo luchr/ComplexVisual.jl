@@ -490,16 +490,23 @@ struct CV_PortraitPainter{trafoT, CS} <: CV_2DCanvasPainter  # {{{
     colorscheme :: CS
     cache_flag  :: Bool
     cache       :: CV_Math2DCanvasPainterCache    
-    function CV_PortraitPainter(trafo::trafoT, colorscheme::CS,
-            cache_flag::Bool) where {trafoT, CS}
-        return new{trafoT, CS}(trafo, colorscheme, cache_flag,
-                       CV_Math2DCanvasPainterCache())
-    end
 end
-CV_PortraitPainter(trafo) = CV_PortraitPainter(
-    trafo, ComplexPortraits.cs_j(), true)
 
-CV_PortraitPainter() = CV_PortraitPainter(identity)
+"""
+```
+CV_PortraitPainter([trafo=identity, [colorscheme=ComplexPortraits.cs_j(),
+                                    [cache_flag=true]]])
+    trafo         trafoT
+    colorscheme   CS
+    cache_flag    Bool
+```
+"""
+function CV_PortraitPainter(trafo::trafoT=identity,
+        colorscheme::CS=ComplexPortraits.cs_j(),
+        cache_flag::Bool=true) where {trafoT, CS}
+    return CV_PortraitPainter{trafoT, CS}(trafo, colorscheme, cache_flag,
+        CV_Math2DCanvasPainterCache())
+end
 
 """
 ```
@@ -554,13 +561,13 @@ end # }}}
 
 
 """
-`CV_CombiPainter`: combines to painter
-
 ```
 CV_CombiPainter{T<:CV_Painter, S<:CV_Painter}
     painter1   T
     painter2   S
 ```
+
+combines two painters.
 """
 struct CV_CombiPainter{T<:CV_Painter, S<:CV_Painter} <: CV_Painter # {{{
     painter1 :: T
@@ -604,13 +611,16 @@ show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_CombiPainter) =
 
 
 """
-`CV_StyledPainter`: Painter with Style :-)
-
 ```
 CV_StyledPainter{styleT<:CV_ContextStyle, painterT<:CV_Painter}
     style       styleT
     painter     painterT
 ```
+
+Painter with Style :-)
+
+This is *the* way to govern the appearance (color, thickness, etc.)
+of the painting operations of a painter.
 """
 struct CV_StyledPainter{styleT<:CV_ContextStyle,
                         painterT<:CV_Painter} <: CV_Painter   # {{{

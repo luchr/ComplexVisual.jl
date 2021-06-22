@@ -9,6 +9,8 @@ Painters have the ability to "draw"/"paint" something inside objects with math c
 | ![./Painter_fillpainter_icon.png](./Painter_fillpainter_icon.png) [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)                 | ![./Painter_linepainter_icon.png](./Painter_linepainter_icon.png) [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)         | ![./Painter_markpainter_icon.png](./Painter_markpainter_icon.png) [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter) |
 | ![./Painter_portraitpainter_icon.png](./Painter_portraitpainter_icon.png) [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter) | ![./Painter_dirpainter_icon.png](./Painter_dirpainter_icon.png) [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter) | ![./Painter_gridpainter_icon.png](./Painter_gridpainter_icon.png) [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)           |
 
+[`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)    [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
+
 ## `CV_FillPainter`
 
 ```
@@ -278,6 +280,14 @@ Fill math coordinate system with phase portrait.
 
 For `colorscheme`, please see the package `ComplexPortraits`.
 
+```
+CV_PortraitPainter([trafo=identity, [colorscheme=ComplexPortraits.cs_j(),
+                                    [cache_flag=true]]])
+    trafo         trafoT
+    colorscheme   CS
+    cache_flag    Bool
+```
+
 ## Example for `CV_PortraitPainter`
 
 ![./Painter_portraitpainter.png](./Painter_portraitpainter.png)
@@ -296,5 +306,35 @@ function example_portrait_painter()
     return math_canvas
 end
 ```
+
+## `CV_CombiPainter`
+
+```
+CV_CombiPainter{T<:CV_Painter, S<:CV_Painter}
+    painter1   T
+    painter2   S
+```
+
+combines two painters.
+
+## `→ (U+2192)`
+
+`→(painter1, painter2)  = CV_CombiPainter(painter1, painter2)`
+
+## `CV_StyledPainter`
+
+```
+CV_StyledPainter{styleT<:CV_ContextStyle, painterT<:CV_Painter}
+    style       styleT
+    painter     painterT
+```
+
+Painter with Style :-)
+
+This is *the* way to govern the appearance (color, thickness, etc.) of the painting operations of a painter.
+
+## `↦ (U+21A6)`
+
+`↦(style, painter) = CV_StyledPainter(style, painter)`
 
 

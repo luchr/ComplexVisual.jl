@@ -9,6 +9,7 @@
 
 ## C
 
+  * [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)
   * [`cv_create_2daxis_canvas`](./Axis.md#user-content-cv_create_2daxis_canvas)
 
 ## D
@@ -36,6 +37,10 @@
 
   * [`CV_Ruler`](./Axis.md#user-content-cv_ruler)
 
+## S
+
+  * [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
+
 ## T
 
   * [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel)
@@ -48,6 +53,8 @@
 
 ## …
 
-  * [`⇒ (U+21D2)`](./Axis.md#user-content--u21d2)
+  * [`→ (U+2192)`](./Painter.md#user-content--u2192)
+  * [`↦ (U+21A6)`](./Painter.md#user-content--u21a6)
+  * `⇒ (U+21D2)` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 

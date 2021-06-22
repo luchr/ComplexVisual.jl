@@ -143,18 +143,32 @@ end
 """
 try to guess the anchor name which github's flavored markdown will use.
 """
-function get_anchor_name(obj_name::AbstractString, prefix="user-content-")
+function get_anchor_name(context::DocContext,
+        obj_name::AbstractString, prefix="user-content-")
     name = lowercase(obj_name)
     name = replace(name, r"[^\w\- ]" => "")
     name = replace(name, " " => "-")
-    return prefix * name
+    refs = context.env.refs
+
+    result = prefix * name
+    refs = context.env.refs
+    if result != ""  &&  haskey(refs, Symbol(obj_name))
+        # have to check for duplicates and append "-1", "-2", etc.
+        docref_vec = refs[Symbol(obj_name)]
+        base, next_index = result, 1
+        while findfirst(e -> e.anchor == result, docref_vec) !== nothing
+            result = base * "-" * string(next_index)
+            next_index += 1
+        end
+    end
+    return result
 end
 
-get_anchor_name(obj_sym::Symbol, prefix="user-content-") =
-    get_anchor_name(String(obj_sym), prefix)
+get_anchor_name(context::DocContext, obj_sym::Symbol, prefix="user-content-") =
+    get_anchor_name(context, String(obj_sym), prefix)
 
 function push_docref(context::DocContext, obj_name::AbstractString,
-        anchor_name=get_anchor_name(obj_name))
+        anchor_name=get_anchor_name(context, obj_name))
     refs = context.env.refs
     symb = Symbol(obj_name)
     if !haskey(refs, symb)
@@ -259,10 +273,22 @@ end
 # }}}
 
 # Subst Paragraphs of the form `[inline](<name>)` {{{
+
+const re_inline_name = r"""
+    ^                      # start at beginning
+    ([^:]+)                # func_name (capture 1)
+    (                      # optional signature part
+      :                    #  start with colon
+      (.+)                 #  signature (capture 3)
+    )?
+    """x
 """
 look for Paragraphs which have exactly one link of the form `[inline](<name>)`.
 
 Then replace the whole paragraph with the Markdown documentation of `<name>`.
+
+If `<name>` has the form `<func_name>:<signature>` then only the documentation
+for the given signature is inserted.
 """
 get_inline_replacement_for(context::DocContext, md) = nothing
 function get_inline_replacement_for(context::DocContext,
@@ -271,9 +297,22 @@ function get_inline_replacement_for(context::DocContext,
         link = md.content[1]
         if link.text isa Vector && length(link.text) == 1 &&
                 link.text[1] == "inline"
-            # search_symbol = rstrip(match(r"^([^(]*)", link.url)[1])
-            search_symbol = link.url
-            doc_md = doc(getproperty(ComplexVisual, Symbol(search_symbol)))
+            match_name = match(re_inline_name, link.url)
+            if match_name === nothing
+                error("Cannot parse [inline] name: " * link.url)
+            end
+            func_name_symbol = Symbol(match_name[1])
+            if match_name[3] !== nothing
+                binding = Base.Docs.Binding(ComplexVisual, func_name_symbol)
+                signature = eval(Meta.parse(match_name[3]))::Type
+                doc_md = doc(binding, signature)
+                if doc_md === nothing
+                    error("Cannot find " * match_name[1] *
+                        "; sig: " * match_name[3])
+                end
+            else
+                doc_md = doc(getproperty(ComplexVisual, func_name_symbol))
+            end
             return doc_md.content
         end
     end
@@ -302,13 +341,17 @@ substitute_inline_markdown(context::DocContext, md::MD_has_subparts) =
 # }}}
 
 # Extend Headers of the form `doc: <name>` with object documentation {{{
-function rewrite_header(func_name)
-    result = func_name
-    aname = get_anchor_name(result, "")
+function rewrite_header(context::DocContext, func_name)
+    match_obj = match(re_inline_name, func_name)
+    if match_obj === nothing
+        error("Cannot parse " * func_name)
+    end
+    result = match_obj[1]
+    aname = get_anchor_name(context, result, "")
     if aname == ""
         # Need to rewrite it (a litte bit)
         result *= " ("
-        for (index, character) in enumerate(func_name)
+        for (index, character) in enumerate(match_obj[1])
             if index != 1
                 result *= ' '
             end
@@ -321,7 +364,7 @@ function rewrite_header(func_name)
 end
 
 
-const re_substitute_doc = r"^\s*doc:\s*([^\s]+)\s*$"
+const re_substitute_doc = r"^\s*doc:\s*([^\s]+(:(.*))?)\s*$"
 substitute_obj_header(context::DocContext, md) = nothing
 function substitute_obj_header(context::DocContext, v::Vector)
     index = 1
@@ -335,7 +378,7 @@ function substitute_obj_header(context::DocContext, v::Vector)
                 func_name = match_obj.captures[1]
                 code_md.code = func_name
 
-                func_name_in_header = rewrite_header(func_name)
+                func_name_in_header = rewrite_header(context, func_name)
                 push_docref(context, func_name_in_header)
 
                 sub_md = Markdown.parse("[inline](" * func_name * ")")

@@ -37,9 +37,11 @@ axes_intro() = nothing
 
 ### `doc: CV_TickLabel`
 
+### `doc: ⇒:Tuple{AbstractString, Real}`
+
 ### `doc: cv_format_ticks`
 
-### `doc: ⇒`
+### `doc: ⇒:Tuple{AbstractString, AbstractVector{T} where T}`
 
 ### `doc: CV_TickLabelAppearance`
 """
