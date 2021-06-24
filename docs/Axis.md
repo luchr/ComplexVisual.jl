@@ -2,7 +2,7 @@
 
 ## Quicklinks
 
-[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels)
+[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels) [`⇒`](./Axis.md#user-content--u21d2)(label, location) [`⇒`](./Axis.md#user-content--u21d2-1)(format, locations)
 
 ## Names
 
@@ -26,6 +26,16 @@ end
 
 A location (math coordinate) and a description for a tick (typically placed at axis).
 
+### `⇒ (U+21D2)`
+
+```
+⇒(label, location)
+    label     AbstractString
+    location  Real
+```
+
+short for `CV_TickLabel(Flaot64(location), label)`.
+
 ### `cv_format_ticks`
 
 ```
@@ -45,15 +55,7 @@ locations   Vararg{Real, N}
 
 create for every location a [`CV_TickLabel`](./Axis.md#user-content-cv_ticklabel) by formatting the locations with the `"%.1f"` printf-format.
 
-### `⇒`
-
-```
-⇒(label, location)
-    label     AbstractString
-    location  Real
-```
-
-short for `CV_TickLabel(Flaot64(location), label)`.
+### `⇒ (U+21D2)`
 
 ```
 ⇒(format, locations)

@@ -7,8 +7,13 @@
 
 # Index
 
+## A
+
+  * [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)
+
 ## C
 
+  * [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)
   * [`cv_create_2daxis_canvas`](./Axis.md#user-content-cv_create_2daxis_canvas)
 
 ## D
@@ -28,13 +33,24 @@
 
   * [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)
 
+## M
+
+  * [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter)
+
 ## P
 
+  * [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)
   * [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)
 
 ## R
 
   * [`CV_Ruler`](./Axis.md#user-content-cv_ruler)
+
+## S
+
+  * [`cv_star_arc_lines`](./Painter.md#user-content-cv_star_arc_lines)
+  * [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
+  * [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
 
 ## T
 
@@ -48,6 +64,8 @@
 
 ## …
 
-  * [`⇒`](./Axis.md#user-content-)
+  * [`→`](./Painter.md#user-content--u2192)
+  * [`↦`](./Painter.md#user-content--u21a6)
+  * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 
