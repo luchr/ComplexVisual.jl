@@ -20,8 +20,10 @@ with math coordinate systems (e.g. `CV_Math2DCanvas`).
 |:---------------------|:----------------------|:----------------------|
 | ![./Painter_fillpainter_icon.png]({image_from_canvas: create_icon(example_fill_painter())}) `CV_FillPainter`             | ![./Painter_linepainter_icon.png]({image_from_canvas: create_icon(example_line_painter())}) `CV_LinePainter`    | ![./Painter_markpainter_icon.png]({image_from_canvas: create_icon(example_mark_painter())}) `CV_ValueMarkPainter` |
 | ![./Painter_portraitpainter_icon.png]({image_from_canvas: create_icon(example_portrait_painter())}) `CV_PortraitPainter` | ![./Painter_dirpainter_icon.png]({image_from_canvas: create_icon(example_dir_painter())}) `CV_DirectionPainter` | ![./Painter_gridpainter_icon.png]({image_from_canvas: create_icon(example_grid_painter())}) `CV_GridPainter`      |
+| ![./Painter_m2dcanvaspainter_icon.png]({image_from_canvas: create_icon(example_m2d_canvas_painter())}) `CV_Math2DCanvasPainter` |                                                                                                                 | `CV_CombiPainter`                                                                                                 |
+|                      |                       | `CV_StyledPainter`     |
 
-`CV_CombiPainter`    `CV_StyledPainter`
+construction of line segments: `cv_parallel_lines`  `cv_arc_lines`  `cv_star_lines`
 
 """
 painter_intro() = nothing
@@ -235,6 +237,166 @@ help_combi_painter() = nothing
 """
 help_styled_painter() = nothing
 
+"""
+## `doc: CV_Math2DCanvasPainter`
+
+## Example for `CV_Math2DCanvasPainter`
+
+![./Painter_m2dcanvaspainter.png]({image_from_canvas: example_m2d_canvas_painter()})
+
+```julia
+{func: example_m2d_canvas_painter}
+```
+"""
+help_m2d_canvas_painter() = nothing
+
+function example_m2d_canvas_painter()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    can_letter = cv_example_image_letter(; letter="E",
+        canvas=CV_Math2DCanvas(-0.5 + 0.5im, 0.5 -0.5im, 400))
+
+    trafo = z -> (0.8*z - 0.6 - 0.2im)^2 + 0.10*exp(0.8*z) + 0.2im
+    painter = CV_Math2DCanvasPainter(trafo, can_letter)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, painter)
+    end
+
+    return math_canvas
+end
+
+"""
+## `doc: cv_parallel_lines`
+
+## Example for `cv_parallel_lines`
+
+![./Painter_parallel_lines.png]({image_from_canvas: example_parallel_lines()})
+
+```julia
+{func: example_parallel_lines}
+```
+"""
+help_parallel_lines() = nothing
+
+function example_parallel_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_parallel_lines(0.2 + 0.2im; width=0.5)
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_parallel_lines(-0.05 + 0.2im; width=0.2, lines=10)
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+
+"""
+## `doc: cv_arc_lines`
+
+## Example for `cv_arc_lines`
+
+![./Painter_arc_lines.png]({image_from_canvas: example_arc_lines()})
+
+```julia
+{func: example_arc_lines}
+```
+"""
+help_arc_lines() = nothing
+
+function example_arc_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_arc_lines(-π/4, 3π/2, (0.1, 0.2, 0.3, 0.4))
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_arc_lines(π, 2π, tuple(0.03:0.03:0.15...))
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+
+"""
+## `doc: cv_star_lines`
+
+## Example for `cv_star_lines`
+
+![./Painter_star_lines.png]({image_from_canvas: example_star_lines()})
+
+```julia
+{func: example_star_lines}
+```
+"""
+help_star_lines() = nothing
+
+function example_star_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_star_lines(0.05, 0.4, tuple(0:π/4:2π...))
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_star_lines(0, 0.15, tuple(π:π/8:2π...))
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+
+"""
+## `doc: cv_star_arc_lines`
+"""
+help_star_arc_lines() = nothing
+
 create_icon(can) = create_doc_icon(can, cv_rect_blwh(Int32, 50, 70, 70, 70))
 
 function get_doc_icon()
@@ -268,7 +430,10 @@ function create_document(doc_env::DocCreationEnvironment)
     md = Markdown.MD()
     for part in (painter_intro, help_fill_painter, help_mark_painter,
             help_grid_painter, help_line_painter, help_dir_painter,
-            help_portrait_painter, help_combi_painter, help_styled_painter)
+            help_portrait_painter, help_combi_painter, help_styled_painter,
+            help_m2d_canvas_painter,
+            help_parallel_lines, help_arc_lines, help_star_lines,
+            help_star_arc_lines)
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
 

@@ -7,6 +7,10 @@
 
 # Index
 
+## A
+
+  * [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)
+
 ## C
 
   * [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)
@@ -29,8 +33,13 @@
 
   * [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)
 
+## M
+
+  * [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter)
+
 ## P
 
+  * [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)
   * [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)
 
 ## R
@@ -39,6 +48,8 @@
 
 ## S
 
+  * [`cv_star_arc_lines`](./Painter.md#user-content-cv_star_arc_lines)
+  * [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
   * [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
 
 ## T

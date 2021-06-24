@@ -4,12 +4,14 @@ Painters have the ability to "draw"/"paint" something inside objects with math c
 
 ## Quick links
 
-| "area" painters                                                                                                                                | curve  painters                                                                                                                        | other painters                                                                                                                           |
-|:---------------------------------------------------------------------------------------------------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------------------------------- |:---------------------------------------------------------------------------------------------------------------------------------------- |
-| ![./Painter_fillpainter_icon.png](./Painter_fillpainter_icon.png) [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)                 | ![./Painter_linepainter_icon.png](./Painter_linepainter_icon.png) [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)         | ![./Painter_markpainter_icon.png](./Painter_markpainter_icon.png) [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter) |
-| ![./Painter_portraitpainter_icon.png](./Painter_portraitpainter_icon.png) [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter) | ![./Painter_dirpainter_icon.png](./Painter_dirpainter_icon.png) [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter) | ![./Painter_gridpainter_icon.png](./Painter_gridpainter_icon.png) [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)           |
+| "area" painters                                                                                                                                          | curve  painters                                                                                                                        | other painters                                                                                                                           |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------------------------------- |:---------------------------------------------------------------------------------------------------------------------------------------- |
+| ![./Painter_fillpainter_icon.png](./Painter_fillpainter_icon.png) [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)                           | ![./Painter_linepainter_icon.png](./Painter_linepainter_icon.png) [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)         | ![./Painter_markpainter_icon.png](./Painter_markpainter_icon.png) [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter) |
+| ![./Painter_portraitpainter_icon.png](./Painter_portraitpainter_icon.png) [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)           | ![./Painter_dirpainter_icon.png](./Painter_dirpainter_icon.png) [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter) | ![./Painter_gridpainter_icon.png](./Painter_gridpainter_icon.png) [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)           |
+| ![./Painter_m2dcanvaspainter_icon.png](./Painter_m2dcanvaspainter_icon.png) [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter) |                                                                                                                                        | [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)                                                                           |
+|                                                                                                                                                          |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)                                                                         |
 
-[`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)    [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
+construction of line segments: [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)  [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)  [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
 
 ## `CV_FillPainter`
 
@@ -336,5 +338,194 @@ This is *the* way to govern the appearance (color, thickness, etc.) of the paint
 ## `↦ (U+21A6)`
 
 `↦(style, painter) = CV_StyledPainter(style, painter)`
+
+## `CV_Math2DCanvasPainter`
+
+```
+CV_Math2DCanvasPainter <: CV_2DCanvasPainter
+    dst_trafo       dtrafoT
+    canvas          canvasT <: CV_Math2DCanvas
+    src_trafo       strafoT
+    src_cut_test    scutT
+```
+
+paint transformed (by `dst_trafo`) canvas in coordinate system.
+
+The preimage of the pixel (of the canvas) are transformed by `src_trafo` (unless `src_trafo === nothing`) and afterwards they are checked with `src_cut_test` (unless `src_cut_test === nothing`) if the pixels needs to be "cut" (i.e. left out).
+
+## Example for `CV_Math2DCanvasPainter`
+
+![./Painter_m2dcanvaspainter.png](./Painter_m2dcanvaspainter.png)
+
+```julia
+function example_m2d_canvas_painter()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    can_letter = cv_example_image_letter(; letter="E",
+        canvas=CV_Math2DCanvas(-0.5 + 0.5im, 0.5 -0.5im, 400))
+
+    trafo = z -> (0.8*z - 0.6 - 0.2im)^2 + 0.10*exp(0.8*z) + 0.2im
+    painter = CV_Math2DCanvasPainter(trafo, can_letter)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, painter)
+    end
+
+    return math_canvas
+end
+```
+
+## `cv_parallel_lines`
+
+```
+cv_parallel_lines(direction;  width=1.0, lines=5, segments=120)
+    direction   ComplexF64    direction for lines
+    width       Real          space/width the lines cover
+    lines       Integer       number of lines
+    segments    Integer       how many segments per line
+```
+
+returns the `CV_LineSegments`.
+
+## Example for `cv_parallel_lines`
+
+![./Painter_parallel_lines.png](./Painter_parallel_lines.png)
+
+```julia
+function example_parallel_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_parallel_lines(0.2 + 0.2im; width=0.5)
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_parallel_lines(-0.05 + 0.2im; width=0.2, lines=10)
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+```
+
+## `cv_arc_lines`
+
+```
+cv_arc_lines(ϕ_start, ϕ_end, radii; segments=120)
+    ϕ_start    Real                start angle
+    ϕ_end      Real                end angle
+    radii      NTuple{N, Real}     radii for the arcs
+    segments   Integer             how many segments per line
+```
+
+create a `CV_LineSegments` with arcs starting at the angle `ϕ_start` and ending at the angle `ϕ_end`. In `radii` one can give radii at which the lines are created.
+
+## Example for `cv_arc_lines`
+
+![./Painter_arc_lines.png](./Painter_arc_lines.png)
+
+```julia
+function example_arc_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_arc_lines(-π/4, 3π/2, (0.1, 0.2, 0.3, 0.4))
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_arc_lines(π, 2π, tuple(0.03:0.03:0.15...))
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+```
+
+## `cv_star_lines`
+
+```
+cv_star_lines(r_start, r_end, angles; segments=120) 
+    r_start     Real                start radius
+    r_end       Real                end radius
+    angles      NTuple{N, Real}     lines at this angles
+    segments    Integer             how many segments per line
+```
+
+create a `CV_LineSegments` with star lines starting the radius `r_start` and ending at the radius `r_end`. In `angles` one can give angles at which the lines are created.
+
+## Example for `cv_star_lines`
+
+![./Painter_star_lines.png](./Painter_star_lines.png)
+
+```julia
+function example_star_lines()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    trafo_red = z -> z + 0.4 + 0.4im
+    red_lines = cv_star_lines(0.05, 0.4, tuple(0:π/4:2π...))
+    red_style = cv_color(1, 0, 0) → cv_linewidth(2) → cv_antialias_best
+    p_red = red_style ↦ CV_LinePainter(trafo_red, red_lines)
+
+    trafo_blue = z -> z + 0.8 + 0.8im
+    blue_lines = cv_star_lines(0, 0.15, tuple(π:π/8:2π...))
+    blue_style = cv_color(0, 0, 1) → cv_linewidth(1) → cv_antialias_best
+    p_blue = blue_style ↦ CV_LinePainter(trafo_blue, blue_lines)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, p_red)
+        cv_paint(canvas_context, p_blue)
+    end
+
+    return math_canvas
+end
+```
+
+## `cv_star_arc_lines`
+
+```
+cv_star_arc_lines(radii, angle; star_segments=120, arc_segments=120) 
+    radii           NTuple{N, Real}
+    angles          NTuple{M, Real};
+    star_segments   Integer
+    arc_segments    Integer
+```
+
+combination of [`cv_star_lines`](./Painter.md#user-content-cv_star_lines) and [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines).
 
 

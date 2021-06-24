@@ -649,8 +649,14 @@ function cv_paint(cc::CV_CanvasContext, styled_painter::CV_StyledPainter)
 end # }}}
 
 """
-`CV_Math2DCanvasPainter`: paint transformed (by `dst_trafo`) canvas in
-coordinate system.
+```
+CV_Math2DCanvasPainter <: CV_2DCanvasPainter
+    dst_trafo       dtrafoT
+    canvas          canvasT <: CV_Math2DCanvas
+    src_trafo       strafoT
+    src_cut_test    scutT
+```
+paint transformed (by `dst_trafo`) canvas in coordinate system.
 
 The preimage of the pixel (of the canvas) are transformed by `src_trafo`
 (unless `src_trafo === nothing`) and afterwards they are checked with
@@ -675,6 +681,13 @@ show(io::IO, m::MIME{Symbol("text/plain")}, p::CV_Math2DCanvasPainter) =
     cv_show_impl(io, m, p)
 
 """
+```
+cv_paint(cc, canvas_painter)
+    cc                CV_2DCanvasContext{canvasT <: CV_Math2DCanvas}
+    canvas_painter    CV_Math2DCanvasPainter{dtrafoT, canvasT,
+                            Nothing, Nothing})
+```
+
 Implementation without cut-test
 """
 function cv_paint(cc::CV_2DCanvasContext{canvasT},
@@ -719,6 +732,13 @@ function cv_paint(cc::CV_2DCanvasContext{canvasT},
 end  # }}}
 
 """
+```
+cv_paint(cc, canvas_painter)
+    cc                CV_2DCanvasContext{canvasT <: CV_Math2DCanvas}
+    canvas_painter    CV_Math2DCanvasPainter{dtrafoT, canvasT,
+                            strafoT, scut})
+```
+
 Implementation with cut-test
 """
 function cv_paint(cc::CV_2DCanvasContext{canvasT},
@@ -818,6 +838,14 @@ function cv_parallel_lines(direction::ComplexF64;
 end # }}}
 
 """
+```
+cv_arc_lines(ϕ_start, ϕ_end, radii; segments=120)
+    ϕ_start    Real                start angle
+    ϕ_end      Real                end angle
+    radii      NTuple{N, Real}     radii for the arcs
+    segments   Integer             how many segments per line
+```
+
 create a `CV_LineSegments` with arcs starting at the angle `ϕ_start`
 and ending at the angle `ϕ_end`. In `radii` one can give radii at which
 the lines are created.
@@ -832,6 +860,13 @@ function cv_arc_lines(ϕ_start::Real, ϕ_end::Real, radii::NTuple{N, Real};
 end # }}}
 
 """
+```
+cv_star_lines(r_start, r_end, angles; segments=120) 
+    r_start     Real                start radius
+    r_end       Real                end radius
+    angles      NTuple{N, Real}     lines at this angles
+    segments    Integer             how many segments per line
+```
 create a `CV_LineSegments` with star lines starting the radius `r_start`
 and ending at the radius `r_end`. In `angles` one can give angles at
 which the lines are created.
@@ -847,7 +882,15 @@ function cv_star_lines(r_start::Real, r_end::Real, angles::NTuple{N, Real};
 end # }}}
 
 """
-create star-lines and arc-lines matching together.
+```
+cv_star_arc_lines(radii, angle; star_segments=120, arc_segments=120) 
+    radii           NTuple{N, Real}
+    angles          NTuple{M, Real};
+    star_segments   Integer
+    arc_segments    Integer
+```
+
+combination of `cv_star_lines` and `cv_arc_lines`.
 """
 function cv_star_arc_lines(radii::NTuple{N, Real}, angles::NTuple{M, Real};
                 star_segments::Integer=120,
