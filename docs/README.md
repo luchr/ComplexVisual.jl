@@ -53,8 +53,8 @@
 
 ## …
 
-  * [`→ (U+2192)`](./Painter.md#user-content--u2192)
-  * [`↦ (U+21A6)`](./Painter.md#user-content--u21a6)
-  * `⇒ (U+21D2)` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
+  * [`→`](./Painter.md#user-content--u2192)
+  * [`↦`](./Painter.md#user-content--u21a6)
+  * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 

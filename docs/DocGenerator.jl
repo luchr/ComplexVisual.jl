@@ -1,3 +1,29 @@
+"""
+# DocGenerator
+
+This is an "experimental" generator for the Markdown documentation.
+
+"experimental" because some (a lot) of undocumented Julia methods are used.
+
+## Why a generator?
+
+Because I want to support (or I want to have)
+
+* (automatically generated) cross references (without an additional syntax)
+* inclusion of functions doc-string into the documentation (with an easy
+  syntax)
+* generation of an index
+
+## How?
+
+There are 3 main ingredients
+
+* where something is documented (in the end), that's a `DocRef`
+* what is documented, that's a `ObjSpecification`
+* the relationship of "where-is-what" (i.e. what objects are documented where)
+  thats `refs` inside `DocCreationEnvironment`
+
+"""
 module DocGenerator
 
 using Base.Docs
@@ -8,9 +34,9 @@ using ComplexVisual
 @ComplexVisual.import_huge()
 
 """
-all "registerted" Modules producing documentation.
+all "registerted" doc-Modules producing some documentation file(s).
 
-registration at the bottom of this file.
+Registration at the bottom of this file.
 """
 const doc_modules = Vector{Module}()
 
@@ -24,7 +50,7 @@ end
 
 
 """
-Reference to point in documentation.
+Reference to a point/anchor in the (generated) documentation.
 """
 struct DocRef
     source   :: DocSource
@@ -32,15 +58,63 @@ struct DocRef
 end
 
 """
-saves data for generating documents, e.g.
+Specifies an object (which will be documented). `sig` is a signature
+in order to identify a special method if `obj_sym` is the symbol for
+a function.
+"""
+struct ObjSpecification
+    mod      :: Module
+    obj_sym  :: Symbol
+    sig      :: Type
+end
 
-* Symbols (for Methods, Structs, etc.) and all the `DocRef`s.
+"""
+Regex for how objects can be specified: `[Module.]Name[:Signature]`.
+"""
+const re_parse_obj_specification = r"""
+    ^\s*                      # maybe space(s)
+    (                         # group 1: optional: the module
+      ([^\s]+)                # group 2: module name
+      \.                      # followed by dot
+    )? 
+    ([^\s]+)                  # group 3: object/symbol name
+    (                         # group 4: optional: the signature
+      :\s*                    # colon (with maybe space(s))
+      (                       # group 5: signature
+        Union(.*)  |          # Starting with Union or
+        Tuple(.*)             # Starting with Tuple
+      )
+    )?
+    \s*$                      # maybe space(s) to the end
+    """x
+
+function parse_obj_specification(str::AbstractString;
+        default_module::Module=ComplexVisual,
+        default_sig::Type=Union{})
+    match_obj = match(re_parse_obj_specification, str)
+    if match_obj === nothing
+        error("Cannot parse object specification: " * str)
+    end
+    return ObjSpecification(
+        match_obj[2] === nothing ?
+            default_module :
+            getproperty(@__MODULE__, Symbol(match_obj[2]))::Module,
+        Symbol(match_obj[3]),
+        match_obj[5] === nothing ?
+            default_sig :
+            eval(Meta.parse(match_obj[5]))::Type)
+end
+
+"""
+saves data for generating documents.
+
+Gathers all the `DocRef` for object specifications.
 """
 struct DocCreationEnvironment
-    refs :: Dict{Symbol, Vector{DocRef}}
-
-    DocCreationEnvironment() = new(Dict{Symbol, Vector{DocRef}}())
+    refs :: Dict{Module, Dict{Symbol, Dict{Type, Vector{DocRef}}}}
 end
+DocCreationEnvironment() = DocCreationEnvironment(Dict{Module,
+    Dict{Symbol, Dict{Type, Vector{DocRef}}}}())
 
 """
 context while generating the documentation.
@@ -57,7 +131,6 @@ struct Document
     source     :: DocSource
     markdown   :: Markdown.MD
 end
-
 
 # Helper functions {{{
 
@@ -139,45 +212,109 @@ end
 
 # }}}
 
+# Methods for refs in DocCreationEnvironment {{{
+"""
+returns `Vector{DocRef}` for the given object specification or `nothing`
+if no `DocRef` can be found.
+
+if `sig === UnionAll` then all the `DocRef` for every saved signature
+are put in the result vector.
+"""
+function get_doc_refs(env::DocCreationEnvironment,
+        mod::Module, sym::Symbol, sig::Type)  # {{{
+    refs = env.refs
+    sym_dict = get(refs, mod, nothing)
+    if sym_dict === nothing
+        return nothing
+    end
+    sig_dict = get(sym_dict, sym, nothing)
+    if sig_dict === nothing
+        return nothing
+    end
+    if sig === UnionAll
+        docref_vec = Vector{DocRef}()
+        append!(docref_vec, values(sig_dict)...)
+        return docref_vec
+    end
+    docref_vec = get(sig_dict, sig, nothing)
+    return docref_vec
+end  # }}}
+
+function get_doc_refs(env::DocCreationEnvironment, obj::ObjSpecification)
+    return get_doc_refs(env, obj.mod, obj.obj_sym, obj.sig)
+end
+
+"""
+appends the `doc_ref` to the refs of the specified object specification.
+"""
+function append_doc_ref(env::DocCreationEnvironment,
+        mod::Module, sym::Symbol, sig::Type, doc_ref::DocRef)   # {{{
+    refs = env.refs
+    if !haskey(refs, mod)
+        refs[mod] = Dict{Symbol, Dict{Type, Vector{DocRef} } }()
+    end
+    sym_dict = refs[mod]
+    if !haskey(sym_dict, sym)
+        sym_dict[sym] = Dict{Type, Vector{DocRef}}()
+    end
+    sig_dict = sym_dict[sym]
+    if !haskey(sig_dict, sig)
+        sig_dict[sig] = Vector{DocRef}()
+    end
+    push!(sig_dict[sig], doc_ref)
+    return nothing
+end # }}}
+function append_doc_ref(env::DocCreationEnvironment,
+        obj::ObjSpecification, doc_ref::DocRef)
+    return append_doc_ref(env, obj.mod, obj.obj_sym, obj.sig, doc_ref)
+end
+# }}}
+
 # Anchors {{{
 """
-try to guess the anchor name which github's flavored markdown will use.
+test if a `DocRef` is already saved in the `refs` in the DocCreationEnvironment.
+"""
+function has_docref(context::DocContext, search_ref::DocRef) # {{{
+    refs = context.env.refs
+    for doc_module in keys(refs)
+        for sym in keys(refs[doc_module])
+            for docref_vec in values(refs[doc_module][sym])
+                if findfirst(
+                    doc_ref -> doc_ref == search_ref, docref_vec) !== nothing
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end # }}}
+
+"""
+try to guess the anchor name which github's flavored markdown will use if
+this content is used (again) in this context (as anchor).
+
+Takes into account if there were already anchors for the same content and
+use the "-1", "-2", ... suffixes used.
 """
 function get_anchor_name(context::DocContext,
-        obj_name::AbstractString, prefix="user-content-")
-    name = lowercase(obj_name)
-    name = replace(name, r"[^\w\- ]" => "")
-    name = replace(name, " " => "-")
-    refs = context.env.refs
+        content::AbstractString, prefix::AbstractString="user-content-") # {{{
+    name = lowercase(content)                #  ⎫ only a rough approximation 
+    name = replace(name, r"[^\w\- ]" => "")  #  ⎬ what github/gitlab are
+    name = replace(name, " " => "-")         #  ⎭ doing
 
-    result = prefix * name
     refs = context.env.refs
-    if result != ""  &&  haskey(refs, Symbol(obj_name))
-        # have to check for duplicates and append "-1", "-2", etc.
-        docref_vec = refs[Symbol(obj_name)]
+    result = prefix * name
+    if result != ""
         base, next_index = result, 1
-        while findfirst(e -> e.anchor == result, docref_vec) !== nothing
+        while true
+            try_ref = DocRef(context.source, result)
+            !has_docref(context, try_ref) && break
             result = base * "-" * string(next_index)
             next_index += 1
         end
     end
     return result
-end
-
-get_anchor_name(context::DocContext, obj_sym::Symbol, prefix="user-content-") =
-    get_anchor_name(context, String(obj_sym), prefix)
-
-function push_docref(context::DocContext, obj_name::AbstractString,
-        anchor_name=get_anchor_name(context, obj_name))
-    refs = context.env.refs
-    symb = Symbol(obj_name)
-    if !haskey(refs, symb)
-        refs[symb] = Vector{DocRef}()
-    end
-    doc_ref = DocRef(context.source, anchor_name)
-    push!(refs[symb], doc_ref)
-    return doc_ref
-end
+end # }}}
 
 doc_ref_to_linktarget(ref::DocRef) = @sprintf(
     "./%s.md#%s", ref.source.filename, ref.anchor)
@@ -273,22 +410,12 @@ end
 # }}}
 
 # Subst Paragraphs of the form `[inline](<name>)` {{{
-
-const re_inline_name = r"""
-    ^                      # start at beginning
-    ([^:]+)                # func_name (capture 1)
-    (                      # optional signature part
-      :                    #  start with colon
-      (.+)                 #  signature (capture 3)
-    )?
-    """x
 """
-look for Paragraphs which have exactly one link of the form `[inline](<name>)`.
+look for Paragraphs which have exactly one link of the form
+`[inline](<object specification>)`.
 
-Then replace the whole paragraph with the Markdown documentation of `<name>`.
-
-If `<name>` has the form `<func_name>:<signature>` then only the documentation
-for the given signature is inserted.
+Then replace the whole paragraph with the Markdown documentation of the
+specified object.
 """
 get_inline_replacement_for(context::DocContext, md) = nothing
 function get_inline_replacement_for(context::DocContext,
@@ -297,21 +424,18 @@ function get_inline_replacement_for(context::DocContext,
         link = md.content[1]
         if link.text isa Vector && length(link.text) == 1 &&
                 link.text[1] == "inline"
-            match_name = match(re_inline_name, link.url)
-            if match_name === nothing
-                error("Cannot parse [inline] name: " * link.url)
-            end
-            func_name_symbol = Symbol(match_name[1])
-            if match_name[3] !== nothing
-                binding = Base.Docs.Binding(ComplexVisual, func_name_symbol)
-                signature = eval(Meta.parse(match_name[3]))::Type
-                doc_md = doc(binding, signature)
-                if doc_md === nothing
-                    error("Cannot find " * match_name[1] *
-                        "; sig: " * match_name[3])
-                end
+            obj_spec = parse_obj_specification(link.url; default_sig=UnionAll)
+
+            if obj_spec.sig !== UnionAll
+                # special signature is given
+                binding = Base.Docs.Binding(obj_spec.mod, obj_spec.obj_sym)
+                doc_md = doc(binding, obj_spec.sig)
             else
-                doc_md = doc(getproperty(ComplexVisual, func_name_symbol))
+                # all docs that can be found for this symbol
+                doc_md = doc(getproperty(obj_spec.mod, obj_spec.obj_sym))
+            end
+            if doc_md === nothing
+                error("Cannot find doc for " * link.url)
             end
             return doc_md.content
         end
@@ -340,18 +464,19 @@ substitute_inline_markdown(context::DocContext, md::MD_has_subparts) =
     substitute_inline_markdown(context, get_subparts(md))
 # }}}
 
-# Extend Headers of the form `doc: <name>` with object documentation {{{
-function rewrite_header(context::DocContext, func_name)
-    match_obj = match(re_inline_name, func_name)
-    if match_obj === nothing
-        error("Cannot parse " * func_name)
-    end
-    result = match_obj[1]
-    aname = get_anchor_name(context, result, "")
-    if aname == ""
+# Extend Headers of the form `doc: <obj specification>` with object documentation {{{
+"""
+rewrite header content (by appending the code-points in "U+..."-notation)
+if needed. This is needed if no anchor-name could be deduced.
+
+An example where this is needed if the content of the headline is `"⇒"`.
+"""
+function rewrite_header(context::DocContext, content)
+    result = content
+    if get_anchor_name(context, result, "") == ""
         # Need to rewrite it (a litte bit)
         result *= " ("
-        for (index, character) in enumerate(match_obj[1])
+        for (index, character) in enumerate(content)
             if index != 1
                 result *= ' '
             end
@@ -364,7 +489,7 @@ function rewrite_header(context::DocContext, func_name)
 end
 
 
-const re_substitute_doc = r"^\s*doc:\s*([^\s]+(:(.*))?)\s*$"
+const re_substitute_doc = r"^\s*doc:(.*)$"
 substitute_obj_header(context::DocContext, md) = nothing
 function substitute_obj_header(context::DocContext, v::Vector)
     index = 1
@@ -375,18 +500,19 @@ function substitute_obj_header(context::DocContext, v::Vector)
             code_md = part.text[1]
             match_obj = match(re_substitute_doc, code_md.code)
             if match_obj !== nothing
-                func_name = match_obj.captures[1]
-                code_md.code = func_name
+                obj_spec = parse_obj_specification(match_obj[1])
+                content = String(obj_spec.obj_sym)
 
-                func_name_in_header = rewrite_header(context, func_name)
-                push_docref(context, func_name_in_header)
+                # rewrite (if there is no nice anchor)
+                content_in_header = rewrite_header(context, content)
+                code_md.code = content_in_header
 
-                sub_md = Markdown.parse("[inline](" * func_name * ")")
+                doc_ref = DocRef(context.source,
+                    get_anchor_name(context, content_in_header))
+                append_doc_ref(context.env, obj_spec, doc_ref)
+
+                sub_md = Markdown.parse("[inline](" * match_obj[1] * ")")
                 substitute_marker_in_markdown(context, sub_md)
-
-                if func_name_in_header != func_name
-                    code_md.code = func_name_in_header
-                end
 
                 for elem in reverse(sub_md.content)
                     insert!(v, index+1, elem)
@@ -403,19 +529,20 @@ substitute_obj_header(context::DocContext, md::MD_has_subparts) =
 # }}}
 
 # Subst Code-Cross-References {{{
-const re_substitute_code_ref = r"^\s*(.+)$"
 substitute_code_ref(context::DocContext, md) = nothing
 function substitute_code_ref(context::DocContext, v::Vector)
     index = 1
     while index <= length(v)
         part = v[index]
         if part isa Markdown.Code
-            match_obj = match(re_substitute_code_ref, part.code)
-            if match_obj !== nothing
-                code_name = match_obj.captures[1]
-                code_sym = Symbol(code_name)
-                if haskey(context.env.refs, code_sym)
-                    rendered = render_ref(context.env, code_sym)
+            obj_spec = nothing
+            try
+                obj_spec = parse_obj_specification(part.code; default_sig=UnionAll)
+            catch
+            end
+            if obj_spec !== nothing
+                rendered = render_ref(context.env, obj_spec; error_if_not_found=false)
+                if rendered !== nothing
                     deleteat!(v, index)
                     for elem in reverse(rendered.content)
                         insert!(v, index, elem)
@@ -694,13 +821,23 @@ function isless_ignore_cv(sym1::Symbol, sym2::Symbol)
     return isless(name1, name2)
 end
 
-function render_ref(doc_env::DocCreationEnvironment, ref::Symbol)
-    ref_vec = doc_env.refs[ref]
+function render_ref(doc_env::DocCreationEnvironment,
+        obj_spec::ObjSpecification; error_if_not_found::Bool=true) # {{{
+    ref_vec = get_doc_refs(doc_env, obj_spec)
+    if ref_vec === nothing
+        if error_if_not_found
+            error("Cannot find ", obj_spec)
+        else
+            return nothing
+        end
+    end
+
+    sym_name = String(obj_spec.obj_sym)
     parts = []
     if length(ref_vec) == 1
-        push!(parts, doc_ref_to_markdownlink(ref_vec[1], ref))
+        push!(parts, doc_ref_to_markdownlink(ref_vec[1], sym_name))
     else
-        push!(parts, Markdown.Code(String(ref)))
+        push!(parts, Markdown.Code(sym_name))
         push!(parts, " (")
         first = true
         for ref in ref_vec
@@ -714,11 +851,19 @@ function render_ref(doc_env::DocCreationEnvironment, ref::Symbol)
         push!(parts, ")")
     end
     return Markdown.Paragraph(parts)
-end
+end # }}}
 
 function create_letter_list(doc_env::DocCreationEnvironment)
     letter_list = Dict{AbstractChar, Markdown.List}()
-    for entry in sort(collect(keys(doc_env.refs)), lt=isless_ignore_cv)
+    refs = doc_env.refs
+
+    sym_vec = Vector{Symbol}()  # all the symbols (that are documented)
+    for sym_dict in values(refs)
+        push!(sym_vec, keys(sym_dict)...)
+    end
+    sort!(sym_vec; lt=isless_ignore_cv)
+
+    for entry in sym_vec
         entry_name = String(entry)
         fchar = first(replace(uppercase(entry_name), re_find_cv_start => ""))
         if !isletter(fchar)
