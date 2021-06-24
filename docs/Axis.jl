@@ -15,6 +15,9 @@ import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
 ## Quicklinks
 
 `cv_format_ticks`   `CV_TickLabelAppearance`   `CV_Ruler`   `cv_ticks_labels`
+`⇒:Tuple{AbstractString, Real}`(label, location)
+`⇒:Tuple{AbstractString, AbstractVector{T} where T}`(format, locations)
+
 
 ## Names
 

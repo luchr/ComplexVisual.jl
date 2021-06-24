@@ -2,7 +2,7 @@
 
 ## Quicklinks
 
-[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels)
+[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels) [`⇒`](./Axis.md#user-content--u21d2)(label, location) [`⇒`](./Axis.md#user-content--u21d2-1)(format, locations)
 
 ## Names
 
