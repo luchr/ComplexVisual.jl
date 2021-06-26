@@ -14,6 +14,9 @@ struct CV_Error <: Exception
     msg :: String;
 end
 cv_error(messages::String...) = throw(CV_Error(join(messages)))
+
+cv_error(something...) = cv_error(
+    (@sprintf("%s", thing) for thing in something)...)
 # }}}
 
 # {{{ helper functions for showing concrete datatypes with their fields
