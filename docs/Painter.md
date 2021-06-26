@@ -2,16 +2,61 @@
 
 Painters have the ability to "draw"/"paint" something inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
 
+Typically a `CV_ContextStyle` is "attached" to a painter (via [`↦`](./Painter.md#user-content--u21a6) or [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)) to govern the appearance (color, font, line width, etc.) of the painting operations.
+
 ## Quick links
 
 | "area" painters                                                                                                                                          | curve  painters                                                                                                                        | other painters                                                                                                                           |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------------------------------- |:---------------------------------------------------------------------------------------------------------------------------------------- |
 | ![./Painter_fillpainter_icon.png](./Painter_fillpainter_icon.png) [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)                           | ![./Painter_linepainter_icon.png](./Painter_linepainter_icon.png) [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)         | ![./Painter_markpainter_icon.png](./Painter_markpainter_icon.png) [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter) |
 | ![./Painter_portraitpainter_icon.png](./Painter_portraitpainter_icon.png) [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)           | ![./Painter_dirpainter_icon.png](./Painter_dirpainter_icon.png) [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter) | ![./Painter_gridpainter_icon.png](./Painter_gridpainter_icon.png) [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)           |
-| ![./Painter_m2dcanvaspainter_icon.png](./Painter_m2dcanvaspainter_icon.png) [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter) |                                                                                                                                        | [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)                                                                           |
-|                                                                                                                                                          |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)                                                                         |
+| ![./Painter_m2dcanvaspainter_icon.png](./Painter_m2dcanvaspainter_icon.png) [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter) |                                                                                                                                        | [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)   [`→`](./Painter.md#user-content--u2192)                                 |
+|                                                                                                                                                          |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter), [`↦`](./Painter.md#user-content--u21a6)                                |
 
 construction of line segments: [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)  [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)  [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
+
+## The `trafo` (or `dst_trafo`) argument
+
+Many painters support a `trafo` argument (which is sometimes called `dst_trafo` when other transformations are involved) in order to "transform" the objects before painting them. Such a transformation has always the form
+
+```julia
+    trafo(z::ComplexF64) :: ComplexF64
+```
+
+If this `trafo` depends on other parameters then this can be used to change the output of the painters by chaning the parameters (of the `trafo`).
+
+Here is an exmaple.
+
+![./Painter_trafoarg.png](./Painter_trafoarg.png)
+
+```julia
+function example_trafo()
+    math_canvas = CV_Math2DCanvas(-1.0 + 1.0im, 3.0 - 1.0im, 110)
+
+    bg_fill = cv_white ↦ CV_FillPainter()  # for background
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(-1.0:0.2:3.0, -1.0:0.2:1.0)
+
+    n = 0
+    trafo = z -> z^n + n - 1 
+
+    lp = CV_LinePainter(trafo, [cv_arc_lines(0, 2π, (0.8,))[1] .+ 0.1 .+ 0.1im])
+    style1 = cv_color(1,0,0) → cv_linewidth(2)
+    style2 = cv_color(0,1,0) → cv_linewidth(2)
+    style3 = cv_color(0,0,1) → cv_linewidth(2)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+
+        n = 1; cv_paint(canvas_context, style1 ↦ lp)
+        n = 2; cv_paint(canvas_context, style2 ↦ lp)
+        n = 3; cv_paint(canvas_context, style3 ↦ lp)
+    end
+
+    return math_canvas
+end
+```
 
 ## `CV_FillPainter`
 
