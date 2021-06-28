@@ -154,25 +154,32 @@ struct CV_WindingPainter{trafoT,
     helpers               :: CV_WindingHelpers
     cache_flag            :: Bool
     cache                 :: CV_Math2DCanvasPainterCache
-
-    function CV_WindingPainter(trafo::trafoT,
-            closed_curves::CV_LineSegments,
-            cache_flag::Bool=true) where {trafoT}  # {{{
-        line_painter = CV_LinePainter(trafo, closed_curves, true)
-        helpers = CV_WindingHelpers(
-            CV_Math2DCanvas(-1.0+1.0im, 1.0-1.0im, 1),
-            Vector{CV_ConnectedComponent}(),
-            Dict{Int32, UInt32}())
-        styled_painter = cv_windingpainter_line_painter_style ↦ line_painter
-        return new{trafoT, typeof(styled_painter)}(
-            trafo,
-            Dict{Int32, Bool}(),
-            styled_painter,
-            helpers,
-            cache_flag,
-            CV_Math2DCanvasPainterCache())
-    end  # }}}
 end 
+
+"""
+```
+CV_WindingPainter(trafo, closed_curves, cache_flag=true)
+    trafo
+    closed_curves   CV_LineSegments,
+    cache_flag      Bool
+```
+"""
+function CV_WindingPainter(trafo::trafoT, closed_curves::CV_LineSegments,
+        cache_flag::Bool=true) where {trafoT}  # {{{
+    line_painter = CV_LinePainter(trafo, closed_curves, true)
+    helpers = CV_WindingHelpers(
+        CV_Math2DCanvas(-1.0+1.0im, 1.0-1.0im, 1),
+        Vector{CV_ConnectedComponent}(),
+        Dict{Int32, UInt32}())
+    styled_painter = cv_windingpainter_line_painter_style ↦ line_painter
+    return CV_WindingPainter{trafoT, typeof(styled_painter)}(
+        trafo,
+        Dict{Int32, Bool}(),
+        styled_painter,
+        helpers,
+        cache_flag,
+        CV_Math2DCanvasPainterCache())
+end  # }}}
 
 function cv_clear_cache(wp::CV_WindingPainter)
     if wp.cache_flag
@@ -182,7 +189,7 @@ function cv_clear_cache(wp::CV_WindingPainter)
 end
 
 """
-takes care that `wp.helpers.comp_canvas` is a clone (i.e. has some
+takes care that `wp.helpers.comp_canvas` is a clone (i.e. has the same
 size and resolution) as `canvas`.
 
 make sure all pixels have the value empty_value
@@ -334,8 +341,14 @@ function cv_compute_color_dict(wp::CV_WindingPainter,
     return nothing
 end # }}}
 
-function cv_paint(cc::CV_2DCanvasContext{canvasT},
-                  wp::CV_WindingPainter
+"""
+```
+cv_paint(cc, wp)
+    cc     CV_2DCanvasContext
+    wp     CV_WindingPainter
+```
+"""
+function cv_paint(cc::CV_2DCanvasContext{canvasT}, wp::CV_WindingPainter
                   ) where {canvasT <: CV_Math2DCanvas}
     canvas, cache, trafo = cc.canvas, wp.cache, wp.trafo
 

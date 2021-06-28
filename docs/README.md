@@ -62,6 +62,10 @@
 
   * [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter)
 
+## W
+
+  * [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)
+
 ## …
 
   * [`→`](./Painter.md#user-content--u2192)

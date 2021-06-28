@@ -25,7 +25,7 @@ appearance (color, font, line width, etc.) of the painting operations.
 | ![./Painter_fillpainter_icon.png]({image_from_canvas: create_icon(example_fill_painter())}) `CV_FillPainter`             | ![./Painter_linepainter_icon.png]({image_from_canvas: create_icon(example_line_painter())}) `CV_LinePainter`    | ![./Painter_markpainter_icon.png]({image_from_canvas: create_icon(example_mark_painter())}) `CV_ValueMarkPainter` |
 | ![./Painter_portraitpainter_icon.png]({image_from_canvas: create_icon(example_portrait_painter())}) `CV_PortraitPainter` | ![./Painter_dirpainter_icon.png]({image_from_canvas: create_icon(example_dir_painter())}) `CV_DirectionPainter` | ![./Painter_gridpainter_icon.png]({image_from_canvas: create_icon(example_grid_painter())}) `CV_GridPainter`      |
 | ![./Painter_m2dcanvaspainter_icon.png]({image_from_canvas: create_icon(example_m2d_canvas_painter())}) `CV_Math2DCanvasPainter` |                                                                                                                 | `CV_CombiPainter`   `→:Tuple{T, S} where {T<:CV_Painter, S<:CV_Painter}`                                                                                              |
-|                      |                       | `CV_StyledPainter`, `↦:Tuple{CV_ContextStyle, CV_Painter}`    |
+| ![./Painter_windingpainter_icon.png]({image_from_canvas: create_icon(example_winding_painter())}) `CV_WindingPainter`           |                       | `CV_StyledPainter`, `↦:Tuple{CV_ContextStyle, CV_Painter}`    |
 
 construction of line segments: `cv_parallel_lines`  `cv_arc_lines`  `cv_star_lines`
 """
@@ -327,6 +327,40 @@ function example_m2d_canvas_painter()
 end
 
 """
+## `doc: CV_WindingPainter`
+
+## Example for `CV_WindingPainter`
+
+![./Painter_windingpainter.png]({image_from_canvas: example_winding_painter()})
+
+```julia
+{func: example_winding_painter}
+```
+"""
+help_winding_painter() = nothing
+
+function example_winding_painter()
+    math_canvas = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 220)
+
+    trafo = z -> (0.7*z)^2 + 0.5 + 0.5im
+    curve = cv_arc_lines(0, 2π, (0.8,))[1][1:end-1] .+ 0.1 .+ 0.1im
+
+    bg_fill = cv_white ↦ CV_FillPainter()
+    grid_style = cv_color(0.8, 0.8, 0.8) → cv_linewidth(1)
+    grid = grid_style ↦ CV_GridPainter(0.0:0.1:1.0, 0.0:0.1:1.0)
+
+    painter = CV_WindingPainter(trafo, [curve])
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, grid)
+        cv_paint(canvas_context, painter)
+    end
+
+    return math_canvas
+end
+
+"""
 ## `doc: cv_parallel_lines`
 
 ## Example for `cv_parallel_lines`
@@ -486,7 +520,7 @@ function create_document(doc_env::DocCreationEnvironment)
             help_fill_painter, help_mark_painter,
             help_grid_painter, help_line_painter, help_dir_painter,
             help_portrait_painter, help_combi_painter, help_styled_painter,
-            help_m2d_canvas_painter,
+            help_m2d_canvas_painter, help_winding_painter,
             help_parallel_lines, help_arc_lines, help_star_lines,
             help_star_arc_lines)
         part_md = Base.Docs.doc(part)
