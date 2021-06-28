@@ -48,7 +48,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
     fill_painter = CV_FillPainter()
     styled_fill_painter = cv_color(1,1,1) ↦ fill_painter
 
-    wind_painter = CV_Math2DCanvasWindingPainter(trafo, curve_painter.segments)
+    wind_painter = CV_WindingPainter(trafo, curve_painter.segments)
 
     style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias(Cairo.ANTIALIAS_BEST)
     styled_curve_painter = style ↦ curve_painter
