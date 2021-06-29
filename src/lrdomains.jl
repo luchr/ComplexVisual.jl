@@ -306,8 +306,10 @@ end  # }}}
 function cv_setup_lr_painters(setup::CV_SceneSetupChain,
         codomain_painter::Tuple{codos1P, codos2P},
         domain_painter::Tuple{dos1P, dos2P}, save_action_pos) where {
-            codos1P<:CV_Painter, codos2P<:CV_Painter,
-            dos1P<:CV_Painter, dos2P<:CV_Painter} # {{{
+            codos1P<:Union{CV_Painter, Nothing},
+            codos2P<:Union{CV_Painter, Nothing},
+            dos1P<:Union{CV_Painter, Nothing},
+            dos2P<:Union{CV_Painter, Nothing}} # {{{
 
     layout = setup.layout
     state_counter = cv_get_state_counter(layout)

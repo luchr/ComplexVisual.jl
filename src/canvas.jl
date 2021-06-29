@@ -102,7 +102,7 @@ struct CV_Math2DCanvas <: CV_2DCanvas # {{{
             cv_error(
                 "requirement: imag(corner_ul) > imag(corner_lr)",
                 "; corner_ul = ", corner_ul,
-                "; corner_lr = ", corner_lr)            
+                "; corner_lr = ", corner_lr)
         end
         math_width = real(corner_lr) - real(corner_ul)
         math_height = imag(corner_ul) - imag(corner_lr)

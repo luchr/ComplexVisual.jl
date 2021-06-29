@@ -62,10 +62,14 @@
 
   * [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter)
 
+## W
+
+  * [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)
+
 ## …
 
   * [`→`](./Painter.md#user-content--u2192)
-  * [`↦`](./Painter.md#user-content--u21a6)
+  * `↦` ([`Axis`](./Axis.md#user-content--u21a6), [`Painter`](./Painter.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 
