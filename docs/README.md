@@ -69,7 +69,7 @@
 ## …
 
   * [`→`](./Painter.md#user-content--u2192)
-  * [`↦`](./Painter.md#user-content--u21a6)
+  * `↦` ([`Axis`](./Axis.md#user-content--u21a6), [`Painter`](./Painter.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 

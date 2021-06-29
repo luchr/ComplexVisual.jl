@@ -2,7 +2,7 @@
 
 ## Quicklinks
 
-[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels) [`⇒`](./Axis.md#user-content--u21d2)(label, location) [`⇒`](./Axis.md#user-content--u21d2-1)(format, locations)
+[`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)   [`CV_TickLabelAppearance`](./Axis.md#user-content-cv_ticklabelappearance)   [`CV_Ruler`](./Axis.md#user-content-cv_ruler)   [`↦`](./Axis.md#user-content--u21a6)    [`cv_ticks_labels`](./Axis.md#user-content-cv_ticks_labels) [`⇒`](./Axis.md#user-content--u21d2)(label, location) [`⇒`](./Axis.md#user-content--u21d2-1)(format, locations)
 
 ## Names
 
@@ -104,6 +104,16 @@ CV_Ruler(ticklabels)
 
 ticklabels   Vararg{CV_TickLabel{LocT}, N}
 ```
+
+### `↦ (U+21A6)`
+
+```
+↦(app, ticklabels)
+    app          CV_TickLabelAppearance,
+    ticklabels   NTuple{N, CV_TickLabel{LocT}}  where {N, LocT}
+```
+
+short for `CV_Ruler(ticklabels, app)`.
 
 ### `cv_create_2daxis_canvas`
 
