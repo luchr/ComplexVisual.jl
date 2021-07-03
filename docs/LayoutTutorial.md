@@ -67,7 +67,7 @@ All these layout positions are callable (they are callable structs). What happen
 
 With `cv_canvas_for_layout` the smallest bounding box of all positioned objects (in the example there is only the `first_object`) is used to contruct a canvas of this size of the bounding box.
 
-With `cv_create_context` a drawing context `con_layout` is constructed and alle the layout position.
+With [`cv_create_context`](./Style.md#user-content-cv_create_context) a drawing context `con_layout` is constructed and alle the layout position.
 
 Now all layout positions can be called with such a context to draw/show their visualization inside the layout canvas.
 

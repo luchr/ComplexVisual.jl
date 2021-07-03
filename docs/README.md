@@ -1,5 +1,6 @@
 # Overview
 
+  * Style
   * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
   * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
@@ -11,10 +12,17 @@
 
   * [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)
 
+## B
+
+  * [`cv_black`](./Style.md#user-content-cv_black)
+
 ## C
 
+  * [`cv_color`](./Style.md#user-content-cv_color)
+  * [`CV_CombiContextStyle`](./Style.md#user-content-cv_combicontextstyle)
   * [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)
   * [`cv_create_2daxis_canvas`](./Axis.md#user-content-cv_create_2daxis_canvas)
+  * [`cv_create_context`](./Style.md#user-content-cv_create_context)
 
 ## D
 
@@ -32,6 +40,7 @@
 ## L
 
   * [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)
+  * [`cv_linewidth`](./Style.md#user-content-cv_linewidth)
 
 ## M
 
@@ -64,12 +73,13 @@
 
 ## W
 
+  * [`cv_white`](./Style.md#user-content-cv_white)
   * [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)
 
 ## …
 
-  * [`→`](./Painter.md#user-content--u2192)
-  * `↦` ([`Axis`](./Axis.md#user-content--u21a6), [`Painter`](./Painter.md#user-content--u21a6))
+  * `→` ([`Painter`](./Painter.md#user-content--u2192), [`Style`](./Style.md#user-content--u2192))
+  * `↦` ([`Painter`](./Painter.md#user-content--u21a6), [`Axis`](./Axis.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 

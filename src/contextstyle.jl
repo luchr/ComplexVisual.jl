@@ -33,7 +33,16 @@ show(io::IO, s::CV_ContextStyle) = cv_show_impl(io, s)
 
 
 """
-create_context, execute do_func and destroy context afterwards.
+```
+cv_create_context(do_func, canvas, [style=nothing]; prepare=true)
+    do_func       Function
+    canvas        CV_Canvas
+    style         Union{Nothing, CV_ContextStyle}
+    prepare       Bool
+```
+
+call `cv_create_context` for `canvas`, execute `do_func` and destroy
+the context afterwards.
 """
 function cv_create_context(do_func::Function, canvas::CV_Canvas,
                            style::Union{Nothing, CV_ContextStyle}=nothing;
@@ -51,6 +60,15 @@ function cv_create_context(do_func::Function, canvas::CV_Canvas,
 end
 
 
+"""
+```
+CV_CombiContextStyle{T, S} <: CV_ContextStyle
+    style1     T <: CV_ContextStyle
+    style2     S <: CV_ContextStyle
+```
+
+combines to styles to a new style.
+"""
 struct CV_CombiContextStyle{T<:CV_ContextStyle,
                             S<:CV_ContextStyle} <: CV_ContextStyle # {{{
     style1 :: T
@@ -67,38 +85,81 @@ function cv_prepare(con::CV_Context, cstyle::CV_CombiContextStyle{T,S}) where {T
 end
 
 
+"""
+`→(style1, style2) = CV_CombiContextStyle(style1, style2)`
+"""
 function →(style1::T, style2::S) where {T<:CV_ContextStyle, S<:CV_ContextStyle}
   return CV_CombiContextStyle(style1, style2)
 end
 
 # }}}
 
+"""
+```
+CV_ContextColorStyle <: CV_CanvasContextStyle 
+    red       Float64
+    green     Float64
+    blue      Float64
+    alpha     Float64
+```
+
+sets stroke and fill to constant red, green, blue color (with alpha-value).
+"""
 struct CV_ContextColorStyle <: CV_CanvasContextStyle  # {{{
     red   :: Float64
     green :: Float64
     blue  :: Float64
     alpha :: Float64
 end
-cv_color(red::Real, green::Real, blue::Real, alpha::Real) =
+
+"""
+```
+cv_color(red, green, blue[, alpha=1.0])
+    red     Real
+    green   Real
+    blue    Real
+    alpha   Real
+```
+"""
+cv_color(red::Real, green::Real, blue::Real, alpha::Real=1.0) =
     CV_ContextColorStyle(
         convert(Float64, red),
         convert(Float64, green),
         convert(Float64, blue),
         convert(Float64, alpha))
-cv_color(red::Real, green::Real, blue::Real) = cv_color(red, green, blue, 1.0)
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextColorStyle)
     set_source_rgba(cc.ctx, style.red, style.green, style.blue, style.alpha)
     return nothing
 end 
 
+"""
+`cv_black`: black color
+"""
 const cv_black = cv_color(0, 0, 0)
+
+"""
+`cv_white`: white color
+"""
 const cv_white = cv_color(1, 1, 1)
 
 # }}}
 
+"""
+```
+CV_ContextLineWidthStyle <: CV_CanvasContextStyle
+    width     Float64
+```
+"""
 struct CV_ContextLineWidthStyle <: CV_CanvasContextStyle # {{{
     width :: Float64
 end
+
+"""
+`cv_linewidth(width) = CV_ContextLineWidthStyle(Float64(width))`
+
+set line width.
+"""
 cv_linewidth(width::Real) = CV_ContextLineWidthStyle(Float64(width))
 
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextLineWidthStyle)
