@@ -9,7 +9,7 @@ import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
         Document, substitute_marker_in_markdown, create_doc_icon, append_md
 
 """
-# Style
+# [![./Style_docion.png]({image_from_canvas: get_doc_icon()}) Style](./Style.md)
 
 Styles are used to govern the appearance of painting and drawing actions.
 They are used to "bundle" typical (Cairo-context) changes in order to make
@@ -17,10 +17,14 @@ them reusable.
 
 ## Quick links
 
-`cv_color`   `cv_linewidth`
-`CV_CombiContextStyle`   
-`→:Tuple{T, S} where {T<:CV_ContextStyle, S<:CV_ContextStyle}`
-`cv_create_context:Tuple{Function, CV_Canvas, Union{Nothing, CV_ContextStyle}}`
+* `cv_color` (`cv_black`  `cv_white`)
+* `cv_linewidth`
+* `cv_antialias` (`cv_antialias_best`  `cv_antialias_none`)
+* `cv_opmode` (`cv_op_source`  `cv_op_over`)
+* `cv_fillstyle` (`cv_fill_winding`  `cv_fill_even_odd`)
+* `cv_fontface`  `cv_fontsize`
+* `CV_CombiContextStyle`   `→:Tuple{T, S} where {T<:CV_ContextStyle, S<:CV_ContextStyle}`
+* `cv_create_context:Tuple{Function, CV_Canvas, Union{Nothing, CV_ContextStyle}}`
 
 """
 style_intro() = nothing
@@ -51,13 +55,74 @@ help_color() = nothing
 """
 help_linewidth() = nothing
 
+"""
+## `doc: cv_antialias`
+
+## `doc: cv_antialias_best`
+
+## `doc: cv_antialias_none`
+"""
+help_antialias() = nothing
+
+"""
+## `doc: cv_operatormode`
+
+## `doc: cv_opmode`
+
+## `doc: cv_op_source`
+
+## `doc: cv_op_over`
+"""
+help_operator() = nothing
+
+"""
+## `doc: cv_fillstyle`
+
+## `doc: cv_fill_winding`
+
+## `doc: cv_fill_even_odd`
+"""
+help_fillstyle() = nothing
+
+"""
+## `doc: cv_fontface`
+
+## `doc: cv_fontsize`
+"""
+help_font() = nothing
+
+"""
+## `doc: CV_MathCoorStyle`
+"""
+help_coor_style() = nothing
+
+function get_doc_icon()
+    layout = CV_2DLayout()
+    can = cv_filled_canvas(220, 220, cv_color(0, 0, 0.4))
+
+    can_l = cv_add_canvas!(layout, can, cv_anchor(can, :center), (0, 0))
+
+    stext = cv_text("Style", cv_white → cv_fontface("serif") → cv_fontsize(60))
+    ptext = cv_add_canvas!(layout, stext, cv_anchor(stext, :center), (0, 0))
+
+    can_layout = cv_canvas_for_layout(layout)
+    cv_create_context(can_layout) do con_layout
+        can_l(con_layout)
+        ptext(con_layout)
+    end
+
+    icon = create_doc_icon(can_layout)
+    return icon
+end
+
 function create_document(doc_env::DocCreationEnvironment)
     doc_source = DocSource("Style", @__MODULE__)
     context = DocContext(doc_env, doc_source)
 
     md = Markdown.MD()
     for part in (style_intro, help_create_context, help_combi_style,
-            help_color, help_linewidth)
+            help_color, help_linewidth, help_antialias, help_operator,
+            help_fillstyle, help_font, help_coor_style)
         part_md = Base.Docs.doc(part)
         substitute_marker_in_markdown(context, part_md)
 

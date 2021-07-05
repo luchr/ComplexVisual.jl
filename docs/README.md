@@ -1,6 +1,6 @@
 # Overview
 
-  * Style
+  * [![./Style_docion.png](./Style_docion.png) Style](./Style.md)
   * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
   * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
@@ -10,6 +10,9 @@
 
 ## A
 
+  * [`cv_antialias`](./Style.md#user-content-cv_antialias)
+  * [`cv_antialias_best`](./Style.md#user-content-cv_antialias_best)
+  * [`cv_antialias_none`](./Style.md#user-content-cv_antialias_none)
   * [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)
 
 ## B
@@ -30,7 +33,12 @@
 
 ## F
 
+  * [`cv_fill_even_odd`](./Style.md#user-content-cv_fill_even_odd)
+  * [`cv_fill_winding`](./Style.md#user-content-cv_fill_winding)
   * [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)
+  * [`cv_fillstyle`](./Style.md#user-content-cv_fillstyle)
+  * [`cv_fontface`](./Style.md#user-content-cv_fontface)
+  * [`cv_fontsize`](./Style.md#user-content-cv_fontsize)
   * [`cv_format_ticks`](./Axis.md#user-content-cv_format_ticks)
 
 ## G
@@ -45,6 +53,14 @@
 ## M
 
   * [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter)
+  * [`CV_MathCoorStyle`](./Style.md#user-content-cv_mathcoorstyle)
+
+## O
+
+  * [`cv_op_over`](./Style.md#user-content-cv_op_over)
+  * [`cv_op_source`](./Style.md#user-content-cv_op_source)
+  * [`cv_operatormode`](./Style.md#user-content-cv_operatormode)
+  * [`cv_opmode`](./Style.md#user-content-cv_opmode)
 
 ## P
 
@@ -78,7 +94,7 @@
 
 ## …
 
-  * `→` ([`Painter`](./Painter.md#user-content--u2192), [`Style`](./Style.md#user-content--u2192))
+  * `→` ([`Style`](./Style.md#user-content--u2192), [`Painter`](./Painter.md#user-content--u2192))
   * `↦` ([`Painter`](./Painter.md#user-content--u21a6), [`Axis`](./Axis.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 

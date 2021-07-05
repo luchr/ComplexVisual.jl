@@ -9,7 +9,8 @@ macro import_contextstyle_huge()
             cv_antialias_best, cv_antialias_none,
             CV_ContextOperatorStyle, cv_operatormode, cv_opmode,
             cv_op_source, cv_op_over,
-            CV_ContextFillStyle, cv_fillstyle, 
+            CV_ContextFillStyle,
+            cv_fillstyle, cv_fill_winding, cv_fill_even_odd,
             CV_ContextFontFaceStyle, cv_fontface,
             CV_ContextFontSize, cv_fontsize,
             CV_MathCoorStyle
@@ -168,26 +169,72 @@ function cv_prepare(cc::CV_CanvasContext, style::CV_ContextLineWidthStyle)
 end
 # }}}
 
+
+"""
+```
+CV_ContextAntialiasStyle{T} <: CV_CanvasContextStyle
+    antialias      T <: Integer
+```
+"""
 struct CV_ContextAntialiasStyle{T<:Integer} <: CV_CanvasContextStyle # {{{
     antialias :: T
 end
+
+"""
+`cv_antialias(antialias) = CV_ContextAntialiasStyle(antialias)`
+
+set [Cairo's type of antialiasing](https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-antialias-t).
+"""
 cv_antialias(antialias) = CV_ContextAntialiasStyle(antialias)
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextAntialiasStyle)
     set_antialias(cc.ctx, style.antialias)
     return nothing
 end
 
+"""
+`cv_antialias_best`: antialiasing type: best
+"""
 const cv_antialias_best = cv_antialias(Cairo.ANTIALIAS_BEST)
+
+"""
+`cv_antialias_none`: antialiasing type: none
+"""
 const cv_antialias_none = cv_antialias(Cairo.ANTIALIAS_NONE)
 # }}}
 
+"""
+```
+CV_ContextOperatorStyle{T} <: CV_CanvasContextStyle
+    opmode         T <:Integer
+```
+"""
 struct CV_ContextOperatorStyle{T<:Integer} <: CV_CanvasContextStyle # {{{
     opmode :: T
 end
+
+"""
+`cv_operatormode(mode) = CV_ContextOperatorStyle(mode)`
+
+set [Cairo's compositing operator](https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-operator-t).
+"""
 cv_operatormode(mode::Integer) = CV_ContextOperatorStyle(mode)
+
+"""
+`cv_opmode(mode) = CV_ContextOperatorStyle(mode)`
+
+set [Cairo's compositing operator](https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-operator-t).
+"""
 cv_opmode(mode::Integer) = CV_ContextOperatorStyle(mode)
 
+"""
+`cv_op_source`: compositing operator: replace destination with source.
+"""
 const cv_op_source = CV_ContextOperatorStyle(Cairo.OPERATOR_SOURCE)
+
+"""
+`cv_op_over`: compositing operator: draw source on top of destination.
+"""
 const cv_op_over = CV_ContextOperatorStyle(Cairo.OPERATOR_OVER)
 
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextOperatorStyle)
@@ -196,47 +243,115 @@ function cv_prepare(cc::CV_CanvasContext, style::CV_ContextOperatorStyle)
 end
 # }}}
 
+"""
+```
+CV_ContextFillStyle <: CV_CanvasContextStyle
+    fillstyle        T <:Integer
+```
+"""
 struct CV_ContextFillStyle{T<:Integer} <: CV_CanvasContextStyle   # {{{
     fillstyle :: T
 end
+
+"""
+`cv_fillstyle(style) = CV_ContextFillStyle(style)`
+
+set [Cairo's fill rule](https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-fill-rule-t).
+"""
 cv_fillstyle(style) = CV_ContextFillStyle(style)
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextFillStyle)
     set_fill_type(cc.ctx, style.fillstyle)
   return nothing
 end 
+
+"""
+`cv_fill_winding`: fill components with non-zero winding number.
+"""
+const cv_fill_winding = CV_ContextFillStyle(Cairo.CAIRO_FILL_RULE_WINDING)
+
+"""
+`cv_fill_even_odd`: fill components with odd winding number.
+"""
+const cv_fill_even_odd = CV_ContextFillStyle(Cairo.CAIRO_FILL_RULE_EVEN_ODD)
 # }}}
 
+"""
+```
+CV_ContextFontFaceStyle{sT, wT} <: CV_CanvasContextStyle
+    name         AbstractString
+    slant        sT <: Integer
+    weight       wT <: Integer
+```
+"""
 struct CV_ContextFontFaceStyle{sT<:Integer,
                                wT<:Integer} <: CV_CanvasContextStyle # {{{
     name   :: AbstractString
     slant  :: sT
     weight :: wT
 end
+
+"""
+`cv_fontface(name, slant, weight)`
+
+select font depending on name, slant and weight.
+"""
 cv_fontface(name::AbstractString, slant::sT,
             weight::wT) where {sT<:Integer, wT<:Integer} =
     CV_ContextFontFaceStyle(name, slant, weight)
-cv_fontface(name::AbstractString, weight::wT) where {wT<:Integer} =
-    cv_fontface(name, Cairo.FONT_SLANT_NORMAL, weight)
-cv_fontface(name::AbstractString) = cv_fontface(name, Cairo.FONT_WEIGHT_NORMAL)
+
+"""
+`cv_fontface(name, [weight=Cairo.FONT_WEIGHT_NORMAL])`
+
+select font depending on name and weight with normal slant.
+"""
+function cv_fontface(name::AbstractString,
+                     weight::wT=Cairo.FONT_WEIGHT_NORMAL) where {wT<:Integer}
+    return cv_fontface(name, Cairo.FONT_SLANT_NORMAL, weight)
+end
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextFontFaceStyle)
     select_font_face(cc.ctx, style.name, style.slant, style.weight)
     return nothing
 end
 # }}}
 
+"""
+```
+CV_ContextFontSize{T} <: CV_CanvasContextStyle
+    size         T <: Real
+```
+"""
 struct CV_ContextFontSize{T<:Real} <: CV_CanvasContextStyle # {{{
     size    :: T
 end
+
+"""
+`cv_fontsize(size) = CV_ContextFontSize(size)`
+
+set font size/scale.
+"""
 cv_fontsize(size::T) where {T<:Real} = CV_ContextFontSize(size)
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_ContextFontSize)
     set_font_size(cc.ctx, style.size)
     return nothing
 end
 # }}}
 
+"""
+```
+CV_MathCoorStyle <: CV_CanvasContextStyle
+    canvas        CV_Math2DCanvas
+```
+
+Style used to change Cairo's user coordinates sucht that they represent
+the mathematical coordinates.
+"""
 struct CV_MathCoorStyle <: CV_CanvasContextStyle  # {{{
     canvas :: CV_Math2DCanvas
 end
+
 function cv_prepare(cc::CV_CanvasContext, style::CV_MathCoorStyle)
     canvas = style.canvas
     ctx = cc.ctx
