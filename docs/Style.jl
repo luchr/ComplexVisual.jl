@@ -135,11 +135,27 @@ help_coor_style() = nothing
 
 function get_doc_icon()
     layout = CV_2DLayout()
-    can = cv_filled_canvas(220, 220, cv_color(0, 0, 0.4))
 
-    can_l = cv_add_canvas!(layout, can, cv_anchor(can, :center), (0, 0))
+    math_can = CV_Math2DCanvas(0.0 + 1.0im, 1.0 + 0.0im, 70)
 
-    stext = cv_text("Style", cv_white → cv_fontface("serif") → cv_fontsize(60))
+    bg_painter = cv_white ↦ CV_FillPainter()
+    line_painters = Vector{CV_StyledPainter}()
+    for x in -0.5:0.2:0.9
+        line_segs = [ [x+0.0im, x+0.5+1.0im ] ]
+        style = cv_color(0.3, 0.3, min(0.2+0.5+x, 1.0)) → cv_linewidth(round( 5*(x+1.0) ))
+        push!(line_painters, style ↦ CV_LinePainter(line_segs))
+    end
+
+    cv_create_context(math_can) do canvas_context
+        cv_paint(canvas_context, bg_painter)
+        for lp in line_painters
+            cv_paint(canvas_context, lp)
+        end
+    end
+
+    can_l = cv_add_canvas!(layout, math_can, cv_anchor(math_can, :center), (0, 0))
+
+    stext = cv_text("Style", cv_black → cv_fontface("serif") → cv_fontsize(25))
     ptext = cv_add_canvas!(layout, stext, cv_anchor(stext, :center), (0, 0))
 
     can_layout = cv_canvas_for_layout(layout)
