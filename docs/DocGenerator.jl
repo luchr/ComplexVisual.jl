@@ -946,6 +946,7 @@ end
 
 
 for filename in (
+    "./Context.jl",
     "./Style.jl", "./Painter.jl",
     "./PixelCoordinates.jl", "./LayoutTutorial.jl", "./Axis.jl")
     push!(doc_modules, include(filename))

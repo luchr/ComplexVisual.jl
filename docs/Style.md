@@ -35,6 +35,12 @@ Styles can be attached to painters with [`↦`](./Painter.md#user-content--u21a6
 cv_color(0.7, 0.4, 0.4) ↦ CV_FillPainter()
 ```
 
+Use parenthesis to combine more styles and attach them to a painter (parens are needed because arrows are right-associative):
+
+```
+( cv_black → cv_linewidth(2) )  ↦ CV_LinePainter(...)
+```
+
 ## `CV_ContextStyle`
 
 [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle): a style that has inpact on the following painting operations.
