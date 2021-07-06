@@ -11,9 +11,10 @@ import Main.DocGenerator: DocSource, DocCreationEnvironment, DocContext,
 """
 # [![./Style_docion.png]({image_from_canvas: get_doc_icon()}) Style](./Style.md)
 
-Styles are used to govern the appearance of painting and drawing actions.
-They are used to "bundle" typical (Cairo-context) changes in order to make
-them reusable.
+Styles (i.e. subtypes of `CV_ContextStyle`) are used to govern the appearance
+of painting and drawing actions. They are used to "bundle" typical
+(Cairo-context) changes in order to make them reusable and easily combinable
+(with `→:Tuple{T, S} where {T<:CV_ContextStyle, S<:CV_ContextStyle}`).
 
 ## Quick links
 
@@ -25,6 +26,42 @@ them reusable.
 * `cv_fontface`  `cv_fontsize`
 * `CV_CombiContextStyle`   `→:Tuple{T, S} where {T<:CV_ContextStyle, S<:CV_ContextStyle}`
 * `cv_create_context:Tuple{Function, CV_Canvas, Union{Nothing, CV_ContextStyle}}`
+
+## How styles work
+
+Before the painting and/or drawing operation(s) the function `cv_prepare` for
+subtypes of `CV_ContextStyle` is called:
+
+```
+cv_prepare(context::C, style::S)
+    context     C <: CV_Context          (often C <: CV_CanvasContext)
+    style       S <: CV_ContextStyle     (often S <: CV_CanvasContextStyle)
+```
+
+Several styles can be combined
+(with `→:Tuple{T, S} where {T<:CV_ContextStyle, S<:CV_ContextStyle}`) to
+a single style:
+
+```
+new_style = cv_black → cv_linewidth(3) → cv_antialias_best
+```
+
+Styles can be attached to painters with `↦:Tuple{CV_ContextStyle, CV_Painter}`:
+
+```
+cv_color(0.7, 0.4, 0.4) ↦ CV_FillPainter()
+```
+
+Use parenthesis to combine more styles and attach them to a painter
+(parens are needed because arrows are right-associative):
+
+```
+( cv_black → cv_linewidth(2) )  ↦ CV_LinePainter(...)
+```
+
+## `doc: CV_ContextStyle`
+
+## `doc: CV_CanvasContextStyle`
 
 """
 style_intro() = nothing

@@ -28,6 +28,24 @@ appearance (color, font, line width, etc.) of the painting operations.
 | ![./Painter_windingpainter_icon.png]({image_from_canvas: create_icon(example_winding_painter())}) `CV_WindingPainter`           |                       | `CV_StyledPainter`, `↦:Tuple{CV_ContextStyle, CV_Painter}`    |
 
 construction of line segments: `cv_parallel_lines`  `cv_arc_lines`  `cv_star_lines`
+
+## How painters work
+
+For the  painting operation of a subtype of `CV_Painter` the function
+`cv_paint` is called:
+
+```
+cv_paint(context::C, painter::P)
+    context     C  <: CV_Context    (often C <: CV_2DCanvasContext)
+    painter     P  <: CV_Painter    (often P <: CV_2DCanvasPainter)
+```
+
+## `doc: CV_Painter`
+
+## `doc: CV_CanvasPainter`
+
+## `doc: CV_2DCanvasPainter`
+
 """
 painter_intro() = nothing
 

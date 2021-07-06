@@ -20,8 +20,7 @@ end
 import Base:show
 
 """
-`CV_ContextStyle`: such a style has inpact on the following painting
-operators.
+`CV_ContextStyle`: a style that has inpact on the following painting operations.
 """
 abstract type CV_ContextStyle end
 

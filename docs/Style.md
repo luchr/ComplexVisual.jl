@@ -1,6 +1,6 @@
 # [![./Style_docion.png](./Style_docion.png) Style](./Style.md)
 
-Styles are used to govern the appearance of painting and drawing actions. They are used to "bundle" typical (Cairo-context) changes in order to make them reusable.
+Styles (i.e. subtypes of [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle)) are used to govern the appearance of painting and drawing actions. They are used to "bundle" typical (Cairo-context) changes in order to make them reusable and easily combinable (with [`→`](./Style.md#user-content--u2192)).
 
 ## Quick links
 
@@ -12,6 +12,36 @@ Styles are used to govern the appearance of painting and drawing actions. They a
   * [`cv_fontface`](./Style.md#user-content-cv_fontface)  [`cv_fontsize`](./Style.md#user-content-cv_fontsize)
   * [`CV_CombiContextStyle`](./Style.md#user-content-cv_combicontextstyle)   [`→`](./Style.md#user-content--u2192)
   * [`cv_create_context`](./Style.md#user-content-cv_create_context)
+
+## How styles work
+
+Before the painting and/or drawing operation(s) the function `cv_prepare` for subtypes of [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) is called:
+
+```
+cv_prepare(context::C, style::S)
+    context     C <: CV_Context          (often C <: CV_CanvasContext)
+    style       S <: CV_ContextStyle     (often S <: CV_CanvasContextStyle)
+```
+
+Several styles can be combined (with [`→`](./Style.md#user-content--u2192)) to a single style:
+
+```
+new_style = cv_black → cv_linewidth(3) → cv_antialias_best
+```
+
+Styles can be attached to painters with [`↦`](./Painter.md#user-content--u21a6):
+
+```
+cv_color(0.7, 0.4, 0.4) ↦ CV_FillPainter()
+```
+
+## `CV_ContextStyle`
+
+[`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle): a style that has inpact on the following painting operations.
+
+## `CV_CanvasContextStyle`
+
+[`CV_CanvasContextStyle`](./Style.md#user-content-cv_canvascontextstyle): a [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) for canvases.
 
 ## `cv_create_context`
 
