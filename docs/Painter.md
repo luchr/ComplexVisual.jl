@@ -2,7 +2,7 @@
 
 Painters have the ability to "draw"/"paint" something inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
 
-Typically a `CV_ContextStyle` is "attached" to a painter (via [`↦`](./Painter.md#user-content--u21a6) or [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)) to govern the appearance (color, font, line width, etc.) of the painting operations.
+Typically a [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) is "attached" to a painter (via [`↦`](./Painter.md#user-content--u21a6) or [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)) to govern the appearance (color, font, line width, etc.) of the painting operations.
 
 ## Quick links
 
@@ -14,6 +14,28 @@ Typically a `CV_ContextStyle` is "attached" to a painter (via [`↦`](./Painter.
 | ![./Painter_windingpainter_icon.png](./Painter_windingpainter_icon.png) [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)               |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter), [`↦`](./Painter.md#user-content--u21a6)                                |
 
 construction of line segments: [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)  [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)  [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
+
+## How painters work
+
+For the  painting operation of a subtype of [`CV_Painter`](./Painter.md#user-content-cv_painter) the function `cv_paint` is called:
+
+```
+cv_paint(context::C, painter::P)
+    context     C  <: CV_Context    (often C <: CV_2DCanvasContext)
+    painter     P  <: CV_Painter    (often P <: CV_2DCanvasPainter)
+```
+
+## `CV_Painter`
+
+[`CV_Painter`](./Painter.md#user-content-cv_painter): Instances of this type can paint inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
+
+## `CV_CanvasPainter`
+
+[`CV_CanvasPainter`](./Painter.md#user-content-cv_canvaspainter): Instances of this type can paint inside canvases with math coordinate systems (e.g. `CV_Math2DCanvas`).
+
+## `CV_2DCanvasPainter`
+
+[`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter): Instances of this type can paint inside 2D canvases with math coordinate systems (e.g. `CV_Math2DCanvas`).
 
 ## The `trafo` (or `dst_trafo`) argument
 
@@ -67,7 +89,7 @@ CV_FillPainter <: CV_2DCanvasPainter
 
 A painter filling the complete canvas.
 
-A `CV_ContextStyle` is typically used to govern the appearance of the filling operation.
+A [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) is typically used to govern the appearance of the filling operation.
 
 ## Example for `CV_FillPainter`
 
