@@ -59,7 +59,7 @@ cv_create_context(do_func, canvas, [style=nothing]; prepare=true)
     prepare       Bool
 ```
 
-call [`cv_create_context`](./Style.md#user-content-cv_create_context) for `canvas`, execute `do_func` and destroy the context afterwards.
+call `cv_create_context` ([`Style`](./Style.md#user-content-cv_create_context), [`Context`](./Context.md#user-content-cv_create_context)) ([`Style`](./Style.md#user-content-cv_create_context), [`Context`](./Context.md#user-content-cv_create_context)) for `canvas`, execute `do_func` and destroy the context afterwards.
 
 ## `CV_CombiContextStyle`
 

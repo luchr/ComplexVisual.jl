@@ -67,7 +67,7 @@ All these layout positions are callable (they are callable structs). What happen
 
 With `cv_canvas_for_layout` the smallest bounding box of all positioned objects (in the example there is only the `first_object`) is used to contruct a canvas of this size of the bounding box.
 
-With [`cv_create_context`](./Style.md#user-content-cv_create_context) a drawing context `con_layout` is constructed and alle the layout position.
+With `cv_create_context` ([`Style`](./Style.md#user-content-cv_create_context), [`Context`](./Context.md#user-content-cv_create_context)) a drawing context `con_layout` is constructed and alle the layout position.
 
 Now all layout positions can be called with such a context to draw/show their visualization inside the layout canvas.
 
@@ -165,7 +165,7 @@ which generates the following layout:
 
 ![./LayoutTutorial_anchorsaxis.png](./LayoutTutorial_anchorsaxis.png)
 
-Here a `CV_Math2DCanvas` is used to have an canvas with a mathematical coordinate system (inside) [in order to make this canvas visibile it is filled with blue].
+Here a [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas) is used to have an canvas with a mathematical coordinate system (inside) [in order to make this canvas visibile it is filled with blue].
 
 The background of the axis at the south is filled (on purpose) with gray to see that the north-west corner of this axis is not the place where the first axis tick is located (that's because the tick label "left" below the first tick needs to be rendered and needs some horizontal space to the left). Every axis has an anchor with `:default` which is the location/position of the first tick. That's why put the position `:default` of the axis at the south-west corner of the math canvas.
 

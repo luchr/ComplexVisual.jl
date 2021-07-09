@@ -9,7 +9,29 @@ end
 
 import Base:show
 
+"""
+`CV_Canvas`: something where you can draw and paint.
+"""
 abstract type CV_Canvas  end
+
+"""
+```
+CV_2DCanvas <: CV_Canvas
+    # required fields:
+    # surface       (CairoSurface)
+    # pixel_width   (convert(Int32, surface.width))
+    # pixel_height  (convert(Int32, surface.height))
+    # bounding_box  (CV_Rectangle{Int32})  bottom=0, left=0 (i.e. zero-based)
+```
+
+a thin wrapper around a `CairoSurface` (where `pixel_width` and `pixel_height`
+are `Int32`, instead of `Floats`) for twodimensional painting and drawing
+operations.
+
+There are canvases with "only" pixel coorindates (like `CV_Std2DCanvas`)
+and there are canvases which also have a mathematical coordinate
+system (like `CV_Math2DCanvas`).
+"""
 abstract type CV_2DCanvas <: CV_Canvas    # {{{
     # required fields:
     # surface       (CairoSurface)
@@ -32,6 +54,12 @@ function cv_anchor(can::CV_2DCanvas, anchor_name::Symbol)
 end
 
 """
+```
+cv_create_context(canvas; prepare=true)
+    canvas    CV_2DCanvas
+    prepare   Bool
+```
+
 Create Context for 2DCanvas. If `prepare` is `true` then
 (depending on the concrete CV_2DCanvas subtype) special preperations
 or initializations for the context are done.
@@ -43,6 +71,11 @@ end
 # }}}
 
 """
+```
+cv_create_cairo_image_surface(width, height)
+    width     Integer
+    height    Integer
+```
 Use ARGB32 image surface with pixel matrix stored in julia.
 """
 function cv_create_cairo_image_surface(width::Integer, height::Integer)
@@ -51,6 +84,17 @@ function cv_create_cairo_image_surface(width::Integer, height::Integer)
         Cairo.FORMAT_ARGB32; flipxy=false)
 end
 
+"""
+```
+CV_Std2DCanvas <: CV_2DCanvas 
+    surface          Cairo.CairoSurfaceImage{UInt32}
+    pixel_width      Int32
+    pixel_height     Int32
+    bounding_box     CV_Rectangle{Int32}
+```
+
+A twodimensional canvas with a `CairoSurfaceImage` (ARGB32 format).
+"""
 struct CV_Std2DCanvas <: CV_2DCanvas  # {{{
     surface      :: Cairo.CairoSurfaceImage{UInt32}
     pixel_width  :: Int32
@@ -68,6 +112,24 @@ struct CV_Std2DCanvas <: CV_2DCanvas  # {{{
     end
 end # }}}
 
+"""
+```
+CV_Math2DCanvas <: CV_2DCanvas
+    corner_ul       Complex{Float64}  # (math.) coordinates of upper left corner
+    corner_lr       Complex{Float64}  # (math.) coordinates of lower right corner
+    resolution      Float64           # Pixels per (math.) unit
+    surface         Cairo.CairoSurfaceImage{UInt32}
+    pixel_width     Int32
+    pixel_height    Int32
+    bounding_box    CV_Rectangle{Int32}
+```
+
+A twodimensional canvas with a `CairoSurfaceImage` (ARGB32 format) where
+the user coordinates represent a mathmatical coordinate system.
+With the two methods `cv_math2pixel` and `cv_pixel2math` one can
+transform math coordinates to pixel coordinates and vice versa.
+See also: `CV_MathCoorStyle`.
+"""
 struct CV_Math2DCanvas <: CV_2DCanvas # {{{
     corner_ul    :: Complex{Float64}; # (math.) coordinates of upper left corner
     corner_lr    :: Complex{Float64}; # (math.) coordinates of lower right corner
@@ -144,6 +206,16 @@ end
 show(io::IO, m::MIME{Symbol("text/plain")}, canvas::CV_Math2DCanvas) =
     show(io, canvas)
 
+"""
+```
+cv_math2pixel(canvas, mx, my) :: Tuple{Int32, Int32}
+    canvas      CV_Math2DCanvas
+    mx          Float64
+    my          Float64
+```
+
+convert math coordinates `(mx, my)` to pixel coordinates.
+"""
 function cv_math2pixel(canvas::CV_Math2DCanvas, mx::Float64, my::Float64)
     res = canvas.resolution
     return (
@@ -151,6 +223,16 @@ function cv_math2pixel(canvas::CV_Math2DCanvas, mx::Float64, my::Float64)
         round(Int32, -(my - imag(canvas.corner_ul))*res))
 end
 
+"""
+```
+cv_pixel2math(canvas, px, py::Integer) :: Tuple{Float64, Float64}
+    canvas    CV_Math2DCanvas
+    px        Integer
+    pyi       Integer
+```
+
+convert pixel coordinates `(px, py)` to math coordinates.
+"""
 function cv_pixel2math(canvas::CV_Math2DCanvas, px::Integer, py::Integer)
     res = canvas.resolution
     return (
@@ -159,9 +241,14 @@ function cv_pixel2math(canvas::CV_Math2DCanvas, px::Integer, py::Integer)
 end
 
 """
+```
+cv_create_context(canvas; prepare=true)
+    canvas       CV_Math2DCanvas
+    prepare      Bool
+```
 create context for Math2DCanvas. If `prepare` is `true` the
 the context's user coordinate system is the mathematical coordinate
-system of the Math2DCanvas.
+system of the Math2DCanvas. See also `CV_MathCoorStyle`.
 """
 function cv_create_context(canvas::CV_Math2DCanvas; prepare::Bool=true)
     con = CV_2DCanvasContext(canvas)

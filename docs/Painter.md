@@ -1,6 +1,6 @@
 # [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
 
-Painters have the ability to "draw"/"paint" something inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
+Painters have the ability to "draw"/"paint" something inside objects with math coordinate systems (e.g. [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas)).
 
 Typically a [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) is "attached" to a painter (via [`↦`](./Painter.md#user-content--u21a6) or [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)) to govern the appearance (color, font, line width, etc.) of the painting operations.
 
@@ -27,15 +27,15 @@ cv_paint(context::C, painter::P)
 
 ## `CV_Painter`
 
-[`CV_Painter`](./Painter.md#user-content-cv_painter): Instances of this type can paint inside objects with math coordinate systems (e.g. `CV_Math2DCanvas`).
+[`CV_Painter`](./Painter.md#user-content-cv_painter): Instances of this type can paint inside objects with math coordinate systems (e.g. [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas)).
 
 ## `CV_CanvasPainter`
 
-[`CV_CanvasPainter`](./Painter.md#user-content-cv_canvaspainter): Instances of this type can paint inside canvases with math coordinate systems (e.g. `CV_Math2DCanvas`).
+[`CV_CanvasPainter`](./Painter.md#user-content-cv_canvaspainter): Instances of this type can paint inside canvases with math coordinate systems (e.g. [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas)).
 
 ## `CV_2DCanvasPainter`
 
-[`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter): Instances of this type can paint inside 2D canvases with math coordinate systems (e.g. `CV_Math2DCanvas`).
+[`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter): Instances of this type can paint inside 2D canvases with math coordinate systems (e.g. [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas)).
 
 ## The `trafo` (or `dst_trafo`) argument
 

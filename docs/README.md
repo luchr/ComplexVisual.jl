@@ -1,10 +1,10 @@
 # Overview
 
+  * [![./Canvas_docicon.png](./Canvas_docicon.png) Canvas](./Canvas.md)
   * [![./Context_docicon.png](./Context_docicon.png) Context](./Context.md)
   * [![./Style_docion.png](./Style_docion.png) Style](./Style.md)
-  * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
-  * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
+  * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./Axis_docicon.png](./Axis_docicon.png) Axes](./Axis.md)
 
 # Index
@@ -22,6 +22,7 @@
 
 ## C
 
+  * [`CV_Canvas`](./Canvas.md#user-content-cv_canvas)
   * [`CV_CanvasContext`](./Context.md#user-content-cv_canvascontext)
   * [`CV_CanvasContextStyle`](./Style.md#user-content-cv_canvascontextstyle)
   * [`CV_CanvasPainter`](./Painter.md#user-content-cv_canvaspainter)
@@ -31,7 +32,7 @@
   * [`CV_Context`](./Context.md#user-content-cv_context)
   * [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle)
   * [`cv_create_2daxis_canvas`](./Axis.md#user-content-cv_create_2daxis_canvas)
-  * [`cv_create_context`](./Style.md#user-content-cv_create_context)
+  * `cv_create_context` ([`Style`](./Style.md#user-content-cv_create_context), [`Context`](./Context.md#user-content-cv_create_context))
 
 ## D
 
@@ -58,7 +59,9 @@
 
 ## M
 
+  * [`CV_Math2DCanvas`](./Canvas.md#user-content-cv_math2dcanvas)
   * [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter)
+  * [`cv_math2pixel`](./Canvas.md#user-content-cv_math2pixel)
   * [`CV_MathCoorStyle`](./Style.md#user-content-cv_mathcoorstyle)
 
 ## O
@@ -72,6 +75,7 @@
 
   * [`CV_Painter`](./Painter.md#user-content-cv_painter)
   * [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)
+  * [`cv_pixel2math`](./Canvas.md#user-content-cv_pixel2math)
   * [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)
 
 ## R
@@ -82,6 +86,7 @@
 
   * [`cv_star_arc_lines`](./Painter.md#user-content-cv_star_arc_lines)
   * [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
+  * [`CV_Std2DCanvas`](./Canvas.md#user-content-cv_std2dcanvas)
   * [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter)
 
 ## T
@@ -101,10 +106,11 @@
 
 ## …
 
+  * [`CV_2DCanvas`](./Canvas.md#user-content-cv_2dcanvas)
   * [`CV_2DCanvasContext`](./Context.md#user-content-cv_2dcanvascontext)
   * [`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter)
   * `→` ([`Painter`](./Painter.md#user-content--u2192), [`Style`](./Style.md#user-content--u2192))
-  * `↦` ([`Axis`](./Axis.md#user-content--u21a6), [`Painter`](./Painter.md#user-content--u21a6))
+  * `↦` ([`Painter`](./Painter.md#user-content--u21a6), [`Axis`](./Axis.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 
 

@@ -19,6 +19,8 @@ contexts. They are used to draw/paint (typically inside canvases).
 ## `doc: CV_CanvasContext`
 
 ## `doc: CV_2DCanvasContext`
+
+## `doc: cv_create_context`
 """
 context_intro() = nothing
 
