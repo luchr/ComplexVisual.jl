@@ -54,6 +54,13 @@ Source: [Log01.jl](./Log01.jl)
 
 Source: [Log02.jl](./Log02.jl)
 
+## Log(1+z)
+
+Truncated Taylor series at z=0 of `Log(1+z)`
+
+[![Log1pSeries.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log1pSeries.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log1pSeries.mp4?raw=true "Movie")
+
+Source: [Log1pSeries.jl](./Log1pSeries.jl)
 
 ## Axis
 
