@@ -14,13 +14,19 @@ Truncated Taylor series at z=0 of Arctan.
 
 Source: [ArctanSeries.jl](./ArctanSeries.jl)
 
-## Visualizing exp with approximation
+## Visualizing Exp with approximation
 
 Visualization of `(1 + z/n)^n`.
 
 [![Exp01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp01.mp4?raw=true "Movie")
 
 Source: [Exp01.jl](./Exp01.jl)
+
+## Exp
+
+[![Exp02.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp02.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp02.mp4?raw=true "Movie")
+
+Source: [Exp02.jl](./Exp02.jl)
 
 ## Axis
 
