@@ -70,4 +70,14 @@ cv_pixel2math(canvas, px, py::Integer) :: Tuple{Float64, Float64}
 
 convert pixel coordinates `(px, py)` to math coordinates.
 
+## `cv_save_image`
+
+```
+cv_save_image(canvas, filename)
+    canvas      CV_2DCanvas
+    filename    AbstractString
+```
+
+save content of canvas as a png image.
+
 

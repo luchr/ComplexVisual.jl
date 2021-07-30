@@ -84,6 +84,7 @@
 
 ## S
 
+  * [`cv_save_image`](./Canvas.md#user-content-cv_save_image)
   * [`cv_star_arc_lines`](./Painter.md#user-content-cv_star_arc_lines)
   * [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
   * [`CV_Std2DCanvas`](./Canvas.md#user-content-cv_std2dcanvas)
@@ -109,7 +110,7 @@
   * [`CV_2DCanvas`](./Canvas.md#user-content-cv_2dcanvas)
   * [`CV_2DCanvasContext`](./Context.md#user-content-cv_2dcanvascontext)
   * [`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter)
-  * `→` ([`Painter`](./Painter.md#user-content--u2192), [`Style`](./Style.md#user-content--u2192))
+  * `→` ([`Style`](./Style.md#user-content--u2192), [`Painter`](./Painter.md#user-content--u2192))
   * `↦` ([`Painter`](./Painter.md#user-content--u21a6), [`Axis`](./Axis.md#user-content--u21a6))
   * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
 

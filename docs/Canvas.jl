@@ -24,6 +24,8 @@ Canvases (i.e. subtypes of `CV_Canvas`) are thin wrappers for Cairo canvases.
 ## `doc: cv_math2pixel:Tuple{CV_Math2DCanvas, Float64, Float64}`
 
 ## `doc: cv_pixel2math:Tuple{CV_Math2DCanvas, Integer, Integer}`
+
+## `doc: cv_save_image`
 """
 canvas_intro() = nothing
 

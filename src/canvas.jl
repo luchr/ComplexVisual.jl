@@ -1,7 +1,7 @@
 macro import_canvas_huge()
     :(
         using ComplexVisual:
-            CV_Canvas, CV_2DCanvas, cv_create_context,
+            CV_Canvas, CV_2DCanvas, cv_create_context, cv_save_image,
             cv_destroy, CV_Std2DCanvas, CV_Math2DCanvas,
             cv_pixel2math, cv_math2pixel
     )
@@ -82,6 +82,20 @@ function cv_create_cairo_image_surface(width::Integer, height::Integer)
     return CairoImageSurface(
         zeros(UInt32, width, height),
         Cairo.FORMAT_ARGB32; flipxy=false)
+end
+
+"""
+```
+cv_save_image(canvas, filename)
+    canvas      CV_2DCanvas
+    filename    AbstractString
+```
+
+save content of canvas as a png image.
+"""
+function cv_save_image(canvas::CV_2DCanvas, filename::AbstractString)
+    write_to_png(canvas.surface, filename)
+    return nothing
 end
 
 """
