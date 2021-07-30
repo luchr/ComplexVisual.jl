@@ -1,8 +1,7 @@
-using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 function get_axis_rulers()
     label_style = cv_black → cv_fontface("sans-serif") → cv_fontsize(20)
@@ -50,7 +49,7 @@ function create_scene(trafo, can_codomain, curve_painter; padding=30) # {{{
 
     wind_painter = CV_WindingPainter(trafo, curve_painter.segments)
 
-    style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias(Cairo.ANTIALIAS_BEST)
+    style = cv_color(0,0,1) → cv_linewidth(4) → cv_antialias_best
     styled_curve_painter = style ↦ curve_painter
 
     dir_painter = CV_DirectionPainter(trafo,
@@ -100,10 +99,14 @@ curve_painter = CV_LinePainter(trafo, create_curve(), true)
 
 scene = create_scene(trafo, codomain, curve_painter)
 
-handler = cvg_visualize(scene)
-cvg_wait_for_destroy(handler.window)
+cv_save_image(cv_get_can_layout(scene), "./Winding01.png")
 
-cvg_close(handler); cv_destroy(scene)
+if CVG !== nothing
+    handler = CVG.cvg_visualize(scene)
+    CVG.cvg_wait_for_destroy(handler.window)
+
+    CVG.cvg_close(handler); CVG.cv_destroy(scene)
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
 

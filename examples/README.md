@@ -6,6 +6,12 @@
 
 Source: [zsquare_lr.jl](./zsquare_lr.jl)
 
+## Winding numbers
+
+[![Winding01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.mp4?raw=true "Movie")
+
+Source: [Winding01.jl](./Winding01.jl)
+
 ## Arctan
 
 [![Arctan.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.mp4?raw=true "Movie")
