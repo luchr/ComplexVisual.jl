@@ -48,6 +48,13 @@ Visualization of `(z^(1/n) - 1)*n`.
 
 Source: [Log01.jl](./Log01.jl)
 
+## Log
+
+[![Log02.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log02.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log02.mp4?raw=true "Movie")
+
+Source: [Log02.jl](./Log02.jl)
+
+
 ## Axis
 
 How to style ticks and axis.

@@ -1,10 +1,7 @@
-using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
-using Printf
-using InteractiveUtils
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 const fontface = cv_fontface("DejaVu Sans")
 
@@ -126,14 +123,20 @@ end
 function main()
     cut_test = cv_create_angle_cross_test(pi, 0, Inf; δ=1e-2)
 
-    scene = do_setup(get_layout(), cut_test)
+    setup = do_setup(get_layout(), cut_test)
 
-    cv_scene_lr_start(scene; z_start=1.0+0.0im, state_start=3)
+    cv_scene_lr_start(setup; z_start=1.0+0.0im, state_start=3)
 
-    handler = cvg_visualize(scene.layout)
-    cvg_wait_for_destroy(handler.window)
+    scene = setup.layout
 
-    cvg_close(handler); cv_destroy(scene.layout)
+    cv_save_image(cv_get_can_layout(scene), "./Log02.png")
+
+    if CVG !== nothing
+        handler = CVG.cvg_visualize(scene)
+        CVG.cvg_wait_for_destroy(handler.window)
+
+        CVG.cvg_close(handler); CVG.cv_destroy(scene.layout)
+    end
     return nothing
 end
 
