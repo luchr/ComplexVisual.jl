@@ -1,5 +1,11 @@
 # Examples
 
+## `z^2`
+
+[![zsquare_lr.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.mp4?raw=true "Movie")
+
+Source: [zsquare_lr.jl](./zsquare_lr.jl)
+
 ## Arctan
 
 [![Arctan.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.mp4?raw=true "Movie")
