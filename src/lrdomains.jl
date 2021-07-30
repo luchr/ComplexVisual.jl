@@ -502,7 +502,8 @@ function cv_scene_lr_std(trafo,
         axis_label_style=cv_black → 
                   cv_fontface("sans-serif", Cairo.FONT_WEIGHT_BOLD) → 
                   cv_fontsize(20), padding=30,
-        lr_painters_kwargs = Dict(:cut_test => cut_test)) # {{{
+        lr_painters_kwargs = Dict(:cut_test => cut_test),
+        lr_start_kwargs = Dict()) # {{{
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))
     layout = cv_do_lr_layout(cv_add(layout, trafo, domain, codomain), gap)
 
@@ -512,7 +513,7 @@ function cv_scene_lr_std(trafo,
     setup = cv_setup_lr_border(setup)
     padding > 0 && cv_add_padding!(setup.layout, padding)
     setup = cv_setup_domain_codomain_scene(setup)
-    cv_scene_lr_start(setup)
+    cv_scene_lr_start(setup; lr_start_kwargs...)
     return setup.layout
 end # }}}
 
