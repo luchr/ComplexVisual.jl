@@ -28,6 +28,16 @@ Source: [Exp01.jl](./Exp01.jl)
 
 Source: [Exp02.jl](./Exp02.jl)
 
+## Rescaled truncated Exp-Series
+
+Visualizing `exp(z*n)` vs. truncated series of `exp(z*n)` with n terms.
+
+![n=1](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_001.png)
+![n=10](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_010.png)
+
+![n=30](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_030.png)
+![n=80](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_080.png)
+
 ## Axis
 
 How to style ticks and axis.
