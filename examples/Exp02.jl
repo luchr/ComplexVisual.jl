@@ -1,8 +1,8 @@
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 const fontface = cv_fontface("sans-serif")
 
@@ -24,7 +24,7 @@ function create_scene(trafo,
     setup = cv_setup_lr_border(setup)
     padding > 0 && cv_add_padding!(setup.layout, padding)
     setup = cv_setup_domain_codomain_scene(setup)
-    cv_scene_lr_start(setup)
+    cv_scene_lr_start(setup; state_start=2)
     return setup.layout
 end
 
@@ -34,9 +34,13 @@ codomain = CV_Math2DCanvas(-4.0 + 4.0im, 4.0 - 4.0im, 50)
 
 scene = create_scene(trafo, domain, codomain)
 
-handler = cvg_visualize(scene)
-cvg_wait_for_destroy(handler.window)
+cv_save_image(cv_get_can_layout(scene), "./Exp02.png")
 
-cvg_close(handler); cv_destroy(scene)
+if CVG !== nothing
+    handler = CVG.cvg_visualize(scene)
+    CVG.cvg_wait_for_destroy(handler.window)
+
+    CVG.cvg_close(handler); CVG.cv_destroy(scene)
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

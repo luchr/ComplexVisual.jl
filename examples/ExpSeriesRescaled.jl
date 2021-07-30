@@ -1,8 +1,6 @@
 using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
 
 using Printf
 
@@ -100,21 +98,14 @@ function show_comparison(n, save=false)
         painter2=CV_PortraitPainter(trafo2) → curve)
     cv_get_redraw_func(scene)()
 
-    if save
-        write_to_png(cv_get_can_layout(scene).surface,
-            @sprintf("ExpSeriesRescaled_%03i.png", n))
-    else
-        handler = cvg_visualize(scene)
-        cvg_wait_for_destroy(handler.window)
-
-        cvg_close(handler);
-    end
+    cv_save_image(cv_get_can_layout(scene),
+        @sprintf("ExpSeriesRescaled_%03i.png", n))
     cv_destroy(scene)
 end
 
 for n in (1, 5, 10, 30, 60, 80, 100)
     println("n = ", n)
-    show_comparison(n, true)
+    show_comparison(n)
 end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

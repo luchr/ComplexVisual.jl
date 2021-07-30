@@ -1,8 +1,7 @@
-using Cairo
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 const fontface = cv_fontface("DejaVu Sans")
 
@@ -146,7 +145,7 @@ function create_scene(trafo,
 end # }}}
 
 slider_pos = CV_TranslateByOffset(Float64)
-slider_pos.value = 1.0
+slider_pos.value = 1.2
 
 cut_func = cv_create_angle_cross_test(π, 0.0, Inf; δ=1e-2)
 
@@ -159,10 +158,14 @@ codomain = CV_Math2DCanvas(-3.5 + (pi+0.1)im, 3.5 - (pi+0.1)im, 100)
 
 scene = create_scene(trafo, domain, codomain, slider_pos; cut_test)
 
-handler = cvg_visualize(scene)
-cvg_wait_for_destroy(handler.window)
+cv_save_image(cv_get_can_layout(scene), "./Log01.png")
 
-cvg_close(handler); cv_destroy(scene)
+if CVG !== nothing
+    handler = CVG.cvg_visualize(scene)
+    CVG.cvg_wait_for_destroy(handler.window)
+
+    CVG.cvg_close(handler); CVG.cv_destroy(scene)
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
 

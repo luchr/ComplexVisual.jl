@@ -946,9 +946,13 @@ end
 
 
 for filename in (
+    "./Canvas.jl",
     "./Context.jl",
-    "./Style.jl", "./Painter.jl",
-    "./PixelCoordinates.jl", "./LayoutTutorial.jl", "./Axis.jl")
+    "./Style.jl", 
+    "./PixelCoordinates.jl",
+    "./Painter.jl",
+    "./Axis.jl")
+    "./LayoutTutorial.jl",
     push!(doc_modules, include(filename))
 end
 

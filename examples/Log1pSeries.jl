@@ -1,14 +1,14 @@
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 const fontface = cv_fontface("sans-serif")
 
 function get_param_n()
     value_min, value_max = 1, 29
     slider_pos = CV_TranslateByOffset(Int)
-    slider_pos.value = value_min
+    slider_pos.value = 3
     set_slider_value_func = z -> begin
         slider_pos.value = round(UInt, max(min(z, value_max), value_min))
         return CV_Response(; redraw_flag=true)
@@ -54,9 +54,13 @@ scene = cv_scene_comp_codomains_std((param_n, ), trafo1, trafo2,
     painter2=CV_PortraitPainter(trafo2) → circle)
 cv_get_redraw_func(scene)()
 
-handler = cvg_visualize(scene)
-cvg_wait_for_destroy(handler.window)
+cv_save_image(cv_get_can_layout(scene), "./Log1pSeries.png")
 
-cvg_close(handler); cv_destroy(scene)
+if CVG !== nothing
+    handler = CVG.cvg_visualize(scene)
+    CVG.cvg_wait_for_destroy(handler.window)
+
+    CVG.cvg_close(handler); CVG.cv_destroy(scene)
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:

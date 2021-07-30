@@ -1,17 +1,22 @@
 using ComplexVisual
 @ComplexVisual.import_huge
-using ComplexVisualGtk
-@ComplexVisualGtk.import_huge
+
+const CVG = try using ComplexVisualGtk; ComplexVisualGtk; catch nothing; end
 
 trafo = z -> z^2
 domain   = CV_Math2DCanvas(-2.0 + 2.0im, 2.0 - 2.0im, 100)
 codomain = CV_Math2DCanvas(-4.0 + 4.0im, 4.0 - 4.0im, 50)
 
-scene = cv_scene_lr_std(trafo, domain, codomain)
+lr_start_kwargs = Dict(:z_start => 0.2 +0.8im)
+scene = cv_scene_lr_std(trafo, domain, codomain; lr_start_kwargs)
 
-handler = cvg_visualize(scene)
-cvg_wait_for_destroy(handler.window)
+cv_save_image(cv_get_can_layout(scene), "./zsquare_lr.png")
 
-cvg_close(handler); cv_destroy(scene)
+if CVG !== nothing
+    handler = CVG.cvg_visualize(scene)
+    CVG.cvg_wait_for_destroy(handler.window)
+
+    CVG.cvg_close(handler); CVG.cv_destroy(scene)
+end
 
 # vim:syn=julia:cc=79:fdm=marker:sw=4:ts=4:
