@@ -6,6 +6,7 @@
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
   * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./Axis_docicon.png](./Axis_docicon.png) Axes](./Axis.md)
+  * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout tutorial](./LayoutTutorial.md)
 
 # Index
 
