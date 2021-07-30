@@ -38,6 +38,16 @@ Visualizing `exp(z*n)` vs. truncated series of `exp(z*n)` with n terms.
 ![n=30](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_030.png)
 ![n=80](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ExpSeriesRescaled_080.png)
 
+Source: [ExpSeriesRescaled.jl](./ExpSeriesRescaled.jl)
+
+## Visualizing Log with approximation
+
+Visualization of `(z^(1/n) - 1)*n`.
+
+[![Log01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log01.mp4?raw=true "Movie")
+
+Source: [Log01.jl](./Log01.jl)
+
 ## Axis
 
 How to style ticks and axis.
