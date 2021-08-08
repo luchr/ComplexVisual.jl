@@ -55,7 +55,7 @@ All the given callback functions are appended to the callback vectors.
 
 Required fields:
 * `layout`
-* `draw_once_func`:      callbacks that a called after the layout is fixed
+* `draw_once_func`:      callbacks that are called after the layout is fixed
                          and a Layout-Canvas was constructed.
                          Argument: last layout
 * `actionpixel_update`:  callbacks that are called after "the main action"
