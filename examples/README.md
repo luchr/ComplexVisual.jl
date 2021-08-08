@@ -86,6 +86,12 @@ Truncated Taylor series at z=0 of `Log(1+z)`
 
 Source: [Log1pSeries.jl](./Log1pSeries.jl)
 
+## Cayley Transformation
+
+Image of vertical lines transformed by `( z - i ) / ( z + i )`
+
+[![CayleyTransform.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/CayleyTransform.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/CayleyTransform.mp4?raw=true "Movie")
+
 ## Axis
 
 How to style ticks and axis.
