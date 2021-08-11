@@ -1,26 +1,24 @@
-# Examples
-
-## `z^2`
-
-[![zsquare_lr.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.mp4?raw=true "Movie")
-
-Source: [zsquare_lr.jl](./zsquare_lr.jl)
-
-## Winding numbers
-
-[![Winding01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.mp4?raw=true "Movie")
-
-Source: [Winding01.jl](./Winding01.jl)
+# Tutorials
 
 ## Arctan
+
+The first visualization tutorial goes through the basic concepts of `ComplexVisual.jl`. The goal of the visualization is to see how a 'test set' gets transformed by the analytic continuation of `Arctan`.
 
 [![Arctan.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Arctan.mp4?raw=true "Movie")
 
 Source: [Arctan.jl](./Arctan.jl)
 
+## `z^2`
+
+This is a barebones version of the first tutorial, which can be quickly changed to fit whatever set function you wish to visualize.
+
+[![zsquare_lr.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/zsquare_lr.mp4?raw=true "Movie")
+
+Source: [zsquare_lr.jl](./zsquare_lr.jl)
+
 ## ArctanSeries
 
-Truncated Taylor series at z=0 of Arctan.
+The second tutorial goes through how to build a slider. We use this to compare the `Arctan` function to its truncated Taylor series at z=0. The size of the sum can be changed with the slider. 
 
 [![ArctanSeries.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ArctanSeries.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/ArctanSeries.mp4?raw=true "Movie")
 
@@ -28,11 +26,25 @@ Source: [ArctanSeries.jl](./ArctanSeries.jl)
 
 ## Visualizing Exp with approximation
 
-Visualization of `(1 + z/n)^n`.
+We can now add the slider and 'test set' together to build a more complicated model. The goal is to see how `exp(z)` can be approximated through `(1 + z/n) ^ n`. To do this, we build our own custom slider that has a 'snap to infinity' option. 
 
 [![Exp01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Exp01.mp4?raw=true "Movie")
 
 Source: [Exp01.jl](./Exp01.jl)
+
+## Mandelbrot Set
+
+Our goal is to generate an image of the mandelbrot set, as well as interactive images of Julia sets. To do this, we need to build custom painter functions and colorschemes. 
+
+[![Mandelbrot.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Mandelbrot.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Mandelbrot.mp4?raw=true "Movie")
+
+# Examples
+
+## Winding numbers
+
+[![Winding01.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Winding01.mp4?raw=true "Movie")
+
+Source: [Winding01.jl](./Winding01.jl)
 
 ## Exp
 
@@ -73,6 +85,12 @@ Truncated Taylor series at z=0 of `Log(1+z)`
 [![Log1pSeries.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log1pSeries.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/Log1pSeries.mp4?raw=true "Movie")
 
 Source: [Log1pSeries.jl](./Log1pSeries.jl)
+
+## Cayley Transformation
+
+Image of vertical lines transformed by `( z - i ) / ( z + i )`
+
+[![CayleyTransform.mp4](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/CayleyTransform.png)](https://github.com/luchr/ComplexVisualMedia/blob/main/examples/CayleyTransform.mp4?raw=true "Movie")
 
 ## Axis
 

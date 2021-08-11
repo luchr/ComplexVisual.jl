@@ -1,3 +1,6 @@
+# This is a barebones left-right setup, which can quickly be
+# changed to see the phase portrait of any function. However,
+# there are no cut tests
 using ComplexVisual
 @ComplexVisual.import_huge
 
