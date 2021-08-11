@@ -1,7 +1,7 @@
 name = "ComplexVisual"
 uuid = "2a97bfb4-3a20-40ee-9094-a7b6a37a937b"
 authors = ["Christian Ludwig <ludwig@ma.tum.de>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [compat]
 julia = "1.6"
