@@ -135,7 +135,7 @@ function main()
         handler = CVG.cvg_visualize(scene)
         CVG.cvg_wait_for_destroy(handler.window)
 
-        CVG.cvg_close(handler); CVG.cv_destroy(scene.layout)
+        CVG.cvg_close(handler); CVG.cv_destroy(scene)
     end
     return nothing
 end
