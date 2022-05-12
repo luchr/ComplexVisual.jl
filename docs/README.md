@@ -6,7 +6,7 @@
   * [![./PixelCoordinates_docicon.png](./PixelCoordinates_docicon.png) Pixel Coordinates](./PixelCoordinates.md)
   * [![./Painter_docicon.png](./Painter_docicon.png) Painter](./Painter.md)
   * [![./Axis_docicon.png](./Axis_docicon.png) Axes](./Axis.md)
-  * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout tutorial](./LayoutTutorial.md)
+  * [![./LayoutTutorial_docicon.png](./LayoutTutorial_docicon.png) Layout (Positioning of graphic objects)](./LayoutTutorial.md)
 
 # Index
 
@@ -111,8 +111,8 @@
   * [`CV_2DCanvas`](./Canvas.md#user-content-cv_2dcanvas)
   * [`CV_2DCanvasContext`](./Context.md#user-content-cv_2dcanvascontext)
   * [`CV_2DCanvasPainter`](./Painter.md#user-content-cv_2dcanvaspainter)
-  * `→` ([`Style`](./Style.md#user-content--u2192), [`Painter`](./Painter.md#user-content--u2192))
+  * `→` ([`Painter`](./Painter.md#user-content--u2192), [`Style`](./Style.md#user-content--u2192))
   * `↦` ([`Painter`](./Painter.md#user-content--u21a6), [`Axis`](./Axis.md#user-content--u21a6))
-  * `⇒` ([`Axis`](./Axis.md#user-content--u21d2), [`Axis`](./Axis.md#user-content--u21d2-1))
+  * `⇒` ([`Axis`](./Axis.md#user-content--u21d2-1), [`Axis`](./Axis.md#user-content--u21d2))
 
 
