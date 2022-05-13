@@ -38,6 +38,7 @@
 ## D
 
   * [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter)
+  * [`CV_DiskPainter`](./Painter.md#user-content-cv_diskpainter)
 
 ## F
 

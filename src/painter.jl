@@ -2,7 +2,8 @@ macro import_painter_huge()
     :(
         using ComplexVisual:
                 CV_Painter, cv_paint, CV_CanvasPainter, CV_2DCanvasPainter,
-                CV_FillPainter, CV_ValueMarkPainter, 
+                CV_FillPainter, CV_ValueMarkPainter,
+                CV_DiskPainter,
                 CV_GridPainter, CV_LineSegment, CV_LineSegments,
                 CV_LinePainter, CV_DirectionPainter,
                 CV_PortraitPainter, cv_clear_cache,
@@ -323,6 +324,52 @@ function cv_paint(cc::CV_2DCanvasContext,
 end # }}}
 # }}}
 
+
+"""
+```
+CV_DiskPainter{dtrafoT} <: CV_2DCanvasPainter
+    dst_trafo           dtrafoT
+    segments           CV_LineSegments
+    radius             Float64
+```
+
+Paint disks (filled circles) at the given points.
+"""
+struct CV_DiskPainter{dtrafoT} <: CV_2DCanvasPainter  # {{{
+    dst_trafo       :: dtrafoT
+    segments        :: CV_LineSegments
+    radius          :: Float64
+end
+
+
+"""
+```
+CV_DiskPainter(segments, radius=0.1)
+    segments           CV_LineSegments
+    radius
+```
+"""
+function CV_DiskPainter(segments::CV_LineSegments, radius=0.1)
+    return CV_DiskPainter(identity, segments, radius)
+end
+
+function cv_paint(cc::CV_2DCanvasContext,
+        disk_painter::CV_DiskPainter{dtrafoT}) where {dtrafoT} # {{{
+    trafo, radius = disk_painter.dst_trafo, disk_painter.radius
+    ctx = cc.ctx
+    for segment in disk_painter.segments
+        for point in segment
+            wvalue = trafo(point)
+
+            move_to(ctx, real(wvalue), imag(wvalue))
+            arc(ctx, real(wvalue), imag(wvalue), radius, 0.0, 2*π)
+            fill(ctx)
+        end
+    end
+    return nothing
+end # }}}
+
+# }}}
 
 """
 ```
