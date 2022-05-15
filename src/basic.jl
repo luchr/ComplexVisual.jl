@@ -82,7 +82,12 @@ function cv_show_impl(io::IO, m::MIME{Symbol("text/plain")}, obj)
     fnames = cv_sorted_fieldnames(t)
     for name_sym in fnames
         print(io, indent, string(name_sym), ": ")
-        show(iio, m, cv_show_value_replacements(getfield(obj, name_sym)))
+        value = cv_show_value_replacements(getfield(obj, name_sym))
+        if value isa Vector{Any}
+            show(iio, value)
+        else
+            show(iio, m, value)
+        end
         println(io)
     end
     print(io, outer_indent, ')')
