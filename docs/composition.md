@@ -24,7 +24,7 @@ end
 
 Now what happens if you want to "add" an additional field: let's say a gray value? (This is just for simplicity. Obviously it's not a good idea to combine a mathematical shape with part of its appearance. But let's stay for the sake of simplicity with this example.)
 
-One could define a new type `GrayRectangle` and `GrayCircle`. In order to have methods that work on both types `Rectangle` and `GrayRectangle` one would add an abstract supertype (see [composition01.jl](./composition01.jl):
+One could define a new type `GrayRectangle` and `GrayCircle`. In order to have methods that work on both types `Rectangle` and `GrayRectangle` one would add an abstract supertype (see [composition01.jl](./composition01.jl)):
 
 ```julia
 abstract type Shape end
@@ -62,7 +62,7 @@ What happens if you want to add a new field, like a value for tranparency (often
 
 ## The embrace-and-extend idea
 
-Let's use another idea, where we use a new struct to save a reference to an object of the "old" type and add the fields; see, [composition02.jl](./composition02.jl):
+Let's use another idea, where we use a new struct to save a reference to an object of the "old" type and add the fields; see, [composition02.jl](./composition02.jl)):
 
 ```julia
 abstract type Shape end
@@ -98,7 +98,7 @@ r2 = GrayShape(AlphaShape(Rectangle((0.0, 1.0), (1.0, 0.0)), 0.9), 0.5)
 They are `r1.parent.gray_value` and `r2.gray_value`, respectively. And here comes one
 important part for the composition idea (in julia). If we want to keep
 the data-structures as above, then we have to use getter-methods.
-(see [composition03.jl](./composition03.jl)
+(see [composition03.jl](./composition03.jl))
 
 ```julia
 abstract type Shape end
@@ -145,7 +145,7 @@ reaches a parent where the field is saved directly in the struct
 
 For every field one has to code two methods. In order to save
 keystrokes and to make this less error-prone one may use a macro:
-(see [composition04.jl](./composition04.jl)
+(see [composition04.jl](./composition04.jl))
 
 ```julia
 abstract type Shape end
