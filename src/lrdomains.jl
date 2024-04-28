@@ -272,7 +272,7 @@ end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
         label_style::CV_ContextStyle = cv_black → 
-                cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
+                cv_fontface("serif") → cv_fontsize(20)) # {{{
 
     layout = setup.layout
     get_range_mean = (a, b) -> (
