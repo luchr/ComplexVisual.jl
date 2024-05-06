@@ -95,11 +95,21 @@ end # }}}
 function cv_setup_hslider(setup::CV_SceneSetupChain,
         slider_data::CV_SliderCreateData,
         cont_l::CV_2DLayoutPosition,
-        painter::CV_Painter, set_slider_value_func;
+        painter::Union{CV_Painter, Missing}, set_slider_value_func;
         react_to_actionpixel_update::Bool=true,
-        react_to_statepixel_update::Bool=false) # {{{
+        react_to_statepixel_update::Bool=false, mark_pos=nothing
+        ) # {{{
 
     cont, cc_cont = slider_data.slider_container, slider_data.container_context
+    if ismissing(painter)
+        bg_painter = cv_color(.8,.8,.8) ↦ CV_FillPainter()
+        painter = (mark_pos === nothing) ? bg_painter : 
+            bg_painter → (
+                (cv_op_source → cv_color(0,0,1) → cv_linewidth(2)) ↦
+                 CV_ValueMarkPainter(mark_pos,
+                    0.0, imag(cont.can_slider.corner_ul), false))
+    end
+    painter = painter::CV_Painter
 
     reaction = (px, py, layout) -> begin
         resp = nothing

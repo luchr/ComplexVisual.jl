@@ -951,12 +951,12 @@ for filename in (
     "./Style.jl", 
     "./PixelCoordinates.jl",
     "./Painter.jl",
-    "./Axis.jl")
-    "./LayoutTutorial.jl",
+    "./Axis.jl",
+    "./LayoutTutorial.jl")
     push!(doc_modules, include(filename))
 end
 
-# create_documents()
+create_documents()
 
 end
 

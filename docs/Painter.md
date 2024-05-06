@@ -10,8 +10,9 @@ Typically a [`CV_ContextStyle`](./Style.md#user-content-cv_contextstyle) is "att
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------------------------------- |:---------------------------------------------------------------------------------------------------------------------------------------- |
 | ![./Painter_fillpainter_icon.png](./Painter_fillpainter_icon.png) [`CV_FillPainter`](./Painter.md#user-content-cv_fillpainter)                           | ![./Painter_linepainter_icon.png](./Painter_linepainter_icon.png) [`CV_LinePainter`](./Painter.md#user-content-cv_linepainter)         | ![./Painter_markpainter_icon.png](./Painter_markpainter_icon.png) [`CV_ValueMarkPainter`](./Painter.md#user-content-cv_valuemarkpainter) |
 | ![./Painter_portraitpainter_icon.png](./Painter_portraitpainter_icon.png) [`CV_PortraitPainter`](./Painter.md#user-content-cv_portraitpainter)           | ![./Painter_dirpainter_icon.png](./Painter_dirpainter_icon.png) [`CV_DirectionPainter`](./Painter.md#user-content-cv_directionpainter) | ![./Painter_gridpainter_icon.png](./Painter_gridpainter_icon.png) [`CV_GridPainter`](./Painter.md#user-content-cv_gridpainter)           |
-| ![./Painter_m2dcanvaspainter_icon.png](./Painter_m2dcanvaspainter_icon.png) [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter) |                                                                                                                                        | [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)   [`→`](./Painter.md#user-content--u2192)                                 |
-| ![./Painter_windingpainter_icon.png](./Painter_windingpainter_icon.png) [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)               |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter), [`↦`](./Painter.md#user-content--u21a6)                                |
+| ![./Painter_m2dcanvaspainter_icon.png](./Painter_m2dcanvaspainter_icon.png) [`CV_Math2DCanvasPainter`](./Painter.md#user-content-cv_math2dcanvaspainter) |                                                                                                                                        | ![./Painter_diskpainter_icon.png](./Painter_diskpainter_icon.png) [`CV_DiskPainter`](./Painter.md#user-content-cv_diskpainter)           |
+| ![./Painter_windingpainter_icon.png](./Painter_windingpainter_icon.png) [`CV_WindingPainter`](./Painter.md#user-content-cv_windingpainter)               |                                                                                                                                        | [`CV_CombiPainter`](./Painter.md#user-content-cv_combipainter)   [`→`](./Painter.md#user-content--u2192)                                 |
+|                                                                                                                                                          |                                                                                                                                        | [`CV_StyledPainter`](./Painter.md#user-content-cv_styledpainter), [`↦`](./Painter.md#user-content--u21a6)                                |
 
 construction of line segments: [`cv_parallel_lines`](./Painter.md#user-content-cv_parallel_lines)  [`cv_arc_lines`](./Painter.md#user-content-cv_arc_lines)  [`cv_star_lines`](./Painter.md#user-content-cv_star_lines)
 
@@ -149,6 +150,48 @@ function example_mark_painter()
         cv_paint(canvas_context, grid)
         cv_paint(canvas_context, h_painter)
         cv_paint(canvas_context, v_painter)
+    end
+
+    return math_canvas
+end
+```
+
+## `CV_DiskPainter`
+
+```
+CV_DiskPainter{dtrafoT} <: CV_2DCanvasPainter
+    dst_trafo           dtrafoT
+    segments           CV_LineSegments
+    radius             Float64
+```
+
+Paint disks (filled circles) at the given points.
+
+```
+CV_DiskPainter(segments, radius=0.1)
+    segments           CV_LineSegments
+    radius
+```
+
+## Example for `CV_DiskPainter`
+
+![./Painter_diskpainter.png](./Painter_diskpainter.png)
+
+```julia
+function example_disk_painter()
+    math_canvas = CV_Math2DCanvas(0.0 + 0.5im, 0.5 + 0.0im, 440)
+    bg_fill = cv_white ↦ CV_FillPainter()  # for background
+
+    points1 = [0.1+0.2im, 0.2+0.3im, 0.3+0.35im, 0.4+0.4im]
+    points2 = [0.4+0.2im, 0.3+0.3im, 0.2+0.3im, 0.1+0.3im]
+
+    painter1 = cv_color(1, 0, 0) ↦ CV_DiskPainter([points1], 0.04)
+    painter2 = cv_color(0, 1, 0) ↦ CV_DiskPainter([points2], 0.02)
+
+    cv_create_context(math_canvas) do canvas_context
+        cv_paint(canvas_context, bg_fill)
+        cv_paint(canvas_context, painter1)
+        cv_paint(canvas_context, painter2)
     end
 
     return math_canvas

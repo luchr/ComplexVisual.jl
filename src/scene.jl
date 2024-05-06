@@ -34,7 +34,7 @@ Here is, where a `CV_SceneSetupChain` helps.
 
 All callback functions are gathered in vectors. This is the point where
 the type information about the callback functions are completely lost.
-For the return value (which is always `nothing`) this is not a problem.
+For the return value this is not a problem.
 For the call this is a tradeoff: If elements of such a vector are
 called then this are purely "runtime"-calls (i.e. what to call, with
 what types, etc. is determined at runtime). That's the negative part.
@@ -70,6 +70,10 @@ Required fields:
                          caches and recompute their paintings)
 """
 abstract type CV_SceneSetupChain end
+
+show(io::IO, chain::CV_SceneSetupChain) = cv_show_impl(io, chain)
+show(io::IO, m::MIME{Symbol("text/plain")}, chain::CV_SceneSetupChain) =
+    cv_show_impl(io, m, chain)
 
 
 """

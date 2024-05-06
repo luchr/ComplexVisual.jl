@@ -272,7 +272,7 @@ end  # }}}
 
 function cv_setup_lr_axis(setup::CV_SceneSetupChain;
         label_style::CV_ContextStyle = cv_black → 
-                cv_fontface("serif") → cv_fontsize(20)) where {A, B, C, D} # {{{
+                cv_fontface("serif") → cv_fontsize(20)) # {{{
 
     layout = setup.layout
     get_range_mean = (a, b) -> (
@@ -381,6 +381,7 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
         img_painter_codomain=missing,
         portrait_painter_domain=missing,
         portrait_painter_codomain=missing,
+        portrait_colorscheme=ComplexPortraits.cs_j(),
         parallel_hlines_style=cv_setup_lr_painters_default_phs,
         parallel_vlines_style=cv_setup_lr_painters_default_pvs,
         parallel_hlines=cv_parallel_lines(1.0+0.0im),
@@ -406,10 +407,10 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
     end
 
     if ismissing(portrait_painter_domain)
-        portrait_painter_domain = CV_PortraitPainter(trafo)
+        portrait_painter_domain = CV_PortraitPainter(trafo, portrait_colorscheme)
     end
     if ismissing(portrait_painter_codomain)
-        portrait_painter_codomain = CV_PortraitPainter()
+        portrait_painter_codomain = CV_PortraitPainter(identity, portrait_colorscheme)
     end
 
     if ismissing(parallel_lines_painter_domain)
@@ -501,7 +502,9 @@ function cv_scene_lr_std(trafo,
         domain, codomain; cut_test=nothing, gap=80,
         axis_label_style=cv_black → 
                   cv_fontface("sans-serif", Cairo.FONT_WEIGHT_BOLD) → 
-                  cv_fontsize(20), padding=30,
+                  cv_fontsize(20),
+        axis_rulers=nothing,
+        padding=30,
         lr_painters_kwargs = Dict(:cut_test => cut_test),
         lr_start_kwargs = Dict()) # {{{
     layout = CV_StateLayout(CV_2DLayout(), CV_CyclicValue(2))
@@ -509,7 +512,12 @@ function cv_scene_lr_std(trafo,
 
     setup = cv_setup_cycle_state(CV_LRSetupChain(layout))
     setup = cv_setup_lr_painters(setup; lr_painters_kwargs...)
-    setup = cv_setup_lr_axis(setup; label_style=axis_label_style)
+    if axis_rulers !== nothing
+      setup = cv_setup_lr_axis(setup,
+        axis_rulers[1], axis_rulers[2], axis_rulers[3], axis_rulers[4]);
+    else
+      setup = cv_setup_lr_axis(setup; label_style=axis_label_style)
+    end
     setup = cv_setup_lr_border(setup)
     padding > 0 && cv_add_padding!(setup.layout, padding)
     setup = cv_setup_domain_codomain_scene(setup)
