@@ -381,6 +381,7 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
         img_painter_codomain=missing,
         portrait_painter_domain=missing,
         portrait_painter_codomain=missing,
+        portrait_colorscheme=ComplexPortraits.cs_j(),
         parallel_hlines_style=cv_setup_lr_painters_default_phs,
         parallel_vlines_style=cv_setup_lr_painters_default_pvs,
         parallel_hlines=cv_parallel_lines(1.0+0.0im),
@@ -406,10 +407,10 @@ function cv_setup_lr_painters(setup::CV_SceneSetupChain;
     end
 
     if ismissing(portrait_painter_domain)
-        portrait_painter_domain = CV_PortraitPainter(trafo)
+        portrait_painter_domain = CV_PortraitPainter(trafo, portrait_colorscheme)
     end
     if ismissing(portrait_painter_codomain)
-        portrait_painter_codomain = CV_PortraitPainter()
+        portrait_painter_codomain = CV_PortraitPainter(identity, portrait_colorscheme)
     end
 
     if ismissing(parallel_lines_painter_domain)
